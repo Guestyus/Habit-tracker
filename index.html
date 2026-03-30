@@ -250,30 +250,7 @@
         .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--primary); line-height: 1; }
         .stat-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* ── MOBILE ── */
-        #mobileTaskList { display: none; padding: 14px; flex-direction: column; gap: 10px; }
-        .mobile-card {
-            background: var(--surface-2); border-radius: 14px; padding: 16px;
-            border: 1px solid var(--border-color); cursor: pointer;
-            transition: border-color 0.2s, transform 0.15s;
-            user-select: none; -webkit-user-select: none;
-        }
-        .mobile-card:active { transform: scale(0.98); }
-        .mobile-card.edit-mode { cursor: default; }
-        .mobile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .mobile-card-name { font-weight: 900; font-size: 1rem; letter-spacing: 0.3px; }
-        .mobile-card-pct { color: var(--primary); font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
-        .mobile-streak { font-size: 0.75rem; color: var(--streak-color); font-family: 'DM Mono', monospace; margin-top: 4px; }
-        .mobile-count { font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
-        .mobile-edit-footer {
-            display: none; border-top: 1px solid var(--border-color);
-            margin-top: 12px; padding-top: 12px; justify-content: space-between; align-items: center;
-        }
-        .is-editing .mobile-edit-footer { display: flex; }
-        .btn-mobile-sm { height: 36px; width: 44px; font-size: 0.9rem; border-radius: 8px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; cursor: pointer; transition: background 0.15s; }
-        .btn-mobile-sm:hover { background: #333; }
-        .btn-mobile-del { background: rgba(255,71,87,0.1); border-color: rgba(255,71,87,0.3); color: var(--danger); padding: 0 16px; font-weight: 700; font-size: 0.82rem; border-radius: 8px; border: 1px solid rgba(255,71,87,0.3); cursor: pointer; height: 36px; transition: background 0.15s; }
-        .btn-mobile-del:hover { background: rgba(255,71,87,0.2); }
+        /* ── MOBILE (see enhanced styles below) ── */
 
         /* ── DAY MODAL ── */
         #dayModal {
@@ -328,20 +305,123 @@
         @keyframes loadPulse { 0% { width: 0%; } 60% { width: 80%; } 100% { width: 100%; } }
         .loading-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 12px; }
 
-        /* ── RESPONSIVE ── */
+
+        /* ── TODAY PANEL (mobile) ── */
+        #todayPanel {
+            display: none; padding: 16px 14px 0;
+        }
+        .today-panel-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .today-panel-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: #fff;
+        }
+        .today-panel-date {
+            font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-muted);
+        }
+        .today-habits-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
+            margin-bottom: 16px;
+        }
+        .today-habit-btn {
+            border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
+            border: 2px solid var(--border-color); background: var(--surface-2);
+            transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            user-select: none; -webkit-user-select: none; position: relative; overflow: hidden;
+        }
+        .today-habit-btn.done {
+            background: var(--primary-light); border-color: var(--primary);
+            box-shadow: 0 4px 16px var(--primary-glow);
+        }
+        .today-habit-btn:active { transform: scale(0.93); }
+        .today-habit-icon {
+            font-size: 1.6rem; margin-bottom: 6px; display: block;
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .today-habit-btn.done .today-habit-icon { transform: scale(1.2); }
+        .today-habit-name {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.3px;
+            color: var(--text-muted); text-transform: uppercase; line-height: 1.2;
+            display: block;
+        }
+        .today-habit-btn.done .today-habit-name { color: var(--primary); }
+        .today-divider {
+            height: 1px; background: var(--border-color); margin: 0 14px 14px;
+        }
+
+        /* ── BOTTOM NAV (mobile) ── */
+        #mobileBottomNav {
+            display: none; position: sticky; bottom: 0; left: 0; right: 0;
+            background: rgba(14,14,14,0.96); border-top: 1px solid var(--border-color);
+            padding: 12px 20px; z-index: 100;
+            backdrop-filter: blur(12px);
+            align-items: center; justify-content: space-between;
+        }
+        .mob-nav-btn {
+            width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border-color);
+            background: var(--surface-2); color: var(--text-main); font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+        }
+        .mob-nav-btn:active { background: var(--primary); border-color: var(--primary); transform: scale(0.9); }
+        .mob-nav-center { text-align: center; flex: 1; }
+        .mob-nav-month { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: #fff; line-height: 1; }
+        .mob-nav-year  { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text-muted); letter-spacing: 1px; }
+
+        /* ── IMPROVED MOBILE CARDS ── */
+        .mobile-card {
+            background: var(--surface-2); border-radius: 16px; padding: 16px;
+            border: 1px solid var(--border-color); cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            user-select: none; -webkit-user-select: none; position: relative; overflow: hidden;
+        }
+        .mobile-card.done-today { border-color: rgba(76,175,80,0.4); box-shadow: 0 4px 20px rgba(76,175,80,0.1); }
+        .mobile-card:active { transform: scale(0.97); }
+        .mobile-card.edit-mode { cursor: default; }
+        .mobile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .mobile-card-left { flex: 1; min-width: 0; }
+        .mobile-card-name { font-weight: 900; font-size: 1rem; letter-spacing: 0.3px; display: block; margin-bottom: 2px; }
+        .mobile-card-meta { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--text-muted); }
+        .mobile-ring { flex-shrink: 0; width: 52px; height: 52px; position: relative; }
+        .mobile-ring svg { width: 52px; height: 52px; transform: rotate(-90deg); }
+        .mobile-ring-text {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 0.5px; color: #fff;
+        }
+        .mobile-streak { font-size: 0.73rem; color: var(--streak-color); font-family: 'DM Mono', monospace; margin-top: 6px; }
+        .mobile-edit-footer {
+            display: none; border-top: 1px solid var(--border-color);
+            margin-top: 12px; padding-top: 12px; justify-content: space-between; align-items: center;
+        }
+        .is-editing .mobile-edit-footer { display: flex; }
+        .btn-mobile-sm { height: 38px; width: 46px; font-size: 0.9rem; border-radius: 10px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; cursor: pointer; transition: background 0.15s; }
+        .btn-mobile-sm:active { background: #444; }
+        .btn-mobile-del { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.25); color: var(--danger); padding: 0 18px; font-weight: 700; font-size: 0.82rem; border-radius: 10px; cursor: pointer; height: 38px; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
+        .btn-mobile-del:active { background: rgba(255,71,87,0.2); }
+
+        /* swipe hint animation */
+        @keyframes swipeHint { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-8px)} 60%{transform:translateX(8px)} }
+
         @media (max-width: 800px) {
-            body { padding: 8px; }
-            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            body { padding: 0; padding-bottom: 80px; }
+            .dashboard { border-radius: 0; border-left: none; border-right: none; min-height: 100vh; }
+            .header { padding: 16px 14px; }
             .charts-row { align-self: flex-end; }
             .area-chart { display: none; }
-            .title-section h2 { font-size: 2rem; }
+            .title-section h2 { font-size: 1.8rem; }
+            .subtitle { display: none; }
             .table-wrapper { display: none; }
             #mobileTaskList { display: flex; }
-            .table-controls { flex-wrap: wrap; }
+            #todayPanel { display: block; }
+            #mobileBottomNav { display: flex; }
+            .table-controls { padding: 10px 14px; }
             .controls-left { width: 100%; }
-            .btn { flex: 1; }
-            .footer-stats { justify-content: space-around; }
+            .btn { flex: 1; font-size: 0.78rem; padding: 0 10px; }
+            .stats-pill { display: none; }
+            .tabs { display: none; }
+            .footer-stats { padding: 12px 14px; }
         }
+
     </style>
 </head>
 <body>
@@ -416,7 +496,17 @@
         </table>
     </div>
 
+    <div id="todayPanel"></div>
+    <div class="today-divider" id="todayDivider" style="display:none;"></div>
     <div id="mobileTaskList"></div>
+    <div id="mobileBottomNav">
+        <button class="mob-nav-btn" onclick="mobileNavMonth(-1)">&#8592;</button>
+        <div class="mob-nav-center">
+            <div class="mob-nav-month" id="mobNavMonth">—</div>
+            <div class="mob-nav-year">2026</div>
+        </div>
+        <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
+    </div>
 
     <div class="footer-stats" id="footerStats"></div>
 </div>
@@ -692,18 +782,29 @@
                 <div class="progress-count">${done}/${info.days}</div>
             </td></tr>`;
 
-            // Mobile card
+            // Mobile card with ring progress
+            const circumference = 2 * Math.PI * 20;
+            const dashOffset = circumference - (pct / 100) * circumference;
+            const isDoneToday = isCurrentMonth && !!appState.data[`${currentView}_${r}_${todayDay}`];
             mobileCards += `
-                <div class="mobile-card ${isEditing ? 'edit-mode' : ''}" onclick="${isEditing ? 'event.stopPropagation()' : `openModal(${r})`}">
+                <div class="mobile-card ${isEditing ? 'edit-mode' : ''} ${isDoneToday ? 'done-today' : ''}"
+                     onclick="${isEditing ? 'event.stopPropagation()' : `openModal(${r})`}">
                     <div class="mobile-card-header">
-                        <span class="mobile-card-name">${name}</span>
-                        <span class="mobile-card-pct">${pct}%</span>
+                        <div class="mobile-card-left">
+                            <span class="mobile-card-name">${name}</span>
+                            <span class="mobile-card-meta">${done}/${info.days} days · ${isCurrentMonth ? (isDoneToday ? '✓ done today' : '· not done today') : ''}</span>
+                            ${streak >= 2 ? `<div class="mobile-streak">🔥 ${streak}-day streak</div>` : ''}
+                        </div>
+                        <div class="mobile-ring">
+                            <svg viewBox="0 0 44 44">
+                                <circle cx="22" cy="22" r="18" fill="none" stroke="#2a2a2a" stroke-width="4"/>
+                                <circle cx="22" cy="22" r="18" fill="none" stroke="var(--primary)" stroke-width="4"
+                                    stroke-dasharray="${(pct/100*2*Math.PI*18).toFixed(1)} ${(2*Math.PI*18).toFixed(1)}"
+                                    stroke-linecap="round" style="transition:stroke-dasharray 0.4s ease;"/>
+                            </svg>
+                            <div class="mobile-ring-text">${pct}%</div>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg" style="width:100%">
-                        <div class="progress-bar-fill" style="width:${pct}%"></div>
-                    </div>
-                    ${streak >= 2 ? `<div class="mobile-streak">🔥 ${streak}-day streak</div>` : ''}
-                    <div class="mobile-count">${done} of ${info.days} days complete</div>
                     <div class="mobile-edit-footer">
                         <div style="display:flex; gap:8px;">
                             <button class="btn-mobile-sm" onclick="event.stopPropagation(); moveTask(${r},-1)">▲</button>
@@ -716,6 +817,8 @@
 
         document.getElementById('tableBody').innerHTML = rows;
         document.getElementById('mobileTaskList').innerHTML = mobileCards;
+        renderTodayPanel();
+        updateMobileNav();
 
         // Stats pill
         const doneToday = appState.habits.filter((_, r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
@@ -773,6 +876,9 @@
         document.getElementById('tableBody').innerHTML = rows;
         document.getElementById('mobileTaskList').innerHTML = mobileCards;
         document.getElementById('statsPill').innerHTML = `Year avg: <span>${Math.round((grandDone/Math.max(grandTotal,1))*100)}%</span>`;
+        document.getElementById('todayPanel').innerHTML = '';
+        document.getElementById('todayDivider').style.display = 'none';
+        updateMobileNav();
         updateCharts(12);
         renderFooterStats(12);
     }
@@ -936,6 +1042,96 @@
         safeSave(); renderView();
         showToast(allDone ? 'Cleared today' : '🔥 Today marked complete!');
     }
+
+
+    // ── HAPTIC FEEDBACK ──
+    function haptic(pattern = 10) {
+        if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    // ── MOBILE NAV ──
+    function updateMobileNav() {
+        const el = document.getElementById('mobNavMonth');
+        if (!el) return;
+        el.innerText = currentView === 12 ? '2026' : monthsInfo[currentView].name.toUpperCase();
+    }
+
+    function mobileNavMonth(dir) {
+        haptic(8);
+        const next = currentView + dir;
+        if (next < 0 || next > 12) return;
+        currentView = next;
+        renderView();
+        // scroll mobile list to top
+        document.getElementById('mobileTaskList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── TODAY PANEL ──
+    function renderTodayPanel() {
+        const panel = document.getElementById('todayPanel');
+        const divider = document.getElementById('todayDivider');
+        if (currentView !== todayMonth) {
+            panel.innerHTML = ''; divider.style.display = 'none'; return;
+        }
+        const dateStr = today.toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long' });
+        const doneCount = appState.habits.filter((_,r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
+        const icons = ['💪','🥩','🌙','⏰','👟','📚','💧','🧘','🏃','🎯','✅','⭐'];
+        let html = `<div class="today-panel-header">
+            <div>
+                <div class="today-panel-title">TODAY</div>
+                <div class="today-panel-date">${dateStr} · ${doneCount}/${appState.habits.length} done</div>
+            </div>
+        </div>
+        <div class="today-habits-grid">`;
+        appState.habits.forEach((name, r) => {
+            const key = `${currentView}_${r}_${todayDay}`;
+            const done = !!appState.data[key];
+            const icon = icons[r % icons.length];
+            html += `<div class="today-habit-btn ${done ? 'done' : ''}" onclick="toggleTodayHabit(${r})">
+                <span class="today-habit-icon">${done ? '✅' : icon}</span>
+                <span class="today-habit-name">${name.length > 14 ? name.substring(0,13)+'…' : name}</span>
+            </div>`;
+        });
+        html += '</div>';
+        panel.innerHTML = html;
+        divider.style.display = 'block';
+    }
+
+    function toggleTodayHabit(r) {
+        if (currentView !== todayMonth) return;
+        haptic(12);
+        const k = `${currentView}_${r}_${todayDay}`;
+        appState.data[k] = !appState.data[k];
+        // celebrate if all done
+        const allDone = appState.habits.every((_,i) => appState.data[`${currentView}_${i}_${todayDay}`]);
+        if (allDone) { showToast('🔥 All habits done today!'); haptic([30,20,30]); }
+        safeSave(); renderView();
+    }
+
+    // ── SWIPE TO CHANGE MONTH ──
+    (function() {
+        let touchStartX = 0, touchStartY = 0;
+        const el = document.getElementById('mainDashboard');
+        el.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        el.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            // only register horizontal swipes, ignore if mostly vertical
+            if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+            // ignore swipes that start in the modal
+            if (document.getElementById('dayModal').style.display === 'flex') return;
+            mobileNavMonth(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    })();
+
+    // Patch toggleCheckbox and openModal to add haptics
+    const _origToggle = toggleCheckbox;
+    toggleCheckbox = function(m, r, c) { haptic(10); _origToggle(m, r, c); };
+    const _origOpen = openModal;
+    openModal = function(r) { haptic(8); _origOpen(r); };
 
     // ── CHARTS ──
     function updateCharts(view) {

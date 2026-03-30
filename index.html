@@ -363,6 +363,7 @@
         </div>
         <div class="quote-container">
             <input type="text" id="quoteInput" class="quote-input" placeholder="Add a motivational quote...">
+            <button onclick="shuffleQuote()" title="New random quote" id="shuffleBtn" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;flex-shrink:0;transition:color 0.2s,transform 0.4s;">🎲</button>
         </div>
         <div class="charts-row">
             <div>
@@ -486,6 +487,53 @@
         t._timer = setTimeout(() => t.classList.remove('show'), 2000);
     }
 
+    // ── QUOTES ──
+    const QUOTES = [
+        "We are what we repeatedly do. Excellence is not an act, but a habit.",
+        "Success is the sum of small efforts repeated day in and day out.",
+        "Motivation gets you started. Habit keeps you going.",
+        "You will never always be motivated. You have to learn to be disciplined.",
+        "Small daily improvements over time lead to stunning results.",
+        "The secret of your future is hidden in your daily routine.",
+        "Discipline is choosing between what you want now and what you want most.",
+        "Either you run the day or the day runs you.",
+        "Be consistent. Half the battle is just showing up.",
+        "A year from now you may wish you had started today.",
+        "Champions are not born. They are built daily.",
+        "Don't count the days. Make the days count.",
+        "What you do every day matters more than what you do once in a while.",
+        "One day or day one. You decide.",
+        "Push yourself because no one else is going to do it for you.",
+        "It's not about being the best. It's about being better than yesterday.",
+        "Fall seven times, stand up eight.",
+        "Consistency is more important than perfection.",
+        "Dream it. Wish it. Do it.",
+        "Hard work beats talent when talent doesn't work hard.",
+        "The pain of discipline is far less than the pain of regret.",
+        "Rome wasn't built in a day, but they were laying bricks every hour.",
+        "Show up every day. That's the whole game.",
+        "Your habits will determine your future.",
+        "Little by little, a little becomes a lot.",
+        "The only bad workout is the one that didn't happen.",
+        "Wake up with determination. Go to bed with satisfaction.",
+        "Earn your rest.",
+        "What gets measured gets improved.",
+        "Build the life you want, one day at a time."
+    ];
+
+    function getRandomQuote() {
+        return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    }
+
+    function shuffleQuote() {
+        const q = getRandomQuote();
+        document.getElementById('quoteInput').value = q;
+        const btn = document.getElementById('shuffleBtn');
+        btn.style.transform = 'rotate(360deg)';
+        setTimeout(() => btn.style.transform = 'rotate(0deg)', 400);
+        if (appState) { appState.quote = q; safeSave(); }
+    }
+
     // ── DEFAULT STATE ──
     function buildDefault() {
         return {
@@ -508,8 +556,11 @@
         appState = doc.exists ? doc.data() : buildDefault();
         if (!doc.exists) docRef.set(appState);
         document.getElementById('loadingOverlay').style.display = 'none';
-        document.getElementById('quoteInput').value = appState.quote || '';
-        if (!tabsInitialized) { initTabs(); tabsInitialized = true; }
+        // Show saved quote, or a fresh random one each page load if none saved
+        if (!tabsInitialized) {
+            document.getElementById('quoteInput').value = appState.quote || getRandomQuote();
+            initTabs(); tabsInitialized = true;
+        }
         else { updateTabActiveStates(); }
         renderView();
     });

@@ -9,419 +9,452 @@
     <style>
         :root {
             --primary: #4caf50;
-            --primary-light: rgba(76, 175, 80, 0.12);
-            --primary-glow: rgba(76, 175, 80, 0.3);
-            --today-col: rgba(76, 175, 80, 0.08);
-            --today-border: rgba(76, 175, 80, 0.5);
+            --primary-light: rgba(76,175,80,0.12);
+            --primary-glow: rgba(76,175,80,0.28);
+            --today-col: rgba(76,175,80,0.07);
+            --today-border: rgba(76,175,80,0.45);
             --bg-color: #0d0d0d;
-            --surface-color: #161616;
-            --surface-2: #1e1e1e;
-            --header-bg: #252525;
-            --border-color: #2a2a2a;
-            --text-main: #e8e8e8;
-            --text-muted: #888;
+            --surface: #161616;
+            --surface-2: #1c1c1c;
+            --surface-3: #242424;
+            --border: #2a2a2a;
+            --text: #e8e8e8;
+            --muted: #777;
             --danger: #ff4757;
-            --streak-color: #ff6b35;
+            --streak: #ff6b35;
             --gold: #f1c40f;
+            --sidebar-w: 260px;
         }
-
-        * { box-sizing: border-box; }
+        *{box-sizing:border-box;margin:0;padding:0;}
 
         body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 12px;
-            -webkit-tap-highlight-color: transparent;
-            min-height: 100vh;
+            font-family:'DM Sans',sans-serif;
+            background:var(--bg-color); color:var(--text);
+            -webkit-tap-highlight-color:transparent;
+            min-height:100vh;
         }
 
         /* ── TOAST ── */
         #toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: var(--primary); color: white; padding: 10px 22px; border-radius: 100px;
-            font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px;
-            opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 9999;
-            pointer-events: none; white-space: nowrap;
+            position:fixed; bottom:28px; left:50%;
+            transform:translateX(-50%) translateY(16px);
+            background:var(--surface-3); border:1px solid var(--border);
+            color:var(--text); padding:10px 20px; border-radius:100px;
+            font-weight:700; font-size:0.8rem; letter-spacing:.4px;
+            opacity:0; transition:opacity .25s,transform .25s; z-index:9999;
+            pointer-events:none; white-space:nowrap;
+            box-shadow:0 8px 24px rgba(0,0,0,.5);
         }
-        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+        #toast.green{background:var(--primary);border-color:var(--primary);}
 
-        /* ── DASHBOARD SHELL ── */
-        .dashboard {
-            width: 100%; max-width: 1800px; margin: 0 auto;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        /* ── OUTER LAYOUT ── */
+        .outer {
+            display:flex; align-items:flex-start; gap:0;
+            max-width:1900px; margin:0 auto; padding:14px;
+        }
+
+        /* ── DESKTOP SIDEBAR ── */
+        #desktopSidebar {
+            width:var(--sidebar-w); flex-shrink:0;
+            background:var(--surface); border:1px solid var(--border);
+            border-radius:12px; overflow:hidden;
+            position:sticky; top:14px;
+            display:flex; flex-direction:column; gap:0;
+        }
+        .sidebar-header {
+            padding:18px 16px 14px;
+            border-bottom:1px solid var(--border);
+            background:linear-gradient(180deg,rgba(255,255,255,.025) 0%,transparent 100%);
+        }
+        .sidebar-date {
+            font-family:'DM Mono',monospace; font-size:.62rem;
+            color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px;
+        }
+        .sidebar-title {
+            font-family:'Bebas Neue',sans-serif; font-size:1.6rem;
+            letter-spacing:2px; color:#fff; line-height:1;
+        }
+        .sidebar-sub {
+            font-family:'DM Mono',monospace; font-size:.62rem;
+            color:var(--primary); margin-top:3px;
+        }
+        .sidebar-habits { padding:10px 10px; display:flex; flex-direction:column; gap:6px; }
+        .sb-habit {
+            display:flex; align-items:center; gap:10px; padding:10px 12px;
+            border-radius:10px; border:1px solid var(--border);
+            background:var(--surface-2); cursor:pointer;
+            transition:all .18s cubic-bezier(.34,1.56,.64,1);
+            user-select:none;
+        }
+        .sb-habit:hover{border-color:#3a3a3a; background:var(--surface-3);}
+        .sb-habit.done{background:var(--primary-light); border-color:var(--primary); box-shadow:0 2px 12px var(--primary-glow);}
+        .sb-habit:active{transform:scale(.96);}
+        .sb-icon{font-size:1.2rem; flex-shrink:0; transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+        .sb-habit.done .sb-icon{transform:scale(1.15);}
+        .sb-name{font-size:.8rem; font-weight:800; letter-spacing:.2px; flex:1; min-width:0;
+                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted);}
+        .sb-habit.done .sb-name{color:var(--primary);}
+        .sb-check{width:18px; height:18px; border-radius:5px; border:2px solid #3a3a3a;
+                  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+                  font-size:.7rem; font-weight:900; transition:all .15s;}
+        .sb-habit.done .sb-check{background:var(--primary); border-color:var(--primary); color:#fff;}
+        .sb-habit.done .sb-check::after{content:'✓';}
+
+        .sidebar-stats {
+            margin:0 10px 10px; padding:12px; background:var(--surface-2);
+            border-radius:10px; border:1px solid var(--border);
+            display:grid; grid-template-columns:1fr 1fr; gap:10px;
+        }
+        .ss-item{text-align:center;}
+        .ss-val{font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--primary); line-height:1;}
+        .ss-lbl{font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-top:1px;}
+
+        .sidebar-mark-btn {
+            margin:0 10px 14px; padding:12px; border-radius:10px;
+            background:rgba(76,175,80,.1); border:1px solid rgba(76,175,80,.25);
+            color:var(--primary); font-family:'DM Sans',sans-serif;
+            font-weight:800; font-size:.82rem; cursor:pointer; letter-spacing:.3px;
+            transition:all .15s;
+        }
+        .sidebar-mark-btn:hover{background:rgba(76,175,80,.2);}
+        .sidebar-mark-btn.all-done{background:var(--primary); color:#fff; border-color:var(--primary);}
+
+        .sidebar-shortcut-hint {
+            margin:0 10px 14px; padding:10px 12px; border-radius:8px;
+            background:rgba(255,255,255,.02); border:1px solid var(--border);
+            font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted);
+            line-height:1.6;
+        }
+        .key-badge{display:inline-block; background:var(--surface-3); border:1px solid var(--border);
+                   border-radius:4px; padding:1px 5px; font-size:.58rem; color:var(--text); margin-right:3px;}
+
+        /* ── MAIN PANEL ── */
+        .main-panel {
+            flex:1; min-width:0; margin-left:14px;
+            background:var(--surface); border:1px solid var(--border);
+            border-radius:12px; overflow:hidden;
+            box-shadow:0 16px 50px rgba(0,0,0,.45);
         }
 
         /* ── TABS ── */
         .tabs {
-            display: flex; background: #080808;
-            overflow-x: auto; scrollbar-width: none;
-            border-bottom: 1px solid var(--border-color);
+            display:flex; background:#080808;
+            overflow-x:auto; scrollbar-width:none;
+            border-bottom:1px solid var(--border);
         }
-        .tabs::-webkit-scrollbar { display: none; }
+        .tabs::-webkit-scrollbar{display:none;}
         .tab {
-            flex: 1; text-align: center; padding: 14px 10px;
-            color: var(--text-muted); cursor: pointer;
-            font-family: 'DM Mono', monospace;
-            font-weight: 500; font-size: 0.72rem;
-            text-transform: uppercase; letter-spacing: 1px;
-            border-right: 1px solid #1a1a1a;
-            transition: color 0.2s, background 0.2s;
-            white-space: nowrap; position: relative; user-select: none;
+            flex:1; text-align:center; padding:13px 8px;
+            color:var(--muted); cursor:pointer;
+            font-family:'DM Mono',monospace; font-weight:500;
+            font-size:.7rem; text-transform:uppercase; letter-spacing:.8px;
+            border-right:1px solid #181818;
+            transition:color .2s,background .2s;
+            white-space:nowrap; position:relative; user-select:none;
         }
-        .tab:hover:not(.active) { color: #ccc; background: rgba(255,255,255,0.02); }
-        .tab.active { color: white; background: linear-gradient(180deg, rgba(76,175,80,0.2) 0%, rgba(76,175,80,0.05) 100%); }
-        .tab.active::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-            background: var(--primary);
-        }
-        .tab.current-month::before {
-            content: ''; position: absolute; top: 6px; right: 6px;
-            width: 5px; height: 5px; border-radius: 50%;
-            background: var(--primary); box-shadow: 0 0 6px var(--primary);
-        }
-        .tab.year-tab { background: #111; color: var(--gold); flex: 1.2; }
-        .tab.year-tab.active { background: linear-gradient(180deg, rgba(241,196,15,0.15) 0%, rgba(241,196,15,0.03) 100%); }
-        .tab.year-tab.active::after { background: var(--gold); }
+        .tab:hover:not(.active){color:#ccc; background:rgba(255,255,255,.025);}
+        .tab.active{color:#fff; background:linear-gradient(180deg,rgba(76,175,80,.18) 0%,rgba(76,175,80,.04) 100%);}
+        .tab.active::after{content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--primary);}
+        .tab.current-month::before{content:''; position:absolute; top:5px; right:5px; width:5px; height:5px; border-radius:50%; background:var(--primary); box-shadow:0 0 5px var(--primary);}
+        .tab.year-tab{background:#0e0e0e; color:var(--gold); flex:1.3;}
+        .tab.year-tab.active{background:linear-gradient(180deg,rgba(241,196,15,.14) 0%,rgba(241,196,15,.03) 100%);}
+        .tab.year-tab.active::after{background:var(--gold);}
 
         /* ── HEADER ── */
         .header {
-            display: flex; justify-content: space-between; padding: 20px 24px;
-            border-bottom: 1px solid var(--border-color); align-items: center; gap: 20px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            display:flex; justify-content:space-between; padding:18px 22px;
+            border-bottom:1px solid var(--border); align-items:center; gap:18px;
+            background:linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 100%);
         }
         .title-section h2 {
-            margin: 0; font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.6rem; font-weight: 400; letter-spacing: 3px;
-            color: #fff; line-height: 1;
+            font-family:'Bebas Neue',sans-serif; font-size:2.4rem; font-weight:400;
+            letter-spacing:3px; color:#fff; line-height:1;
         }
         .title-section .subtitle {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.68rem; color: var(--text-muted);
-            letter-spacing: 2px; text-transform: uppercase; margin-top: 3px;
+            font-family:'DM Mono',monospace; font-size:.65rem;
+            color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:3px;
         }
         .quote-container {
-            flex-grow: 1; display: flex; align-items: center;
-            background: rgba(255,255,255,0.02);
-            border-left: 3px solid var(--primary); padding: 10px 16px; border-radius: 6px;
-            transition: border-color 0.2s;
+            flex-grow:1; display:flex; align-items:center;
+            background:rgba(255,255,255,.02); border-left:3px solid var(--primary);
+            padding:10px 14px; border-radius:6px; transition:border-color .2s;
         }
-        .quote-container:focus-within { border-color: var(--primary); background: rgba(76,175,80,0.05); }
-        .quote-input {
-            width: 100%; background: transparent; border: none;
-            color: var(--text-muted); font-style: italic; font-size: 0.9rem;
-            outline: none; font-family: 'DM Sans', sans-serif;
-        }
-        .quote-input::placeholder { color: #444; }
+        .quote-container:focus-within{background:rgba(76,175,80,.04);}
+        .quote-input{width:100%; background:transparent; border:none; color:var(--muted);
+                     font-style:italic; font-size:.88rem; outline:none; font-family:'DM Sans',sans-serif;}
+        .quote-input::placeholder{color:#383838;}
+        .charts-row{display:flex; align-items:center; gap:14px;}
+        .chart-label{font-family:'DM Mono',monospace; font-size:.62rem; color:var(--muted);
+                     text-transform:uppercase; letter-spacing:.8px; text-align:center; margin-top:4px;}
+        .area-chart{width:160px; height:62px; background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:6px; overflow:hidden;}
+        .donut-wrapper{position:relative; width:74px; height:74px;}
+        .doughnut-chart{width:74px; height:74px;}
+        .donut-center{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; pointer-events:none;}
+        .donut-pct{font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:1px; color:#fff; line-height:1;}
+        .donut-sub{font-family:'DM Mono',monospace; font-size:.52rem; color:var(--muted);}
 
-        /* ── CHARTS ── */
-        .charts-row { display: flex; align-items: center; gap: 16px; }
-        .chart-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-top: 4px; }
-
-        .area-chart { width: 180px; height: 70px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
-
-        .donut-wrapper { position: relative; width: 80px; height: 80px; }
-        .doughnut-chart { width: 80px; height: 80px; }
-        .donut-center {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; pointer-events: none;
-        }
-        .donut-pct { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; color: #fff; line-height: 1; }
-        .donut-sub { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text-muted); }
-
-        /* ── CONTROLS ── */
+        /* ── CONTROLS BAR ── */
         .table-controls {
-            display: flex; gap: 10px; padding: 14px 20px;
-            align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--surface-2);
+            display:flex; gap:10px; padding:12px 20px;
+            align-items:center; justify-content:space-between;
+            border-bottom:1px solid var(--border); background:var(--surface-2);
         }
-        .controls-left { display: flex; gap: 10px; align-items: center; }
+        .controls-left{display:flex; gap:8px; align-items:center;}
         .stats-pill {
-            font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-muted);
-            background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
-            border-radius: 100px; padding: 6px 14px;
+            font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted);
+            background:rgba(255,255,255,.03); border:1px solid var(--border);
+            border-radius:100px; padding:5px 14px;
         }
-        .stats-pill span { color: var(--primary); font-weight: 700; }
-
+        .stats-pill span{color:var(--primary); font-weight:700;}
         .btn {
-            height: 38px; padding: 0 18px; display: inline-flex; align-items: center;
-            justify-content: center; border: none; border-radius: 8px;
-            font-weight: 700; cursor: pointer; font-size: 0.82rem;
-            transition: all 0.15s; font-family: 'DM Sans', sans-serif;
-            letter-spacing: 0.3px; white-space: nowrap;
+            height:36px; padding:0 16px; display:inline-flex; align-items:center;
+            justify-content:center; border:none; border-radius:8px;
+            font-weight:700; cursor:pointer; font-size:.8rem;
+            transition:all .15s; font-family:'DM Sans',sans-serif;
+            letter-spacing:.2px; white-space:nowrap;
         }
-        .btn-edit { background: var(--surface-2); color: var(--text-main); border: 1px solid var(--border-color); }
-        .btn-edit:hover { background: var(--header-bg); border-color: #444; }
-        .btn-add { background: var(--primary); color: white; display: none; box-shadow: 0 4px 15px var(--primary-glow); }
-        .btn-add:hover { background: #5cbf60; transform: translateY(-1px); }
-        .btn-today { background: rgba(76,175,80,0.1); color: var(--primary); border: 1px solid rgba(76,175,80,0.3); }
-        .btn-today:hover { background: rgba(76,175,80,0.2); }
+        .btn-edit{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+        .btn-edit:hover{background:var(--surface-3); border-color:#3a3a3a;}
+        .btn-add{background:var(--primary); color:#fff; display:none; box-shadow:0 4px 14px var(--primary-glow);}
+        .btn-add:hover{background:#5cbf60; transform:translateY(-1px);}
+        .btn-today{background:rgba(76,175,80,.08); color:var(--primary); border:1px solid rgba(76,175,80,.25);}
+        .btn-today:hover{background:rgba(76,175,80,.18);}
 
         /* ── TABLE ── */
-        .table-wrapper { width: 100%; overflow-x: auto; }
-        .table-wrapper::-webkit-scrollbar { height: 4px; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-        table { table-layout: fixed; border-collapse: collapse; width: 100%; min-width: 1200px; }
+        .table-wrapper{width:100%; overflow-x:auto;}
+        .table-wrapper::-webkit-scrollbar{height:4px;}
+        .table-wrapper::-webkit-scrollbar-thumb{background:#2e2e2e; border-radius:2px;}
+        table{table-layout:fixed; border-collapse:collapse; width:100%; min-width:1100px;}
+        th,td{border:1px solid var(--border); text-align:center; height:40px; transition:background .12s;}
+        th{background-color:var(--surface-3); font-family:'DM Mono',monospace;
+           font-weight:500; font-size:.66rem; text-transform:uppercase; letter-spacing:.4px; color:var(--muted);}
+        th.week-header{color:var(--text); font-size:.63rem;}
 
-        th, td {
-            border: 1px solid var(--border-color); text-align: center; height: 42px;
-            transition: background 0.15s;
+        /* Row hover — whole row lights up */
+        tbody tr{transition:background .12s;}
+        tbody tr:hover td{background:rgba(255,255,255,.018) !important;}
+        tbody tr:hover td.col-habit{background:var(--surface-3) !important;}
+        tbody tr:hover td.today-col{background:rgba(76,175,80,.14) !important;}
+
+        td.today-col{background:var(--today-col); border-left-color:var(--today-border)!important; border-right-color:var(--today-border)!important;}
+        th.today-col{background:rgba(76,175,80,.14)!important; color:var(--primary)!important;}
+
+        .col-habit{width:250px; background:var(--surface-3)!important; position:sticky; left:0; z-index:10;}
+        .col-progress{width:148px;}
+
+        td.check-cell{cursor:pointer; position:relative;}
+        td.check-cell:hover{background:var(--primary-light)!important;}
+        td.check-cell:active{opacity:.75;}
+
+        /* Tooltip on desktop cell hover */
+        td.check-cell[data-tip]:hover::after {
+            content:attr(data-tip);
+            position:absolute; bottom:calc(100% + 6px); left:50%;
+            transform:translateX(-50%);
+            background:var(--surface-3); border:1px solid var(--border);
+            color:var(--text); font-family:'DM Mono',monospace; font-size:.6rem;
+            padding:3px 8px; border-radius:6px; white-space:nowrap; pointer-events:none;
+            z-index:200; letter-spacing:.5px;
         }
-        th {
-            background-color: var(--header-bg);
-            font-family: 'DM Mono', monospace;
-            font-weight: 500; font-size: 0.68rem;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            color: var(--text-muted);
+
+        input[type="checkbox"]{
+            appearance:none; width:19px; height:19px;
+            background-color:transparent; border:2px solid #353535;
+            border-radius:4px; cursor:pointer;
+            display:inline-flex; align-items:center; justify-content:center;
+            vertical-align:middle; transition:all .13s; pointer-events:none;
         }
-        th.week-header { color: var(--text-main); font-size: 0.65rem; }
-
-        /* Today column highlight */
-        td.today-col { background: var(--today-col); border-left-color: var(--today-border) !important; border-right-color: var(--today-border) !important; }
-        th.today-col { background: rgba(76,175,80,0.15) !important; color: var(--primary) !important; }
-
-        .col-habit { width: 260px; background: var(--header-bg) !important; position: sticky; left: 0; z-index: 10; }
-        .col-progress { width: 150px; }
-
-        /* checkbox cells */
-        td.check-cell { cursor: pointer; }
-        td.check-cell:hover { background: var(--primary-light) !important; }
-        td.check-cell:active { transform: scale(0.95); }
-
-        input[type="checkbox"] {
-            appearance: none; width: 20px; height: 20px;
-            background-color: transparent; border: 2px solid #3a3a3a;
-            border-radius: 4px; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center;
-            vertical-align: middle; transition: all 0.15s; pointer-events: none;
-        }
-        input[type="checkbox"]:checked { background-color: var(--primary); border-color: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
-        input[type="checkbox"]:checked::after { content: '✓'; color: white; font-weight: 900; font-size: 12px; }
+        input[type="checkbox"]:checked{background-color:var(--primary); border-color:var(--primary); box-shadow:0 0 7px var(--primary-glow);}
+        input[type="checkbox"]:checked::after{content:'✓'; color:#fff; font-weight:900; font-size:11px;}
 
         /* ── HABIT CELL ── */
-        .habit-cell { display: flex; align-items: center; height: 100%; padding: 0 8px; gap: 4px; }
-        .habit-input {
-            flex-grow: 1; border: none; background: transparent;
-            color: #ffffff; font-size: 0.88rem; font-weight: 700;
-            text-align: right; outline: none; padding: 0 4px;
-            font-family: 'DM Sans', sans-serif; letter-spacing: 0.2px;
+        .habit-cell{display:flex; align-items:center; height:100%; padding:0 8px; gap:4px;}
+        /* Row completion dot */
+        .row-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0; transition:background .2s;}
+        .habit-input{
+            flex-grow:1; border:none; background:transparent;
+            color:#fff; font-size:.86rem; font-weight:700;
+            text-align:right; outline:none; padding:0 4px;
+            font-family:'DM Sans',sans-serif; letter-spacing:.15px;
         }
-        .habit-input:focus { color: var(--primary); }
-        .streak-badge {
-            font-size: 0.7rem; white-space: nowrap; color: var(--streak-color);
-            font-family: 'DM Mono', monospace; font-weight: 500;
-            opacity: 0; transition: opacity 0.2s;
-        }
-        .streak-badge.visible { opacity: 1; }
+        .habit-input:focus{color:var(--primary);}
+        .streak-badge{font-size:.68rem; white-space:nowrap; color:var(--streak);
+                      font-family:'DM Mono',monospace; opacity:0; transition:opacity .2s;}
+        .streak-badge.visible{opacity:1;}
 
-        /* ── PROGRESS ── */
-        .progress-bar-bg { width: 85%; height: 6px; background: #1e1e1e; margin: 0 auto 3px; border-radius: 3px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #388e3c, var(--primary)); transition: width 0.4s ease; }
-        .progress-text { font-family: 'DM Mono', monospace; font-size: 0.75rem; font-weight: 500; }
-        .progress-count { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); }
+        /* ── PROGRESS CELL ── */
+        .progress-bar-bg{width:82%; height:5px; background:#1a1a1a; margin:0 auto 3px; border-radius:3px; overflow:hidden;}
+        .progress-bar-fill{height:100%; border-radius:3px; background:linear-gradient(90deg,#388e3c,var(--primary)); transition:width .4s ease;}
+        .progress-text{font-family:'DM Mono',monospace; font-size:.73rem; font-weight:500;}
+        .progress-count{font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted);}
 
         /* ── EDIT MODE ── */
-        .is-editing .btn-add { display: inline-flex !important; }
-        .is-editing .btn-delete,
-        .is-editing .reorder-btns { display: flex !important; }
+        .is-editing .btn-add{display:inline-flex!important;}
+        .is-editing .btn-delete,.is-editing .reorder-btns{display:flex!important;}
+        .reorder-btns{display:none; flex-direction:column; gap:1px;}
+        .btn-move{background:none; border:none; color:var(--muted); cursor:pointer; padding:1px 2px; font-size:.62rem; line-height:1; transition:color .15s;}
+        .btn-move:hover{color:var(--primary);}
+        .btn-delete{display:none!important; background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; line-height:1; padding:0 4px; transition:opacity .15s;}
+        .btn-delete:hover{opacity:.7;}
 
-        .reorder-btns { display: none; flex-direction: column; gap: 2px; }
-        .btn-move { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 1px 2px; font-size: 0.65rem; line-height: 1; transition: color 0.15s; }
-        .btn-move:hover { color: var(--primary); }
-        .btn-delete { display: none !important; background: none; border: none; color: var(--danger); font-size: 1.6rem; cursor: pointer; line-height: 1; padding: 0 4px; transition: opacity 0.15s; }
-        .btn-delete:hover { opacity: 0.7; }
-
-        /* ── SUMMARY (YEAR) ── */
-        .summary-cell { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 0.78rem; }
+        /* ── YEAR SUMMARY ── */
+        .summary-cell{font-family:'DM Mono',monospace; font-weight:500; font-size:.76rem;}
 
         /* ── FOOTER STATS ── */
-        .footer-stats {
-            display: flex; padding: 14px 20px; gap: 20px; flex-wrap: wrap;
-            border-top: 1px solid var(--border-color);
-            background: var(--surface-2);
+        .footer-stats{
+            display:flex; padding:12px 20px; gap:0;
+            border-top:1px solid var(--border); background:var(--surface-2);
         }
-        .stat-item { text-align: center; }
-        .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--primary); line-height: 1; }
-        .stat-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* ── MOBILE (see enhanced styles below) ── */
+        .stat-item{
+            flex:1; text-align:center; padding:6px 0;
+            border-right:1px solid var(--border);
+        }
+        .stat-item:last-child{border-right:none;}
+        .stat-value{font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--primary); line-height:1;}
+        .stat-label{font-family:'DM Mono',monospace; font-size:.57rem; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-top:1px;}
 
         /* ── DAY MODAL ── */
-        #dayModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 3000; display: none;
-            flex-direction: column; backdrop-filter: blur(4px);
+        #dayModal{
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,.88); z-index:3000; display:none;
+            flex-direction:column; backdrop-filter:blur(6px);
         }
-        .modal-content {
-            margin-top: auto; background: var(--surface-color);
-            border-radius: 24px 24px 0 0; padding: 28px;
-            max-height: 90%; overflow-y: auto;
-            border-top: 1px solid var(--border-color);
-            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .modal-content{
+            margin-top:auto; background:var(--surface);
+            border-radius:24px 24px 0 0; padding:28px;
+            max-height:90%; overflow-y:auto;
+            border-top:1px solid var(--border);
+            animation:slideUp .28s cubic-bezier(.34,1.56,.64,1);
         }
-        @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
-        .modal-month { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
-        .modal-progress { margin: 16px 0; padding: 12px; background: var(--surface-2); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .modal-pct { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--primary); }
-        .modal-days-info { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-align: right; }
-        .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 4px; }
-        .day-btn {
-            aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--border-color);
-            background: var(--surface-2); color: var(--text-muted);
-            font-family: 'DM Mono', monospace; font-weight: 500;
-            display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
-            cursor: pointer; transition: all 0.15s; user-select: none;
+        @keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+        .modal-title{font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:2px;}
+        .modal-month{font-family:'DM Mono',monospace; font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:2px;}
+        .modal-progress{margin:14px 0; padding:12px; background:var(--surface-2); border-radius:10px; display:flex; justify-content:space-between; align-items:center;}
+        .modal-pct{font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--primary);}
+        .modal-days-info{font-family:'DM Mono',monospace; font-size:.68rem; color:var(--muted); text-align:right;}
+        .day-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:4px;}
+        .day-btn{
+            aspect-ratio:1; border-radius:10px; border:1px solid var(--border);
+            background:var(--surface-2); color:var(--muted);
+            font-family:'DM Mono',monospace; font-weight:500;
+            display:flex; align-items:center; justify-content:center; font-size:.85rem;
+            cursor:pointer; transition:all .14s; user-select:none;
         }
-        .day-btn:active { transform: scale(0.9); }
-        .day-btn.checked { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 2px 8px var(--primary-glow); }
-        .day-btn.today-day { border-color: var(--primary); color: var(--primary); font-weight: 700; }
-        .day-btn.today-day.checked { color: white; }
-        .day-btn.future-day { opacity: 0.35; pointer-events: none; }
-        .modal-btn-done {
-            width: 100%; padding: 16px; margin-top: 20px; border-radius: 14px;
-            background: var(--primary); border: none; color: white;
-            font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 1rem;
-            cursor: pointer; box-shadow: 0 6px 20px var(--primary-glow);
-            transition: all 0.15s;
+        .day-btn:hover{border-color:#444; background:var(--surface-3); color:var(--text);}
+        .day-btn:active{transform:scale(.9);}
+        .day-btn.checked{background:var(--primary); border-color:var(--primary); color:#fff; box-shadow:0 2px 8px var(--primary-glow);}
+        .day-btn.today-day{border-color:var(--primary); color:var(--primary); font-weight:700;}
+        .day-btn.today-day.checked{color:#fff;}
+        .day-btn.future-day{opacity:.3; pointer-events:none;}
+        .modal-btn-done{
+            width:100%; padding:15px; margin-top:20px; border-radius:14px;
+            background:var(--primary); border:none; color:#fff;
+            font-family:'DM Sans',sans-serif; font-weight:900; font-size:.95rem;
+            cursor:pointer; box-shadow:0 6px 20px var(--primary-glow); transition:all .15s;
         }
-        .modal-btn-done:hover { background: #5cbf60; transform: translateY(-1px); }
+        .modal-btn-done:hover{background:#5cbf60; transform:translateY(-1px);}
 
         /* ── LOADING ── */
-        #loadingOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0d0d0d; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 4000;
+        #loadingOverlay{
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:#0d0d0d; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; z-index:4000;
         }
-        .loading-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--primary); letter-spacing: 6px; margin-bottom: 20px; }
-        .loading-bar { width: 200px; height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
-        .loading-fill { height: 100%; background: var(--primary); border-radius: 2px; animation: loadPulse 1.2s ease-in-out infinite; }
-        @keyframes loadPulse { 0% { width: 0%; } 60% { width: 80%; } 100% { width: 100%; } }
-        .loading-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 12px; }
+        .loading-logo{font-family:'Bebas Neue',sans-serif; font-size:3rem; color:var(--primary); letter-spacing:6px; margin-bottom:20px;}
+        .loading-bar{width:200px; height:3px; background:#1e1e1e; border-radius:2px; overflow:hidden;}
+        .loading-fill{height:100%; background:var(--primary); border-radius:2px; animation:loadPulse 1.3s ease-in-out infinite;}
+        @keyframes loadPulse{0%{width:0%}60%{width:80%}100%{width:100%}}
+        .loading-text{font-family:'DM Mono',monospace; font-size:.68rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:12px;}
 
-
-        /* ── TODAY PANEL (mobile) ── */
-        #todayPanel {
-            display: none; padding: 16px 14px 0;
+        /* ── TODAY PANEL (mobile only) ── */
+        #todayPanel{display:none; padding:16px 14px 0;}
+        .today-panel-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+        .today-panel-title{font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:2px; color:#fff;}
+        .today-panel-date{font-family:'DM Mono',monospace; font-size:.66rem; color:var(--muted);}
+        .today-habits-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin-bottom:16px;}
+        .today-habit-btn{
+            border-radius:14px; padding:14px 10px; text-align:center; cursor:pointer;
+            border:2px solid var(--border); background:var(--surface-2);
+            transition:all .2s cubic-bezier(.34,1.56,.64,1);
+            user-select:none; -webkit-user-select:none;
         }
-        .today-panel-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-        }
-        .today-panel-title {
-            font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: #fff;
-        }
-        .today-panel-date {
-            font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-muted);
-        }
-        .today-habits-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
-            margin-bottom: 16px;
-        }
-        .today-habit-btn {
-            border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
-            border: 2px solid var(--border-color); background: var(--surface-2);
-            transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-            user-select: none; -webkit-user-select: none; position: relative; overflow: hidden;
-        }
-        .today-habit-btn.done {
-            background: var(--primary-light); border-color: var(--primary);
-            box-shadow: 0 4px 16px var(--primary-glow);
-        }
-        .today-habit-btn:active { transform: scale(0.93); }
-        .today-habit-icon {
-            font-size: 1.6rem; margin-bottom: 6px; display: block;
-            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        .today-habit-btn.done .today-habit-icon { transform: scale(1.2); }
-        .today-habit-name {
-            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.3px;
-            color: var(--text-muted); text-transform: uppercase; line-height: 1.2;
-            display: block;
-        }
-        .today-habit-btn.done .today-habit-name { color: var(--primary); }
-        .today-divider {
-            height: 1px; background: var(--border-color); margin: 0 14px 14px;
-        }
+        .today-habit-btn.done{background:var(--primary-light); border-color:var(--primary); box-shadow:0 4px 16px var(--primary-glow);}
+        .today-habit-btn:active{transform:scale(.93);}
+        .today-habit-icon{font-size:1.6rem; margin-bottom:6px; display:block; transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+        .today-habit-btn.done .today-habit-icon{transform:scale(1.2);}
+        .today-habit-name{font-size:.66rem; font-weight:700; letter-spacing:.2px; color:var(--muted); text-transform:uppercase; line-height:1.2; display:block;}
+        .today-habit-btn.done .today-habit-name{color:var(--primary);}
+        .today-divider{height:1px; background:var(--border); margin:0 14px 14px;}
 
         /* ── BOTTOM NAV (mobile) ── */
-        #mobileBottomNav {
-            display: none; position: sticky; bottom: 0; left: 0; right: 0;
-            background: rgba(14,14,14,0.96); border-top: 1px solid var(--border-color);
-            padding: 12px 20px; z-index: 100;
-            backdrop-filter: blur(12px);
-            align-items: center; justify-content: space-between;
+        #mobileBottomNav{
+            display:none; position:sticky; bottom:0; left:0; right:0;
+            background:rgba(12,12,12,.96); border-top:1px solid var(--border);
+            padding:12px 20px; z-index:100; backdrop-filter:blur(12px);
+            align-items:center; justify-content:space-between;
         }
-        .mob-nav-btn {
-            width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border-color);
-            background: var(--surface-2); color: var(--text-main); font-size: 1.1rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+        .mob-nav-btn{
+            width:44px; height:44px; border-radius:12px; border:1px solid var(--border);
+            background:var(--surface-2); color:var(--text); font-size:1.1rem;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:all .15s; -webkit-tap-highlight-color:transparent;
         }
-        .mob-nav-btn:active { background: var(--primary); border-color: var(--primary); transform: scale(0.9); }
-        .mob-nav-center { text-align: center; flex: 1; }
-        .mob-nav-month { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: #fff; line-height: 1; }
-        .mob-nav-year  { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text-muted); letter-spacing: 1px; }
+        .mob-nav-btn:active{background:var(--primary); border-color:var(--primary); transform:scale(.9);}
+        .mob-nav-center{text-align:center; flex:1;}
+        .mob-nav-month{font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:2px; color:#fff; line-height:1;}
+        .mob-nav-year{font-family:'DM Mono',monospace; font-size:.6rem; color:var(--muted); letter-spacing:1px;}
 
-        /* ── IMPROVED MOBILE CARDS ── */
-        .mobile-card {
-            background: var(--surface-2); border-radius: 16px; padding: 16px;
-            border: 1px solid var(--border-color); cursor: pointer;
-            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-            user-select: none; -webkit-user-select: none; position: relative; overflow: hidden;
+        /* ── MOBILE CARDS ── */
+        .mobile-card{
+            background:var(--surface-2); border-radius:16px; padding:16px;
+            border:1px solid var(--border); cursor:pointer;
+            transition:border-color .2s,transform .18s,box-shadow .2s;
+            user-select:none; -webkit-user-select:none; overflow:hidden;
         }
-        .mobile-card.done-today { border-color: rgba(76,175,80,0.4); box-shadow: 0 4px 20px rgba(76,175,80,0.1); }
-        .mobile-card:active { transform: scale(0.97); }
-        .mobile-card.edit-mode { cursor: default; }
-        .mobile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .mobile-card-left { flex: 1; min-width: 0; }
-        .mobile-card-name { font-weight: 900; font-size: 1rem; letter-spacing: 0.3px; display: block; margin-bottom: 2px; }
-        .mobile-card-meta { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--text-muted); }
-        .mobile-ring { flex-shrink: 0; width: 52px; height: 52px; position: relative; }
-        .mobile-ring svg { width: 52px; height: 52px; transform: rotate(-90deg); }
-        .mobile-ring-text {
-            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 0.5px; color: #fff;
-        }
-        .mobile-streak { font-size: 0.73rem; color: var(--streak-color); font-family: 'DM Mono', monospace; margin-top: 6px; }
-        .mobile-edit-footer {
-            display: none; border-top: 1px solid var(--border-color);
-            margin-top: 12px; padding-top: 12px; justify-content: space-between; align-items: center;
-        }
-        .is-editing .mobile-edit-footer { display: flex; }
-        .btn-mobile-sm { height: 38px; width: 46px; font-size: 0.9rem; border-radius: 10px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; cursor: pointer; transition: background 0.15s; }
-        .btn-mobile-sm:active { background: #444; }
-        .btn-mobile-del { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.25); color: var(--danger); padding: 0 18px; font-weight: 700; font-size: 0.82rem; border-radius: 10px; cursor: pointer; height: 38px; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
-        .btn-mobile-del:active { background: rgba(255,71,87,0.2); }
+        .mobile-card.done-today{border-color:rgba(76,175,80,.4); box-shadow:0 4px 20px rgba(76,175,80,.1);}
+        .mobile-card:active{transform:scale(.97);}
+        .mobile-card.edit-mode{cursor:default;}
+        .mobile-card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+        .mobile-card-left{flex:1; min-width:0;}
+        .mobile-card-name{font-weight:900; font-size:1rem; letter-spacing:.3px; display:block; margin-bottom:2px;}
+        .mobile-card-meta{font-family:'DM Mono',monospace; font-size:.64rem; color:var(--muted);}
+        .mobile-ring{flex-shrink:0; width:52px; height:52px; position:relative;}
+        .mobile-ring svg{width:52px; height:52px; transform:rotate(-90deg);}
+        .mobile-ring-text{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                          font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.5px; color:#fff;}
+        .mobile-streak{font-size:.71rem; color:var(--streak); font-family:'DM Mono',monospace; margin-top:6px;}
+        .mobile-edit-footer{display:none; border-top:1px solid var(--border); margin-top:12px; padding-top:12px; justify-content:space-between; align-items:center;}
+        .is-editing .mobile-edit-footer{display:flex;}
+        .btn-mobile-sm{height:38px; width:46px; font-size:.9rem; border-radius:10px; background:#262626; border:1px solid var(--border); color:#fff; cursor:pointer;}
+        .btn-mobile-sm:active{background:#383838;}
+        .btn-mobile-del{background:rgba(255,71,87,.08); border:1px solid rgba(255,71,87,.25); color:var(--danger);
+                        padding:0 18px; font-weight:700; font-size:.8rem; border-radius:10px; cursor:pointer; height:38px; font-family:'DM Sans',sans-serif;}
+        .btn-mobile-del:active{background:rgba(255,71,87,.2);}
 
-        /* swipe hint animation */
-        @keyframes swipeHint { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-8px)} 60%{transform:translateX(8px)} }
+        @keyframes swipeHint{0%,100%{transform:translateX(0)}30%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
 
-        @media (max-width: 800px) {
-            body { padding: 0; padding-bottom: 80px; }
-            .dashboard { border-radius: 0; border-left: none; border-right: none; min-height: 100vh; }
-            .header { padding: 16px 14px; }
-            .charts-row { align-self: flex-end; }
-            .area-chart { display: none; }
-            .title-section h2 { font-size: 1.8rem; }
-            .subtitle { display: none; }
-            .table-wrapper { display: none; }
-            #mobileTaskList { display: flex; }
-            #todayPanel { display: block; }
-            #mobileBottomNav { display: flex; }
-            .table-controls { padding: 10px 14px; }
-            .controls-left { width: 100%; }
-            .btn { flex: 1; font-size: 0.78rem; padding: 0 10px; }
-            .stats-pill { display: none; }
-            .tabs { display: none; }
-            .footer-stats { padding: 12px 14px; }
+        /* ── RESPONSIVE ── */
+        @media(max-width:900px){
+            .outer{padding:0; gap:0;}
+            #desktopSidebar{display:none;}
+            .main-panel{margin-left:0; border-radius:0; border-left:none; border-right:none; border-top:none;}
+            body{padding:0; padding-bottom:80px;}
+            .header{padding:14px 14px;}
+            .area-chart{display:none;}
+            .title-section h2{font-size:1.8rem;}
+            .subtitle{display:none;}
+            .table-wrapper{display:none;}
+            #mobileTaskList{display:flex;}
+            #todayPanel{display:block;}
+            #mobileBottomNav{display:flex;}
+            .table-controls{padding:10px 14px;}
+            .controls-left{width:100%;}
+            .btn{flex:1; font-size:.76rem; padding:0 10px;}
+            .stats-pill{display:none;}
+            .tabs{display:none;}
+            .footer-stats{padding:10px 14px;}
         }
-
     </style>
 </head>
 <body>
@@ -435,80 +468,98 @@
 
 <div id="toast"></div>
 
-<div class="dashboard" id="mainDashboard">
+<div class="outer">
+  <!-- ── DESKTOP SIDEBAR ── -->
+  <div id="desktopSidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-date" id="sidebarDate">—</div>
+      <div class="sidebar-title">TODAY</div>
+      <div class="sidebar-sub" id="sidebarSub">0 / 0 complete</div>
+    </div>
+    <div class="sidebar-habits" id="sidebarHabits"></div>
+    <div class="sidebar-stats" id="sidebarStats"></div>
+    <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">⚡ MARK ALL DONE</button>
+    <div class="sidebar-shortcut-hint">
+      <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle today's habits<br>
+      <span class="key-badge">←</span><span class="key-badge">→</span> switch months
+    </div>
+  </div>
+
+  <!-- ── MAIN PANEL ── -->
+  <div class="main-panel" id="mainDashboard">
     <div class="tabs" id="tabsContainer"></div>
     <div class="header">
-        <div class="title-section">
-            <h2 id="viewTitle">DASHBOARD</h2>
-            <div class="subtitle" id="viewSubtitle">Loading...</div>
+      <div class="title-section">
+        <h2 id="viewTitle">DASHBOARD</h2>
+        <div class="subtitle" id="viewSubtitle">Loading...</div>
+      </div>
+      <div class="quote-container">
+        <input type="text" id="quoteInput" class="quote-input" placeholder="Add a motivational quote...">
+        <button onclick="shuffleQuote()" title="New random quote" id="shuffleBtn" style="background:none;border:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:0 0 0 8px;flex-shrink:0;transition:transform 0.4s;">🎲</button>
+      </div>
+      <div class="charts-row">
+        <div>
+          <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.38"/>
+                <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02"/>
+              </linearGradient>
+            </defs>
+            <path id="areaPathFill" fill="url(#areaGrad)"></path>
+            <path id="areaPathLine" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linejoin="round"></path>
+          </svg>
+          <div class="chart-label">Monthly trend</div>
         </div>
-        <div class="quote-container">
-            <input type="text" id="quoteInput" class="quote-input" placeholder="Add a motivational quote...">
-            <button onclick="shuffleQuote()" title="New random quote" id="shuffleBtn" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;flex-shrink:0;transition:color 0.2s,transform 0.4s;">🎲</button>
-        </div>
-        <div class="charts-row">
-            <div>
-                <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.4"/>
-                            <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02"/>
-                        </linearGradient>
-                    </defs>
-                    <path id="areaPathFill" fill="url(#areaGrad)"></path>
-                    <path id="areaPathLine" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linejoin="round"></path>
-                </svg>
-                <div class="chart-label">Monthly trend</div>
+        <div>
+          <div class="donut-wrapper">
+            <svg class="doughnut-chart" viewBox="0 0 36 36" style="transform:rotate(-90deg);">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#222" stroke-width="3.5"/>
+              <circle id="doughnutFill" cx="18" cy="18" r="15.9" fill="none"
+                stroke="var(--primary)" stroke-width="3.5"
+                stroke-dasharray="0,100" stroke-linecap="round"
+                style="transition:stroke-dasharray 0.6s ease;"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-pct" id="doughnutText">0%</div>
+              <div class="donut-sub">avg</div>
             </div>
-            <div>
-                <!-- BUG FIX: Doughnut text is now in a separate overlay div, not inside the rotated SVG -->
-                <div class="donut-wrapper">
-                    <svg class="doughnut-chart" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
-                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#252525" stroke-width="3.5"/>
-                        <circle id="doughnutFill" cx="18" cy="18" r="15.9" fill="none"
-                            stroke="var(--primary)" stroke-width="3.5"
-                            stroke-dasharray="0, 100" stroke-linecap="round"
-                            style="transition: stroke-dasharray 0.6s ease;"/>
-                    </svg>
-                    <div class="donut-center">
-                        <div class="donut-pct" id="doughnutText">0%</div>
-                        <div class="donut-sub">avg</div>
-                    </div>
-                </div>
-                <div class="chart-label">Completion</div>
-            </div>
+          </div>
+          <div class="chart-label">Completion</div>
         </div>
+      </div>
     </div>
 
     <div class="table-controls">
-        <div class="controls-left">
-            <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ EDIT HABITS</button>
-            <button class="btn btn-add" onclick="addTask()">+ ADD HABIT</button>
-            <button class="btn btn-today" id="todayBtn" onclick="markAllToday()" title="Mark all habits done for today">⚡ MARK TODAY</button>
-        </div>
-        <div class="stats-pill" id="statsPill">— / — complete</div>
+      <div class="controls-left">
+        <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ EDIT HABITS</button>
+        <button class="btn btn-add" onclick="addTask()">+ ADD HABIT</button>
+        <button class="btn btn-today" id="todayBtn" onclick="markAllToday()">⚡ MARK TODAY</button>
+      </div>
+      <div class="stats-pill" id="statsPill">— / — complete</div>
     </div>
 
     <div class="table-wrapper">
-        <table id="dashboardTable">
-            <thead id="tableHead"></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+      <table id="dashboardTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
     </div>
 
     <div id="todayPanel"></div>
     <div class="today-divider" id="todayDivider" style="display:none;"></div>
     <div id="mobileTaskList"></div>
     <div id="mobileBottomNav">
-        <button class="mob-nav-btn" onclick="mobileNavMonth(-1)">&#8592;</button>
-        <div class="mob-nav-center">
-            <div class="mob-nav-month" id="mobNavMonth">—</div>
-            <div class="mob-nav-year">2026</div>
-        </div>
-        <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
+      <button class="mob-nav-btn" onclick="mobileNavMonth(-1)">&#8592;</button>
+      <div class="mob-nav-center">
+        <div class="mob-nav-month" id="mobNavMonth">—</div>
+        <div class="mob-nav-year" id="mobNavYear"></div>
+      </div>
+      <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
     </div>
 
     <div class="footer-stats" id="footerStats"></div>
+  </div>
 </div>
 
 <div id="dayModal">
@@ -552,16 +603,19 @@
     const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
 
     // ── CONSTANTS ──
-    const monthsInfo = [
-        {name:"January",days:31},{name:"February",days:28},{name:"March",days:31},
-        {name:"April",days:30},{name:"May",days:31},{name:"June",days:30},
-        {name:"July",days:31},{name:"August",days:31},{name:"September",days:30},
-        {name:"October",days:31},{name:"November",days:30},{name:"December",days:31}
-    ];
-
     const today = new Date();
+    const YEAR  = today.getFullYear();
     const todayMonth = today.getMonth();
-    const todayDay = today.getDate() - 1; // 0-indexed
+    const todayDay   = today.getDate() - 1; // 0-indexed
+
+    // Always correct — handles leap years automatically
+    const MONTH_NAMES = ["January","February","March","April","May","June",
+                         "July","August","September","October","November","December"];
+    const monthsInfo = MONTH_NAMES.map((name, i) => ({
+        name,
+        // Day 0 of month i+1 = last day of month i
+        days: new Date(YEAR, i + 1, 0).getDate()
+    }));
 
     let currentView = todayMonth;
     let isEditing = false;
@@ -570,12 +624,13 @@
     let saveTimeout = null;
 
     // ── TOAST ──
-    function showToast(msg) {
+    function showToast(msg, green=false) {
         const t = document.getElementById('toast');
         t.textContent = msg;
+        t.classList.toggle('green', green);
         t.classList.add('show');
         clearTimeout(t._timer);
-        t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+        t._timer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('green'); }, 2200);
     }
 
     // ── QUOTES ──
@@ -692,7 +747,7 @@
         const y = document.createElement('div');
         y.className = `tab year-tab ${currentView === 12 ? 'active' : ''}`;
         y.dataset.index = 12;
-        y.innerText = '2026';
+        y.innerText = String(YEAR);
         y.onclick = () => { currentView = 12; renderView(); updateTabActiveStates(); };
         container.appendChild(y);
     }
@@ -757,6 +812,8 @@
             const streakTxt = streak >= 2 ? `🔥 ${streak}` : '';
             totalDone += done; totalPossible += info.days;
 
+            // Row completion dot colour
+            const dotColor = pct >= 80 ? 'var(--primary)' : pct >= 40 ? 'var(--gold)' : pct > 0 ? 'var(--streak)' : '#333';
             rows += `<tr>
                 <td class="col-habit">
                     <div class="habit-cell">
@@ -765,6 +822,7 @@
                             <button class="btn-move" onclick="moveTask(${r},-1)" title="Move up">▲</button>
                             <button class="btn-move" onclick="moveTask(${r},1)" title="Move down">▼</button>
                         </div>
+                        <div class="row-dot" style="background:${dotColor}"></div>
                         <span class="streak-badge ${streak >= 2 ? 'visible' : ''}">${streakTxt}</span>
                         <input class="habit-input" value="${name}" onchange="updateTaskName(${r},this.value)" ${isEditing ? '' : 'readonly'}>
                     </div>
@@ -773,7 +831,8 @@
             for (let c = 0; c < info.days; c++) {
                 const isToday = isCurrentMonth && c === todayDay;
                 const checked = appState.data[`${currentView}_${r}_${c}`] ? 'checked' : '';
-                rows += `<td class="check-cell${isToday ? ' today-col' : ''}" onclick="toggleCheckbox(${currentView},${r},${c})"><input type="checkbox" ${checked}></td>`;
+                const dayLabel = c + 1;
+                rows += `<td class="check-cell${isToday ? ' today-col' : ''}" data-tip="${isToday ? '★ TODAY' : ''}" onclick="toggleCheckbox(${currentView},${r},${c})"><input type="checkbox" ${checked}></td>`;
             }
 
             rows += `<td>
@@ -819,6 +878,7 @@
         document.getElementById('mobileTaskList').innerHTML = mobileCards;
         renderTodayPanel();
         updateMobileNav();
+        renderDesktopSidebar();
 
         // Stats pill
         const doneToday = appState.habits.filter((_, r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
@@ -831,7 +891,7 @@
     }
 
     function renderYear() {
-        document.getElementById('viewTitle').innerText = '2026 SUMMARY';
+        document.getElementById('viewTitle').innerText = `${YEAR} SUMMARY`;
         document.getElementById('viewSubtitle').innerText = `${appState.habits.length} habits tracked`;
 
         let head = `<tr><th class="col-habit">HABITS</th>`;
@@ -879,6 +939,7 @@
         document.getElementById('todayPanel').innerHTML = '';
         document.getElementById('todayDivider').style.display = 'none';
         updateMobileNav();
+        renderDesktopSidebar();
         updateCharts(12);
         renderFooterStats(12);
     }
@@ -926,7 +987,7 @@
     function openModal(r) {
         const info = monthsInfo[currentView];
         document.getElementById('modalTaskName').innerText = appState.habits[r];
-        document.getElementById('modalMonthName').innerText = info.name.toUpperCase() + ' 2026';
+        document.getElementById('modalMonthName').innerText = info.name.toUpperCase() + ` ${YEAR}`;
 
         let done = 0;
         const grid = document.getElementById('dayGrid');
@@ -967,10 +1028,7 @@
         if (e.target === document.getElementById('dayModal')) closeModal();
     });
 
-    // Keyboard: Escape closes modal
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
+    // Keyboard shortcuts handled in renderDesktopSidebar section above
 
     // ── ACTIONS ──
     function toggleCheckbox(m, r, c) {
@@ -987,7 +1045,7 @@
     function addTask() {
         appState.habits.push("NEW HABIT");
         safeSave(); renderView();
-        showToast('✓ Habit added');
+        showToast('✓ Habit added', true);
     }
 
     function removeTask(i) {
@@ -1053,7 +1111,8 @@
     function updateMobileNav() {
         const el = document.getElementById('mobNavMonth');
         if (!el) return;
-        el.innerText = currentView === 12 ? '2026' : monthsInfo[currentView].name.toUpperCase();
+        el.innerText = currentView === 12 ? String(YEAR) : monthsInfo[currentView].name.toUpperCase();
+        const navYearEl = document.getElementById('mobNavYear'); if(navYearEl) navYearEl.innerText = String(YEAR);
     }
 
     function mobileNavMonth(dir) {
@@ -1104,7 +1163,7 @@
         appState.data[k] = !appState.data[k];
         // celebrate if all done
         const allDone = appState.habits.every((_,i) => appState.data[`${currentView}_${i}_${todayDay}`]);
-        if (allDone) { showToast('🔥 All habits done today!'); haptic([30,20,30]); }
+        if (allDone) { showToast('🔥 All habits done today!', true); haptic([30,20,30]); }
         safeSave(); renderView();
     }
 
@@ -1132,6 +1191,86 @@
     toggleCheckbox = function(m, r, c) { haptic(10); _origToggle(m, r, c); };
     const _origOpen = openModal;
     openModal = function(r) { haptic(8); _origOpen(r); };
+
+
+    // ── DESKTOP SIDEBAR ──
+    function renderDesktopSidebar() {
+        const icons = ['💪','🥩','🌙','⏰','👟','📚','💧','🧘','🏃','🎯','✅','⭐'];
+        const isCurrentMonth = currentView === todayMonth;
+
+        // Date label
+        const dateStr = today.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+        const dateEl = document.getElementById('sidebarDate');
+        if (dateEl) dateEl.innerText = dateStr.toUpperCase();
+
+        const habitsEl = document.getElementById('sidebarHabits');
+        const statsEl  = document.getElementById('sidebarStats');
+        const subEl    = document.getElementById('sidebarSub');
+        const markBtn  = document.getElementById('sidebarMarkBtn');
+        if (!habitsEl) return;
+
+        if (!isCurrentMonth) {
+            habitsEl.innerHTML = '<div style="padding:12px;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-align:center;">Switch to current month<br>to see today's habits</div>';
+            if (statsEl) statsEl.style.display = 'none';
+            if (markBtn) markBtn.style.display = 'none';
+            if (subEl)   subEl.innerText = '';
+            return;
+        }
+        if (statsEl) statsEl.style.display = 'grid';
+        if (markBtn) markBtn.style.display = 'block';
+
+        const doneCount = appState.habits.filter((_,r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
+        const allDone = doneCount === appState.habits.length;
+        if (subEl) subEl.innerText = `${doneCount} / ${appState.habits.length} complete`;
+        if (markBtn) {
+            markBtn.textContent = allDone ? '✅ ALL DONE!' : '⚡ MARK ALL DONE';
+            markBtn.className = 'sidebar-mark-btn' + (allDone ? ' all-done' : '');
+        }
+
+        habitsEl.innerHTML = appState.habits.map((name, r) => {
+            const done = !!appState.data[`${currentView}_${r}_${todayDay}`];
+            return `<div class="sb-habit ${done?'done':''}" onclick="toggleTodayHabit(${r})" title="Press ${r+1} to toggle">
+                <span class="sb-icon">${done ? '✅' : icons[r % icons.length]}</span>
+                <span class="sb-name">${name}</span>
+                <div class="sb-check"></div>
+            </div>`;
+        }).join('');
+
+        // mini stats
+        if (statsEl) {
+            let monthDone = 0, monthTotal = 0, longestStreak = 0;
+            const info = monthsInfo[currentView];
+            appState.habits.forEach((_,r) => {
+                let s = 0;
+                for (let d = 0; d < info.days; d++) {
+                    if (appState.data[`${currentView}_${r}_${d}`]) { monthDone++; s++; longestStreak = Math.max(longestStreak,s); }
+                    else s = 0;
+                }
+                monthTotal += info.days;
+            });
+            const monthPct = Math.round((monthDone/Math.max(monthTotal,1))*100);
+            statsEl.innerHTML = `
+                <div class="ss-item"><div class="ss-val">${monthPct}%</div><div class="ss-lbl">Month Avg</div></div>
+                <div class="ss-item"><div class="ss-val">${longestStreak}🔥</div><div class="ss-lbl">Best Streak</div></div>
+                <div class="ss-item"><div class="ss-val">${monthDone}</div><div class="ss-lbl">Checks</div></div>
+                <div class="ss-item"><div class="ss-val">${appState.habits.length}</div><div class="ss-lbl">Habits</div></div>`;
+        }
+    }
+
+    // ── KEYBOARD SHORTCUTS ──
+    document.addEventListener('keydown', e => {
+        // Don't fire if typing in an input
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === 'Escape') { closeModal(); return; }
+        // Arrow keys → switch months
+        if (e.key === 'ArrowRight') { mobileNavMonth(1); return; }
+        if (e.key === 'ArrowLeft')  { mobileNavMonth(-1); return; }
+        // Number keys 1–9 → toggle today's habits
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= appState.habits.length && currentView === todayMonth) {
+            toggleTodayHabit(num - 1);
+        }
+    });
 
     // ── CHARTS ──
     function updateCharts(view) {

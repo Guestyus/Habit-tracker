@@ -599,7 +599,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    db.settings({ experimentalForceLongPolling: true });
+    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
 
     // ── CONSTANTS ──
@@ -693,19 +693,27 @@
     function safeSave() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            docRef.set(appState).then(() => showToast('✓ Saved'));
+            docRef.set(appState)
+                .then(() => showToast('✓ Saved'))
+                .catch(err => {
+                    console.warn('Save failed:', err);
+                    showToast('⚠️ Save failed — check connection');
+                });
         }, 400);
     }
 
     // ── FIREBASE LISTENER ──
-    // Timeout: if Firebase doesn't respond in 8s, load offline with defaults
+    // Timeout: if Firebase doesn't respond in 6s, load offline so the app is usable
     const loadTimeout = setTimeout(() => {
         if (appState) return;
-        console.warn('Firebase timeout — loading offline');
-        document.getElementById('loadingText').innerText = 'Could not reach Firebase. Check your Firestore Rules or internet connection.';
-        document.getElementById('loadingText').style.color = '#ff4757';
-        document.getElementById('retryBtn').style.display = 'inline-block';
-    }, 8000);
+        console.warn('Firebase timeout — loading offline with defaults');
+        appState = buildDefault();
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('quoteInput').value = getRandomQuote();
+        if (!tabsInitialized) { initTabs(); tabsInitialized = true; }
+        renderView();
+        showToast('⚠️ Offline — changes won\'t save');
+    }, 6000);
 
     docRef.onSnapshot((doc) => {
         clearTimeout(loadTimeout);

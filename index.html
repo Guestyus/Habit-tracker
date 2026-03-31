@@ -14,6 +14,7 @@
             --today-col: rgba(76,175,80,0.07);
             --today-border: rgba(76,175,80,0.45);
             --bg-color: #0d0d0d;
+            --bg: #0d0d0d;
             --surface: #161616;
             --surface-2: #1c1c1c;
             --surface-3: #242424;
@@ -29,7 +30,7 @@
 
         body {
             font-family:'DM Sans',sans-serif;
-            background:var(--bg-color); color:var(--text);
+            background:var(--bg); color:var(--text);
             -webkit-tap-highlight-color:transparent;
             min-height:100vh;
         }
@@ -166,6 +167,7 @@
             display:flex; justify-content:space-between; padding:18px 22px;
             border-bottom:1px solid var(--border); align-items:center; gap:18px;
             background:linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 100%);
+            flex-wrap:wrap;
         }
         .title-section h2 {
             font-family:'Bebas Neue',sans-serif; font-size:2.4rem; font-weight:400;
@@ -212,7 +214,7 @@
             justify-content:center; border:none; border-radius:8px;
             font-weight:700; cursor:pointer; font-size:.8rem;
             transition:all .15s; font-family:'DM Sans',sans-serif;
-            letter-spacing:.2px; white-space:nowrap;
+            letter-spacing:.2px; white-space:nowrap; min-width:0;
         }
         .btn-edit{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
         .btn-edit:hover{background:var(--surface-3); border-color:#3a3a3a;}
@@ -436,24 +438,62 @@
 
         /* ── RESPONSIVE ── */
         @media(max-width:900px){
+            /* Layout */
             .outer{padding:0; gap:0;}
             #desktopSidebar{display:none;}
-            .main-panel{margin-left:0; border-radius:0; border-left:none; border-right:none; border-top:none;}
-            body{padding:0; padding-bottom:80px;}
-            .header{padding:14px 14px;}
-            .area-chart{display:none;}
-            .title-section h2{font-size:1.8rem;}
+            .main-panel{margin-left:0; border-radius:0; border:none;}
+            body{padding:0; padding-bottom:76px; background:var(--bg-color); }
+
+            /* Header — stack vertically, clean and simple */
+            .header{
+                flex-direction:column; align-items:stretch;
+                padding:14px 14px 12px; gap:10px;
+            }
+            .title-section h2{font-size:1.6rem; letter-spacing:2px;}
             .subtitle{display:none;}
+            .charts-row{display:none;}
+            .quote-container{padding:8px 12px;}
+            .quote-input{font-size:.82rem;}
+
+            /* Controls bar */
+            .table-controls{padding:10px 12px; flex-wrap:wrap; gap:8px;}
+            .controls-left{width:100%; display:flex; gap:6px;}
+            .btn{flex:1; font-size:.74rem; padding:0 8px; height:40px;}
+            .stats-pill{display:none;}
+
+            /* Hide desktop table, show mobile list */
+            .tabs{display:none;}
             .table-wrapper{display:none;}
-            #mobileTaskList{display:flex;}
+            #mobileTaskList{display:flex; padding:12px 12px 0;}
             #todayPanel{display:block;}
             #mobileBottomNav{display:flex;}
-            .table-controls{padding:10px 14px;}
-            .controls-left{width:100%;}
-            .btn{flex:1; font-size:.76rem; padding:0 10px;}
-            .stats-pill{display:none;}
-            .tabs{display:none;}
-            .footer-stats{padding:10px 14px;}
+
+            /* Today panel */
+            #todayPanel{padding:12px 12px 0;}
+            .today-panel-title{font-size:1.2rem;}
+            .today-habits-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px;}
+            .today-habit-btn{padding:12px 8px;}
+            .today-habit-icon{font-size:1.4rem; margin-bottom:4px;}
+            .today-habit-name{font-size:.6rem;}
+            .today-divider{margin:0 12px 12px;}
+
+            /* Mobile cards */
+            .mobile-card{border-radius:14px; padding:14px;}
+            .mobile-card-name{font-size:.95rem;}
+            .mobile-card-meta{font-size:.62rem;}
+            .mobile-ring{width:48px; height:48px;}
+            .mobile-ring svg{width:48px; height:48px;}
+            .mobile-ring-text{font-size:.88rem;}
+
+            /* Modal */
+            .modal-content{padding:20px;}
+            .day-grid{gap:6px;}
+            .day-btn{font-size:.78rem; border-radius:8px;}
+
+            /* Footer stats */
+            .footer-stats{padding:10px 12px;}
+            .stat-value{font-size:1.2rem;}
+            .stat-label{font-size:.52rem;}
         }
     </style>
 </head>
@@ -569,12 +609,12 @@
                 <div class="modal-title" id="modalTaskName">HABIT</div>
                 <div class="modal-month" id="modalMonthName"></div>
             </div>
-            <button onclick="closeModal()" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:var(--text-muted); font-size:1.4rem; width:40px; height:40px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+            <button onclick="closeModal()" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--muted); font-size:1.4rem; width:40px; height:40px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
         </div>
         <div class="modal-progress">
             <div>
                 <div class="modal-pct" id="modalPct">0%</div>
-                <div style="font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--text-muted);">completion rate</div>
+                <div style="font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--muted);">completion rate</div>
             </div>
             <div class="modal-days-info" id="modalDaysInfo"></div>
         </div>
@@ -599,7 +639,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    db.settings({ experimentalAutoDetectLongPolling: true });
+    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
 
     // ── CONSTANTS ──

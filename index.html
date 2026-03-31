@@ -1206,66 +1206,95 @@
         const icons = ['💪','🥩','🌙','⏰','👟','📚','💧','🧘','🏃','🎯','✅','⭐'];
         const isCurrentMonth = currentView === todayMonth;
 
-        // Date label
-        const dateStr = today.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
-        const dateEl = document.getElementById('sidebarDate');
-        if (dateEl) dateEl.innerText = dateStr.toUpperCase();
-
+        const dateEl   = document.getElementById('sidebarDate');
         const habitsEl = document.getElementById('sidebarHabits');
         const statsEl  = document.getElementById('sidebarStats');
         const subEl    = document.getElementById('sidebarSub');
         const markBtn  = document.getElementById('sidebarMarkBtn');
         if (!habitsEl) return;
 
+        const dateStr = today.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+        if (dateEl) dateEl.innerText = dateStr.toUpperCase();
+
         if (!isCurrentMonth) {
-            habitsEl.innerHTML = `<div style="padding:12px;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-align:center;">Switch to current month<br>to see today's habits</div>`;
+            // Use DOM to avoid any quote issues
+            habitsEl.innerHTML = '';
+            const msg = document.createElement('div');
+            msg.style.cssText = 'padding:16px;font-size:.68rem;color:var(--muted);text-align:center;line-height:1.6;';
+            msg.textContent = 'Switch to current month to see today habits';
+            habitsEl.appendChild(msg);
             if (statsEl) statsEl.style.display = 'none';
             if (markBtn) markBtn.style.display = 'none';
             if (subEl)   subEl.innerText = '';
             return;
         }
+
         if (statsEl) statsEl.style.display = 'grid';
         if (markBtn) markBtn.style.display = 'block';
 
-        const doneCount = appState.habits.filter((_,r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
-        const allDone = doneCount === appState.habits.length;
-        if (subEl) subEl.innerText = `${doneCount} / ${appState.habits.length} complete`;
+        const doneCount = appState.habits.filter((_,r) => appState.data[currentView + '_' + r + '_' + todayDay]).length;
+        const allDone   = doneCount === appState.habits.length;
+        if (subEl) subEl.innerText = doneCount + ' / ' + appState.habits.length + ' complete';
         if (markBtn) {
             markBtn.textContent = allDone ? '✅ ALL DONE!' : '⚡ MARK ALL DONE';
-            markBtn.className = 'sidebar-mark-btn' + (allDone ? ' all-done' : '');
+            markBtn.className   = 'sidebar-mark-btn' + (allDone ? ' all-done' : '');
         }
 
-        habitsEl.innerHTML = appState.habits.map((name, r) => {
-            const done = !!appState.data[`${currentView}_${r}_${todayDay}`];
-            return `<div class="sb-habit ${done?'done':''}" onclick="toggleTodayHabit(${r})" title="Press ${r+1} to toggle">
-                <span class="sb-icon">${done ? '✅' : icons[r % icons.length]}</span>
-                <span class="sb-name">${name}</span>
-                <div class="sb-check"></div>
-            </div>`;
-        }).join('');
+        habitsEl.innerHTML = '';
+        appState.habits.forEach((name, r) => {
+            const done = !!appState.data[currentView + '_' + r + '_' + todayDay];
+            const row  = document.createElement('div');
+            row.className = 'sb-habit' + (done ? ' done' : '');
+            row.title     = 'Press ' + (r + 1) + ' to toggle';
+            row.onclick   = () => toggleTodayHabit(r);
 
-        // mini stats
+            const ico  = document.createElement('span');
+            ico.className = 'sb-icon';
+            ico.textContent = done ? '✅' : icons[r % icons.length];
+
+            const nm   = document.createElement('span');
+            nm.className = 'sb-name';
+            nm.textContent = name;
+
+            const chk  = document.createElement('div');
+            chk.className = 'sb-check';
+
+            row.appendChild(ico);
+            row.appendChild(nm);
+            row.appendChild(chk);
+            habitsEl.appendChild(row);
+        });
+
         if (statsEl) {
-            let monthDone = 0, monthTotal = 0, longestStreak = 0;
             const info = monthsInfo[currentView];
+            let monthDone = 0, monthTotal = 0, longestStreak = 0;
             appState.habits.forEach((_,r) => {
                 let s = 0;
                 for (let d = 0; d < info.days; d++) {
-                    if (appState.data[`${currentView}_${r}_${d}`]) { monthDone++; s++; longestStreak = Math.max(longestStreak,s); }
-                    else s = 0;
+                    if (appState.data[currentView + '_' + r + '_' + d]) {
+                        monthDone++; s++;
+                        if (s > longestStreak) longestStreak = s;
+                    } else { s = 0; }
                 }
                 monthTotal += info.days;
             });
-            const monthPct = Math.round((monthDone/Math.max(monthTotal,1))*100);
-            statsEl.innerHTML = `
-                <div class="ss-item"><div class="ss-val">${monthPct}%</div><div class="ss-lbl">Month Avg</div></div>
-                <div class="ss-item"><div class="ss-val">${longestStreak}🔥</div><div class="ss-lbl">Best Streak</div></div>
-                <div class="ss-item"><div class="ss-val">${monthDone}</div><div class="ss-lbl">Checks</div></div>
-                <div class="ss-item"><div class="ss-val">${appState.habits.length}</div><div class="ss-lbl">Habits</div></div>`;
+            const pct = Math.round((monthDone / Math.max(monthTotal,1)) * 100);
+            statsEl.innerHTML = '';
+            [
+                [pct + '%',            'Month Avg'],
+                [longestStreak + '🔥', 'Best Streak'],
+                [monthDone,             'Checks'],
+                [appState.habits.length,'Habits']
+            ].forEach(([val, lbl]) => {
+                const item = document.createElement('div');
+                item.className = 'ss-item';
+                item.innerHTML = '<div class="ss-val">' + val + '</div><div class="ss-lbl">' + lbl + '</div>';
+                statsEl.appendChild(item);
+            });
         }
     }
 
-    // ── KEYBOARD SHORTCUTS ──
+        // ── KEYBOARD SHORTCUTS ──
     document.addEventListener('keydown', e => {
         // Don't fire if typing in an input
         if (e.target.tagName === 'INPUT') return;

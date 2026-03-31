@@ -599,7 +599,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    db.settings({ experimentalAutoDetectLongPolling: true });
     const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
 
     // ── CONSTANTS ──
@@ -1218,7 +1218,7 @@
         if (!habitsEl) return;
 
         if (!isCurrentMonth) {
-            habitsEl.innerHTML = '<div style="padding:12px;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-align:center;">Switch to current month<br>to see today's habits</div>';
+            habitsEl.innerHTML = `<div style="padding:12px;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-align:center;">Switch to current month<br>to see today's habits</div>`;
             if (statsEl) statsEl.style.display = 'none';
             if (markBtn) markBtn.style.display = 'none';
             if (subEl)   subEl.innerText = '';

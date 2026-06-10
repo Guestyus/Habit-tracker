@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Consistency Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-light: rgba(76, 175, 80, 0.12);
+            --primary-glow: rgba(76, 175, 80, 0.3);
+            --today-col: rgba(76, 175, 80, 0.08);
+            --today-border: rgba(76, 175, 80, 0.5);
+            --bg-color: #0d0d0d;
+            --surface-color: #161616;
+            --surface-2: #1e1e1e;
+            --header-bg: #252525;
+            --border-color: #2a2a2a;
+            --text-main: #e8e8e8;
+            --text-muted: #888;
+            --danger: #ff4757;
+            --streak-color: #ff6b35;
+            --gold: #f1c40f;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+        }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--primary); color: white; padding: 10px 22px; border-radius: 100px;
+            font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px;
+            opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 9999;
+            pointer-events: none; white-space: nowrap;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── DASHBOARD SHELL ── */
+        .dashboard {
+            width: 100%; max-width: 1800px; margin: 0 auto;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* ── TABS ── */
+        .tabs {
+            display: flex; background: #080808;
+            overflow-x: auto; scrollbar-width: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            flex: 1; text-align: center; padding: 14px 10px;
+            color: var(--text-muted); cursor: pointer;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500; font-size: 0.72rem;
+            text-transform: uppercase; letter-spacing: 1px;
+            border-right: 1px solid #1a1a1a;
+            transition: color 0.2s, background 0.2s;
+            white-space: nowrap; position: relative; user-select: none;
+        }
+        .tab:hover:not(.active) { color: #ccc; background: rgba(255,255,255,0.02); }
+        .tab.active { color: white; background: linear-gradient(180deg, rgba(76,175,80,0.2) 0%, rgba(76,175,80,0.05) 100%); }
+        .tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+            background: var(--primary);
+        }
+        .tab.current-month::before {
+            content: ''; position: absolute; top: 6px; right: 6px;
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--primary); box-shadow: 0 0 6px var(--primary);
+        }
+        .tab.year-tab { background: #111; color: var(--gold); flex: 1.2; }
+        .tab.year-tab.active { background: linear-gradient(180deg, rgba(241,196,15,0.15) 0%, rgba(241,196,15,0.03) 100%); }
+        .tab.year-tab.active::after { background: var(--gold); }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex; justify-content: space-between; padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color); align-items: center; gap: 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+        }
+        .title-section h2 {
+            margin: 0; font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.6rem; font-weight: 400; letter-spacing: 3px;
+            color: #fff; line-height: 1;
+        }
+        .title-section .subtitle {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem; color: var(--text-muted);
+            letter-spacing: 2px; text-transform: uppercase; margin-top: 3px;
+        }
+        .quote-container {
+            flex-grow: 1; display: flex; align-items: center;
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid var(--primary); padding: 10px 16px; border-radius: 6px;
+            transition: border-color 0.2s;
+        }
+        .quote-container:focus-within { border-color: var(--primary); background: rgba(76,175,80,0.05); }
+        .quote-input {
+            width: 100%; background: transparent; border: none;
+            color: var(--text-muted); font-style: italic; font-size: 0.9rem;
+            outline: none; font-family: 'DM Sans', sans-serif;
+        }
+        .quote-input::placeholder { color: #444; }
+
+        /* ── CHARTS ── */
+        .charts-row { display: flex; align-items: center; gap: 16px; }
+        .chart-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-top: 4px; }
+
+        .area-chart { width: 180px; height: 70px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+
+        .donut-wrapper { position: relative; width: 80px; height: 80px; }
+        .doughnut-chart { width: 80px; height: 80px; }
+        .donut-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; pointer-events: none;
+        }
+        .donut-pct { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; color: #fff; line-height: 1; }
+        .donut-sub { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text-muted); }
+
+        /* ── CONTROLS ── */
+        .table-controls {
+            display: flex; gap: 10px; padding: 14px 20px;
+            align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-2);
+        }
+        .controls-left { display: flex; gap: 10px; align-items: center; }
+        .stats-pill {
+            font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-muted);
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
+            border-radius: 100px; padding: 6px 14px;
+        }
+        .stats-pill span { color: var(--primary); font-weight: 700; }
+
+        .btn {
+            height: 38px; padding: 0 18px; display: inline-flex; align-items: center;
+            justify-content: center; border: none; border-radius: 8px;
+            font-weight: 700; cursor: pointer; font-size: 0.82rem;
+            transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.3px; white-space: nowrap;
+        }
+        .btn-edit { background: var(--surface-2); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-edit:hover { background: var(--header-bg); border-color: #444; }
+        .btn-add { background: var(--primary); color: white; display: none; box-shadow: 0 4px 15px var(--primary-glow); }
+        .btn-add:hover { background: #5cbf60; transform: translateY(-1px); }
+        .btn-today { background: rgba(76,175,80,0.1); color: var(--primary); border: 1px solid rgba(76,175,80,0.3); }
+        .btn-today:hover { background: rgba(76,175,80,0.2); }
+
+        /* ── TABLE ── */
+        .table-wrapper { width: 100%; overflow-x: auto; }
+        .table-wrapper::-webkit-scrollbar { height: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        table { table-layout: fixed; border-collapse: collapse; width: 100%; min-width: 1200px; }
+
+        th, td {
+            border: 1px solid var(--border-color); text-align: center; height: 42px;
+            transition: background 0.15s;
+        }
+        th {
+            background-color: var(--header-bg);
+            font-family: 'DM Mono', monospace;
+            font-weight: 500; font-size: 0.68rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        th.week-header { color: var(--text-main); font-size: 0.65rem; }
+
+        /* Today column highlight */
+        td.today-col { background: var(--today-col); border-left-color: var(--today-border) !important; border-right-color: var(--today-border) !important; }
+        th.today-col { background: rgba(76,175,80,0.15) !important; color: var(--primary) !important; }
+
+        .col-habit { width: 260px; background: var(--header-bg) !important; position: sticky; left: 0; z-index: 10; }
+        .col-progress { width: 150px; }
+
+        /* checkbox cells */
+        td.check-cell { cursor: pointer; }
+        td.check-cell:hover { background: var(--primary-light) !important; }
+        td.check-cell:active { transform: scale(0.95); }
+
+        input[type="checkbox"] {
+            appearance: none; width: 20px; height: 20px;
+            background-color: transparent; border: 2px solid #3a3a3a;
+            border-radius: 4px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            vertical-align: middle; transition: all 0.15s; pointer-events: none;
+        }
+        input[type="checkbox"]:checked { background-color: var(--primary); border-color: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+        input[type="checkbox"]:checked::after { content: '✓'; color: white; font-weight: 900; font-size: 12px; }
+
+        /* ── HABIT CELL ── */
+        .habit-cell { display: flex; align-items: center; height: 100%; padding: 0 8px; gap: 4px; }
+        .habit-input {
+            flex-grow: 1; border: none; background: transparent;
+            color: #ffffff; font-size: 0.88rem; font-weight: 700;
+            text-align: right; outline: none; padding: 0 4px;
+            font-family: 'DM Sans', sans-serif; letter-spacing: 0.2px;
+        }
+        .habit-input:focus { color: var(--primary); }
+        .streak-badge {
+            font-size: 0.7rem; white-space: nowrap; color: var(--streak-color);
+            font-family: 'DM Mono', monospace; font-weight: 500;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .streak-badge.visible { opacity: 1; }
+
+        /* ── PROGRESS ── */
+        .progress-bar-bg { width: 85%; height: 6px; background: #1e1e1e; margin: 0 auto 3px; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #388e3c, var(--primary)); transition: width 0.4s ease; }
+        .progress-text { font-family: 'DM Mono', monospace; font-size: 0.75rem; font-weight: 500; }
+        .progress-count { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); }
+
+        /* ── EDIT MODE ── */
+        .is-editing .btn-add { display: inline-flex !important; }
+        .is-editing .btn-delete,
+        .is-editing .reorder-btns { display: flex !important; }
+
+        .reorder-btns { display: none; flex-direction: column; gap: 2px; }
+        .btn-move { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 1px 2px; font-size: 0.65rem; line-height: 1; transition: color 0.15s; }
+        .btn-move:hover { color: var(--primary); }
+        .btn-delete { display: none !important; background: none; border: none; color: var(--danger); font-size: 1.6rem; cursor: pointer; line-height: 1; padding: 0 4px; transition: opacity 0.15s; }
+        .btn-delete:hover { opacity: 0.7; }
+
+        /* ── SUMMARY (YEAR) ── */
+        .summary-cell { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 0.78rem; }
+
+        /* ── FOOTER STATS ── */
+        .footer-stats {
+            display: flex; padding: 14px 20px; gap: 20px; flex-wrap: wrap;
+            border-top: 1px solid var(--border-color);
+            background: var(--surface-2);
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--primary); line-height: 1; }
+        .stat-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* ── MOBILE ── */
+        #mobileTaskList { display: none; padding: 14px; flex-direction: column; gap: 10px; }
+        .mobile-card {
+            background: var(--surface-2); border-radius: 14px; padding: 16px;
+            border: 1px solid var(--border-color); cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s;
+            user-select: none; -webkit-user-select: none;
+        }
+        .mobile-card:active { transform: scale(0.98); }
+        .mobile-card.edit-mode { cursor: default; }
+        .mobile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .mobile-card-name { font-weight: 900; font-size: 1rem; letter-spacing: 0.3px; }
+        .mobile-card-pct { color: var(--primary); font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+        .mobile-streak { font-size: 0.75rem; color: var(--streak-color); font-family: 'DM Mono', monospace; margin-top: 4px; }
+        .mobile-count { font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+        .mobile-edit-footer {
+            display: none; border-top: 1px solid var(--border-color);
+            margin-top: 12px; padding-top: 12px; justify-content: space-between; align-items: center;
+        }
+        .is-editing .mobile-edit-footer { display: flex; }
+        .btn-mobile-sm { height: 36px; width: 44px; font-size: 0.9rem; border-radius: 8px; background: #2a2a2a; border: 1px solid var(--border-color); color: white; cursor: pointer; transition: background 0.15s; }
+        .btn-mobile-sm:hover { background: #333; }
+        .btn-mobile-del { background: rgba(255,71,87,0.1); border-color: rgba(255,71,87,0.3); color: var(--danger); padding: 0 16px; font-weight: 700; font-size: 0.82rem; border-radius: 8px; border: 1px solid rgba(255,71,87,0.3); cursor: pointer; height: 36px; transition: background 0.15s; }
+        .btn-mobile-del:hover { background: rgba(255,71,87,0.2); }
+
+        /* ── DAY MODAL ── */
+        #dayModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 3000; display: none;
+            flex-direction: column; backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            margin-top: auto; background: var(--surface-color);
+            border-radius: 24px 24px 0 0; padding: 28px;
+            max-height: 90%; overflow-y: auto;
+            border-top: 1px solid var(--border-color);
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; }
+        .modal-month { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+        .modal-progress { margin: 16px 0; padding: 12px; background: var(--surface-2); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-pct { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--primary); }
+        .modal-days-info { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); text-align: right; }
+        .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 4px; }
+        .day-btn {
+            aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--border-color);
+            background: var(--surface-2); color: var(--text-muted);
+            font-family: 'DM Mono', monospace; font-weight: 500;
+            display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.15s; user-select: none;
+        }
+        .day-btn:active { transform: scale(0.9); }
+        .day-btn.checked { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 2px 8px var(--primary-glow); }
+        .day-btn.today-day { border-color: var(--primary); color: var(--primary); font-weight: 700; }
+        .day-btn.today-day.checked { color: white; }
+        .day-btn.future-day { opacity: 0.35; pointer-events: none; }
+        .modal-btn-done {
+            width: 100%; padding: 16px; margin-top: 20px; border-radius: 14px;
+            background: var(--primary); border: none; color: white;
+            font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 1rem;
+            cursor: pointer; box-shadow: 0 6px 20px var(--primary-glow);
+            transition: all 0.15s;
+        }
+        .modal-btn-done:hover { background: #5cbf60; transform: translateY(-1px); }
+
+        /* ── LOADING ── */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0d0d0d; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 4000;
+        }
+        .loading-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--primary); letter-spacing: 6px; margin-bottom: 20px; }
+        .loading-bar { width: 200px; height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
+        .loading-fill { height: 100%; background: var(--primary); border-radius: 2px; animation: loadPulse 1.2s ease-in-out infinite; }
+        @keyframes loadPulse { 0% { width: 0%; } 60% { width: 80%; } 100% { width: 100%; } }
+        .loading-text { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 12px; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 800px) {
+            body { padding: 8px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .charts-row { align-self: flex-end; }
+            .area-chart { display: none; }
+            .title-section h2 { font-size: 2rem; }
+            .table-wrapper { display: none; }
+            #mobileTaskList { display: flex; }
+            .table-controls { flex-wrap: wrap; }
+            .controls-left { width: 100%; }
+            .btn { flex: 1; }
+            .footer-stats { justify-content: space-around; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+    <div class="loading-logo">CONSISTENCY</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+    <div class="loading-text">Syncing your data...</div>
+</div>
+
+<div id="toast"></div>
+
+<div class="dashboard" id="mainDashboard">
+    <div class="tabs" id="tabsContainer"></div>
+    <div class="header">
+        <div class="title-section">
+            <h2 id="viewTitle">DASHBOARD</h2>
+            <div class="subtitle" id="viewSubtitle">Loading...</div>
+        </div>
+        <div class="quote-container">
+            <input type="text" id="quoteInput" class="quote-input" placeholder="Add a motivational quote...">
+        </div>
+        <div class="charts-row">
+            <div>
+                <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.4"/>
+                            <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02"/>
+                        </linearGradient>
+                    </defs>
+                    <path id="areaPathFill" fill="url(#areaGrad)"></path>
+                    <path id="areaPathLine" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linejoin="round"></path>
+                </svg>
+                <div class="chart-label">Monthly trend</div>
+            </div>
+            <div>
+                <!-- BUG FIX: Doughnut text is now in a separate overlay div, not inside the rotated SVG -->
+                <div class="donut-wrapper">
+                    <svg class="doughnut-chart" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#252525" stroke-width="3.5"/>
+                        <circle id="doughnutFill" cx="18" cy="18" r="15.9" fill="none"
+                            stroke="var(--primary)" stroke-width="3.5"
+                            stroke-dasharray="0, 100" stroke-linecap="round"
+                            style="transition: stroke-dasharray 0.6s ease;"/>
+                    </svg>
+                    <div class="donut-center">
+                        <div class="donut-pct" id="doughnutText">0%</div>
+                        <div class="donut-sub">avg</div>
+                    </div>
+                </div>
+                <div class="chart-label">Completion</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-controls">
+        <div class="controls-left">
+            <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ EDIT HABITS</button>
+            <button class="btn btn-add" onclick="addTask()">+ ADD HABIT</button>
+            <button class="btn btn-today" id="todayBtn" onclick="markAllToday()" title="Mark all habits done for today">⚡ MARK TODAY</button>
+        </div>
+        <div class="stats-pill" id="statsPill">— / — complete</div>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="dashboardTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="mobileTaskList"></div>
+
+    <div class="footer-stats" id="footerStats"></div>
+</div>
+
+<div id="dayModal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="modal-title" id="modalTaskName">HABIT</div>
+                <div class="modal-month" id="modalMonthName"></div>
+            </div>
+            <button onclick="closeModal()" style="background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:var(--text-muted); font-size:1.4rem; width:40px; height:40px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+        </div>
+        <div class="modal-progress">
+            <div>
+                <div class="modal-pct" id="modalPct">0%</div>
+                <div style="font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--text-muted);">completion rate</div>
+            </div>
+            <div class="modal-days-info" id="modalDaysInfo"></div>
+        </div>
+        <div class="day-grid" id="dayGrid"></div>
+        <button class="modal-btn-done" onclick="closeModal()">DONE</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    // ── FIREBASE INIT ──
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4",
+        authDomain: "habit-tracker-48336.firebaseapp.com",
+        projectId: "habit-tracker-48336",
+        storageBucket: "habit-tracker-48336.firebasestorage.app",
+        messagingSenderId: "197128681235",
+        appId: "1:197128681235:web:7afcfb89fcec875256cce6",
+        measurementId: "G-L9M6XVL2KW"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    db.settings({ experimentalForceLongPolling: true });
+    const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
+
+    // ── CONSTANTS ──
+    const monthsInfo = [
+        {name:"January",days:31},{name:"February",days:28},{name:"March",days:31},
+        {name:"April",days:30},{name:"May",days:31},{name:"June",days:30},
+        {name:"July",days:31},{name:"August",days:31},{name:"September",days:30},
+        {name:"October",days:31},{name:"November",days:30},{name:"December",days:31}
+    ];
+
+    const today = new Date();
+    const todayMonth = today.getMonth();
+    const todayDay = today.getDate() - 1; // 0-indexed
+
+    let currentView = todayMonth;
+    let isEditing = false;
+    let appState = null;
+    let tabsInitialized = false;
+    let saveTimeout = null;
+
+    // ── TOAST ──
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // ── DEFAULT STATE ──
+    function buildDefault() {
+        return {
+            habits: ["WORKOUT","150G PROTEIN","BED BY 9PM","AWAKE BY 5AM","10K STEPS DAILY"],
+            data: {},
+            quote: "Consistency is the hallmark of the unimaginative."
+        };
+    }
+
+    // ── SAVE (debounced) ──
+    function safeSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            docRef.set(appState).then(() => showToast('✓ Saved'));
+        }, 400);
+    }
+
+    // ── FIREBASE LISTENER ──
+    docRef.onSnapshot((doc) => {
+        appState = doc.exists ? doc.data() : buildDefault();
+        if (!doc.exists) docRef.set(appState);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('quoteInput').value = appState.quote || '';
+        if (!tabsInitialized) { initTabs(); tabsInitialized = true; }
+        else { updateTabActiveStates(); }
+        renderView();
+    });
+
+    // BUG FIX: quote saves on input change (was only on 'change' event which fires on blur)
+    document.getElementById('quoteInput').addEventListener('input', (e) => {
+        if (appState) { appState.quote = e.target.value; safeSave(); }
+    });
+
+    // ── TABS ──
+    function initTabs() {
+        const container = document.getElementById('tabsContainer');
+        container.innerHTML = '';
+        monthsInfo.forEach((m, i) => {
+            const t = document.createElement('div');
+            t.className = `tab ${i === currentView ? 'active' : ''} ${i === todayMonth ? 'current-month' : ''}`;
+            t.dataset.index = i;
+            t.innerHTML = m.name.substring(0, 3).toUpperCase();
+            t.onclick = () => { currentView = i; renderView(); updateTabActiveStates(); };
+            container.appendChild(t);
+        });
+        const y = document.createElement('div');
+        y.className = `tab year-tab ${currentView === 12 ? 'active' : ''}`;
+        y.dataset.index = 12;
+        y.innerText = '2026';
+        y.onclick = () => { currentView = 12; renderView(); updateTabActiveStates(); };
+        container.appendChild(y);
+    }
+
+    function updateTabActiveStates() {
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', parseInt(t.dataset.index) === currentView);
+        });
+    }
+
+    // ── STREAK CALCULATION ──
+    function getCurrentStreak(r, month) {
+        if (month !== todayMonth) return 0;
+        let streak = 0;
+        for (let d = todayDay; d >= 0; d--) {
+            if (appState.data[`${month}_${r}_${d}`]) streak++;
+            else break;
+        }
+        return streak;
+    }
+
+    // ── RENDER ──
+    function renderView() {
+        updateTabActiveStates();
+        const todayBtn = document.getElementById('todayBtn');
+        todayBtn.style.display = currentView === todayMonth ? 'inline-flex' : 'none';
+        if (currentView === 12) renderYear(); else renderMonth();
+    }
+
+    function renderMonth() {
+        const info = monthsInfo[currentView];
+        const isCurrentMonth = currentView === todayMonth;
+        document.getElementById('viewTitle').innerText = info.name.toUpperCase();
+        document.getElementById('viewSubtitle').innerText =
+            `${appState.habits.length} habits · ${info.days} days` + (isCurrentMonth ? ' · TODAY' : '');
+
+        // Build header
+        let head = `<tr><th rowspan="2" class="col-habit">HABITS</th>`;
+        for (let i = 0; i < info.days; i++) {
+            if (i % 7 === 0) {
+                const span = Math.min(7, info.days - i);
+                head += `<th colspan="${span}" class="week-header">W${Math.floor(i/7)+1}</th>`;
+            }
+        }
+        head += `<th rowspan="2" class="col-progress">PROGRESS</th></tr><tr>`;
+        for (let i = 1; i <= info.days; i++) {
+            const isToday = isCurrentMonth && (i - 1) === todayDay;
+            head += `<th${isToday ? ' class="today-col"' : ''}>${isToday ? '★' : i}</th>`;
+        }
+        document.getElementById('tableHead').innerHTML = head + `</tr>`;
+
+        // Build rows
+        let rows = '';
+        let mobileCards = '';
+        let totalDone = 0, totalPossible = 0;
+
+        appState.habits.forEach((name, r) => {
+            let done = 0;
+            for (let d = 0; d < info.days; d++) if (appState.data[`${currentView}_${r}_${d}`]) done++;
+            const pct = Math.round((done / info.days) * 100);
+            const streak = getCurrentStreak(r, currentView);
+            const streakTxt = streak >= 2 ? `🔥 ${streak}` : '';
+            totalDone += done; totalPossible += info.days;
+
+            rows += `<tr>
+                <td class="col-habit">
+                    <div class="habit-cell">
+                        <button class="btn-delete" onclick="removeTask(${r})" title="Remove habit">&times;</button>
+                        <div class="reorder-btns">
+                            <button class="btn-move" onclick="moveTask(${r},-1)" title="Move up">▲</button>
+                            <button class="btn-move" onclick="moveTask(${r},1)" title="Move down">▼</button>
+                        </div>
+                        <span class="streak-badge ${streak >= 2 ? 'visible' : ''}">${streakTxt}</span>
+                        <input class="habit-input" value="${name}" onchange="updateTaskName(${r},this.value)" ${isEditing ? '' : 'readonly'}>
+                    </div>
+                </td>`;
+
+            for (let c = 0; c < info.days; c++) {
+                const isToday = isCurrentMonth && c === todayDay;
+                const checked = appState.data[`${currentView}_${r}_${c}`] ? 'checked' : '';
+                rows += `<td class="check-cell${isToday ? ' today-col' : ''}" onclick="toggleCheckbox(${currentView},${r},${c})"><input type="checkbox" ${checked}></td>`;
+            }
+
+            rows += `<td>
+                <div class="progress-text">${pct}%</div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+                <div class="progress-count">${done}/${info.days}</div>
+            </td></tr>`;
+
+            // Mobile card
+            mobileCards += `
+                <div class="mobile-card ${isEditing ? 'edit-mode' : ''}" onclick="${isEditing ? 'event.stopPropagation()' : `openModal(${r})`}">
+                    <div class="mobile-card-header">
+                        <span class="mobile-card-name">${name}</span>
+                        <span class="mobile-card-pct">${pct}%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="width:100%">
+                        <div class="progress-bar-fill" style="width:${pct}%"></div>
+                    </div>
+                    ${streak >= 2 ? `<div class="mobile-streak">🔥 ${streak}-day streak</div>` : ''}
+                    <div class="mobile-count">${done} of ${info.days} days complete</div>
+                    <div class="mobile-edit-footer">
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-mobile-sm" onclick="event.stopPropagation(); moveTask(${r},-1)">▲</button>
+                            <button class="btn-mobile-sm" onclick="event.stopPropagation(); moveTask(${r},1)">▼</button>
+                        </div>
+                        <button class="btn-mobile-del" onclick="event.stopPropagation(); removeTask(${r})">DELETE</button>
+                    </div>
+                </div>`;
+        });
+
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('mobileTaskList').innerHTML = mobileCards;
+
+        // Stats pill
+        const doneToday = appState.habits.filter((_, r) => appState.data[`${currentView}_${r}_${todayDay}`]).length;
+        document.getElementById('statsPill').innerHTML = isCurrentMonth
+            ? `Today: <span>${doneToday}/${appState.habits.length}</span> · Month avg: <span>${Math.round((totalDone/Math.max(totalPossible,1))*100)}%</span>`
+            : `Month avg: <span>${Math.round((totalDone/Math.max(totalPossible,1))*100)}%</span>`;
+
+        updateCharts(currentView);
+        renderFooterStats(currentView);
+    }
+
+    function renderYear() {
+        document.getElementById('viewTitle').innerText = '2026 SUMMARY';
+        document.getElementById('viewSubtitle').innerText = `${appState.habits.length} habits tracked`;
+
+        let head = `<tr><th class="col-habit">HABITS</th>`;
+        monthsInfo.forEach(m => head += `<th>${m.name.substring(0,3)}</th>`);
+        head += `<th class="col-progress">TOTAL</th></tr>`;
+        document.getElementById('tableHead').innerHTML = head;
+
+        let rows = '', mobileCards = '';
+        let grandDone = 0, grandTotal = 0;
+
+        appState.habits.forEach((name, r) => {
+            rows += `<tr><td class="col-habit">
+                <div class="habit-cell">
+                    <button class="btn-delete" onclick="removeTask(${r})">&times;</button>
+                    <input class="habit-input" value="${name}" onchange="updateTaskName(${r},this.value)" ${isEditing ? '' : 'readonly'}>
+                </div></td>`;
+
+            let yrDone = 0, yrDays = 0;
+            monthsInfo.forEach((m, mi) => {
+                let mDone = 0;
+                for (let d = 0; d < m.days; d++) if (appState.data[`${mi}_${r}_${d}`]) { mDone++; yrDone++; }
+                yrDays += m.days;
+                const mPct = Math.round((mDone / m.days) * 100);
+                const color = mPct >= 80 ? 'var(--primary)' : mPct >= 50 ? '#f1c40f' : mPct > 0 ? '#e67e22' : '#3a3a3a';
+                rows += `<td class="summary-cell" style="color:${color}">${mPct > 0 ? mPct + '%' : '—'}</td>`;
+            });
+            grandDone += yrDone; grandTotal += yrDays;
+            const yrPct = Math.round((yrDone / yrDays) * 100);
+            rows += `<td>
+                <div class="progress-text">${yrPct}%</div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${yrPct}%"></div></div>
+                <div class="progress-count">${yrDone}/${yrDays}</div>
+            </td></tr>`;
+
+            mobileCards += `<div class="mobile-card">
+                <div class="mobile-card-header"><span class="mobile-card-name">${name}</span><span class="mobile-card-pct">${yrPct}%</span></div>
+                <div class="progress-bar-bg" style="width:100%"><div class="progress-bar-fill" style="width:${yrPct}%"></div></div>
+                <div class="mobile-count">${yrDone} of ${yrDays} days</div>
+            </div>`;
+        });
+
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('mobileTaskList').innerHTML = mobileCards;
+        document.getElementById('statsPill').innerHTML = `Year avg: <span>${Math.round((grandDone/Math.max(grandTotal,1))*100)}%</span>`;
+        updateCharts(12);
+        renderFooterStats(12);
+    }
+
+    // ── FOOTER STATS ──
+    function renderFooterStats(view) {
+        const el = document.getElementById('footerStats');
+        if (view === 12) {
+            let total = 0, possible = 0;
+            appState.habits.forEach((_, r) => {
+                monthsInfo.forEach((m, mi) => {
+                    for (let d = 0; d < m.days; d++) {
+                        if (appState.data[`${mi}_${r}_${d}`]) total++;
+                        possible++;
+                    }
+                });
+            });
+            el.innerHTML = `
+                <div class="stat-item"><div class="stat-value">${total}</div><div class="stat-label">Days Completed</div></div>
+                <div class="stat-item"><div class="stat-value">${appState.habits.length}</div><div class="stat-label">Habits Tracked</div></div>
+                <div class="stat-item"><div class="stat-value">${Math.round((total/Math.max(possible,1))*100)}%</div><div class="stat-label">Overall Rate</div></div>`;
+        } else {
+            const info = monthsInfo[view];
+            let longestStreak = 0, currentStreak = 0;
+            // BUG FIX: calculate longest streak across all habits for the month
+            appState.habits.forEach((_, r) => {
+                let s = 0;
+                for (let d = 0; d < info.days; d++) {
+                    if (appState.data[`${view}_${r}_${d}`]) { s++; longestStreak = Math.max(longestStreak, s); }
+                    else s = 0;
+                }
+            });
+            let totalDone = 0;
+            for (let r = 0; r < appState.habits.length; r++)
+                for (let d = 0; d < info.days; d++)
+                    if (appState.data[`${view}_${r}_${d}`]) totalDone++;
+            el.innerHTML = `
+                <div class="stat-item"><div class="stat-value">${totalDone}</div><div class="stat-label">Checks This Month</div></div>
+                <div class="stat-item"><div class="stat-value">${longestStreak}🔥</div><div class="stat-label">Longest Streak</div></div>
+                <div class="stat-item"><div class="stat-value">${appState.habits.length}</div><div class="stat-label">Habits</div></div>`;
+        }
+    }
+
+    // ── MODAL ──
+    function openModal(r) {
+        const info = monthsInfo[currentView];
+        document.getElementById('modalTaskName').innerText = appState.habits[r];
+        document.getElementById('modalMonthName').innerText = info.name.toUpperCase() + ' 2026';
+
+        let done = 0;
+        const grid = document.getElementById('dayGrid');
+        grid.innerHTML = '';
+
+        for (let d = 0; d < info.days; d++) {
+            const key = `${currentView}_${r}_${d}`;
+            if (appState.data[key]) done++;
+            const btn = document.createElement('div');
+            const isToday = currentView === todayMonth && d === todayDay;
+            const isFuture = currentView === todayMonth && d > todayDay;
+            btn.className = `day-btn ${appState.data[key] ? 'checked' : ''} ${isToday ? 'today-day' : ''} ${isFuture ? 'future-day' : ''}`;
+            btn.innerText = d + 1;
+            if (!isFuture) {
+                btn.onclick = () => {
+                    appState.data[key] = !appState.data[key];
+                    btn.classList.toggle('checked');
+                    if (appState.data[key]) done++; else done--;
+                    updateModalStats(done, info.days);
+                    safeSave(); renderView();
+                };
+            }
+            grid.appendChild(btn);
+        }
+        updateModalStats(done, info.days);
+        document.getElementById('dayModal').style.display = 'flex';
+    }
+
+    function updateModalStats(done, total) {
+        document.getElementById('modalPct').innerText = Math.round((done/total)*100) + '%';
+        document.getElementById('modalDaysInfo').innerHTML = `<strong>${done}</strong> days complete<br>${total - done} remaining`;
+    }
+
+    function closeModal() { document.getElementById('dayModal').style.display = 'none'; }
+
+    // Close modal on backdrop click
+    document.getElementById('dayModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('dayModal')) closeModal();
+    });
+
+    // Keyboard: Escape closes modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    // ── ACTIONS ──
+    function toggleCheckbox(m, r, c) {
+        const k = `${m}_${r}_${c}`;
+        appState.data[k] = !appState.data[k];
+        safeSave(); renderView();
+    }
+
+    function updateTaskName(i, v) {
+        appState.habits[i] = v.toUpperCase().trim();
+        safeSave();
+    }
+
+    function addTask() {
+        appState.habits.push("NEW HABIT");
+        safeSave(); renderView();
+        showToast('✓ Habit added');
+    }
+
+    function removeTask(i) {
+        if (!confirm(`Remove "${appState.habits[i]}"? This will delete all tracked data for this habit.`)) return;
+        appState.habits.splice(i, 1);
+        // Clean up orphaned data
+        const newData = {};
+        Object.entries(appState.data).forEach(([k, v]) => {
+            if (!v) return;
+            const [m, row, d] = k.split('_').map(Number);
+            if (row < i) newData[k] = v;
+            else if (row > i) newData[`${m}_${row-1}_${d}`] = v;
+        });
+        appState.data = newData;
+        safeSave(); renderView();
+        showToast('Habit removed');
+    }
+
+    // BUG FIX: Original moveTask didn't correctly rebuild newData from scratch with existing entries
+    function moveTask(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= appState.habits.length) return;
+        [appState.habits[index], appState.habits[newIndex]] = [appState.habits[newIndex], appState.habits[index]];
+        const newData = {};
+        Object.entries(appState.data).forEach(([k, v]) => {
+            if (!v) return;
+            const parts = k.split('_');
+            const row = parseInt(parts[1]);
+            if (row === index) newData[`${parts[0]}_${newIndex}_${parts[2]}`] = v;
+            else if (row === newIndex) newData[`${parts[0]}_${index}_${parts[2]}`] = v;
+            else newData[k] = v;
+        });
+        appState.data = newData;
+        safeSave(); renderView();
+    }
+
+    function toggleEditMode() {
+        isEditing = !isEditing;
+        document.getElementById('mainDashboard').classList.toggle('is-editing', isEditing);
+        document.getElementById('editToggleBtn').innerText = isEditing ? '✅ DONE' : '✏️ EDIT HABITS';
+        renderView();
+    }
+
+    // ── MARK ALL TODAY ──
+    function markAllToday() {
+        if (currentView !== todayMonth) return;
+        const allDone = appState.habits.every((_, r) => appState.data[`${currentView}_${r}_${todayDay}`]);
+        appState.habits.forEach((_, r) => {
+            const k = `${currentView}_${r}_${todayDay}`;
+            appState.data[k] = !allDone;
+        });
+        safeSave(); renderView();
+        showToast(allDone ? 'Cleared today' : '🔥 Today marked complete!');
+    }
+
+    // ── CHARTS ──
+    function updateCharts(view) {
+        let totalAvg = 0, dailyPcts = [];
+        if (view === 12) {
+            let yrD = 0, yrT = 0;
+            monthsInfo.forEach((m, mi) => {
+                appState.habits.forEach((_, r) => {
+                    for (let d = 0; d < m.days; d++) {
+                        if (appState.data[`${mi}_${r}_${d}`]) yrD++;
+                        yrT++;
+                    }
+                });
+            });
+            totalAvg = yrT > 0 ? Math.round((yrD / yrT) * 100) : 0;
+        } else {
+            const info = monthsInfo[view];
+            const n = appState.habits.length;
+            for (let c = 0; c < info.days; c++) {
+                let cnt = 0;
+                appState.habits.forEach((_, r) => { if (appState.data[`${view}_${r}_${c}`]) cnt++; });
+                dailyPcts.push(n ? Math.round((cnt / n) * 100) : 0);
+            }
+            totalAvg = dailyPcts.length ? Math.round(dailyPcts.reduce((a, b) => a + b, 0) / info.days) : 0;
+        }
+
+        // BUG FIX: doughnut is now a <circle> with stroke-dasharray (simpler, no path math issues)
+        document.getElementById('doughnutFill').setAttribute('stroke-dasharray', `${totalAvg}, 100`);
+        // BUG FIX: text is now in HTML overlay, not inside rotated SVG
+        document.getElementById('doughnutText').innerText = totalAvg + '%';
+
+        // Area chart — smooth line using bezier curves
+        if (dailyPcts.length > 1) {
+            const W = 200, H = 70, n = dailyPcts.length;
+            const pts = dailyPcts.map((p, i) => ({
+                x: (i / (n - 1)) * W,
+                y: H - (p / 100) * (H - 4) - 2
+            }));
+
+            // Build smooth path
+            let linePath = `M${pts[0].x},${pts[0].y}`;
+            for (let i = 1; i < pts.length; i++) {
+                const cp1x = pts[i-1].x + (pts[i].x - pts[i-1].x) / 3;
+                const cp2x = pts[i].x - (pts[i].x - pts[i-1].x) / 3;
+                linePath += ` C${cp1x},${pts[i-1].y} ${cp2x},${pts[i].y} ${pts[i].x},${pts[i].y}`;
+            }
+            const fillPath = linePath + ` L${W},${H} L0,${H} Z`;
+            document.getElementById('areaPathLine').setAttribute('d', linePath);
+            document.getElementById('areaPathFill').setAttribute('d', fillPath);
+        } else {
+            document.getElementById('areaPathLine').setAttribute('d', '');
+            document.getElementById('areaPathFill').setAttribute('d', '');
+        }
+    }
+</script>
+</body>
+</html>

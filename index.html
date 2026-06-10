@@ -242,7 +242,7 @@ body{
 .table-wrapper::-webkit-scrollbar-thumb{background:#2a2a30}
 table{table-layout:fixed;border-collapse:collapse;width:100%;min-width:1100px}
 th,td{border:1px solid var(--border);text-align:center;height:40px;transition:background .12s}
-th{background:var(--surface-3);font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+th{background:var(--surface-3);font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.66rem;text-transform:uppercase;letter-spacing:1px;color:#b3b0a4}
 th.week-header{color:var(--text);font-size:.58rem}
 tbody tr:hover td{background:rgba(255,255,255,.015)}
 tbody tr:hover td.col-habit{background:var(--surface-3)}
@@ -286,7 +286,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 .progress-bar-bg{width:82%;height:4px;background:#191a1f;margin:0 auto 4px;overflow:hidden}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,#8a6f24,var(--primary));transition:width .4s ease}
 .progress-text{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:500;color:var(--text)}
-.progress-count{font-family:'IBM Plex Mono',monospace;font-size:.54rem;color:var(--muted);letter-spacing:.5px}
+.progress-count{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#b3b0a4;letter-spacing:.5px}
 
 /* ── EDIT MODE ── */
 .is-editing .btn-delete,.is-editing .reorder-btns{display:flex!important}
@@ -333,8 +333,8 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 .modal-days-info{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);text-align:right;line-height:1.7;letter-spacing:.5px}
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
 .day-btn{
-  aspect-ratio:1;border-radius:50%;border:1px solid var(--border);
-  background:var(--surface-2);color:var(--muted);
+  aspect-ratio:1;border-radius:50%;border:1px solid #3a3a42;
+  background:var(--surface-2);color:#c4c1b5;
   font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.8rem;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;user-select:none;transition:all .14s;
@@ -406,7 +406,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 .mobile-card-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .mobile-card-left{flex:1;min-width:0}
 .mobile-card-name{font-weight:600;font-size:.9rem;letter-spacing:1px;display:block;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
-.mobile-card-meta{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.5px}
+.mobile-card-meta{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#b3b0a4;letter-spacing:.5px}
 .mobile-streak{font-size:.64rem;color:var(--streak);font-family:'IBM Plex Mono',monospace;margin-top:5px;letter-spacing:.5px}
 .mobile-ring{flex-shrink:0;width:48px;height:48px;position:relative}
 .mobile-ring svg{width:48px;height:48px;transform:rotate(-90deg)}
@@ -427,7 +427,15 @@ td.rest-cell{background:#0a0a0d;color:#33333a;font-size:.75rem;cursor:default;te
 tbody tr:hover td.rest-cell{background:#0a0a0d}
 .sb-habit.rest{opacity:.4;cursor:default;border-style:dashed}
 .today-habit-btn.rest{opacity:.4;cursor:default;border-style:dashed}
-.day-btn.rest-day{opacity:.25;pointer-events:none;text-decoration:line-through}
+.day-btn{position:relative;-webkit-touch-callout:none}
+.day-btn.rest-day{opacity:.3;text-decoration:line-through}
+.day-btn.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
+.note-hint{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:12px;text-align:center}
+.note-head{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--primary);text-transform:uppercase;margin:14px 0 8px}
+.note-row{display:flex;gap:10px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--primary);margin-bottom:6px;cursor:pointer;align-items:baseline}
+.note-row:hover{background:var(--surface-3)}
+.note-day{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--primary);flex-shrink:0}
+.note-text{font-size:.74rem;color:var(--text);line-height:1.5;word-break:break-word}
 .btn-sched{display:none;background:none;border:none;cursor:pointer;font-size:.95rem;padding:0 3px;filter:grayscale(1) brightness(1.6)}
 .is-editing .btn-sched{display:flex!important}
 #schedModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3100;display:none;flex-direction:column;backdrop-filter:blur(6px)}
@@ -449,6 +457,35 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.5px;line-height:1.7;text-align:left}
 .gate-foot{position:absolute;bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:3px;color:#3a3933;text-transform:uppercase}
 #signOutLink:hover{color:var(--red)!important}
+
+/* ── WEEKLY DEBRIEF ── */
+#debriefModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3200;display:none;flex-direction:column;backdrop-filter:blur(6px)}
+.db-hero{display:flex;align-items:baseline;gap:14px;margin:18px 0 16px}
+.db-pct{font-family:'Cinzel',serif;font-size:2.6rem;color:var(--primary);line-height:1;text-shadow:0 0 14px var(--primary-glow)}
+.db-grade{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:3px;color:var(--text)}
+.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.db-stat{text-align:center;padding:10px 4px;border:1px solid var(--border);background:var(--surface-2)}
+.db-val{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--text)}
+.db-lbl{font-family:'IBM Plex Mono',monospace;font-size:.48rem;letter-spacing:1.2px;color:var(--muted);margin-top:3px}
+.db-rows{margin-bottom:6px}
+.db-row{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--border);border-left:2px solid var(--primary);background:var(--surface-2);margin-bottom:6px}
+.db-row-lbl{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1.5px;color:var(--muted)}
+.db-row-val{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--text);text-align:right}
+
+/* ── COMMENDATIONS ── */
+#medalRack{margin:0 10px 14px}
+#medalRackMobile{display:none;margin:12px 12px 0}
+.md-box{padding:12px;background:var(--surface-2);border:1px solid var(--border)}
+.md-head{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.md-rack{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.medal{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;
+  border:1px solid var(--border);background:var(--surface);opacity:.32;filter:grayscale(1);transition:all .3s}
+.md-ico{font-size:1.15rem;line-height:1;color:var(--muted)}
+.md-name{font-family:'IBM Plex Mono',monospace;font-size:.46rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;text-align:center;line-height:1.4}
+.medal.earned{opacity:1;filter:none;border-color:var(--primary);
+  box-shadow:0 0 8px rgba(201,164,55,.18),inset 0 0 12px rgba(201,164,55,.06)}
+.medal.earned .md-ico{color:var(--primary);text-shadow:0 0 8px var(--primary-glow)}
+.medal.earned .md-name{color:var(--text)}
 
 /* ── WEEKDAY INTEL ── */
 #weekdayIntel{margin:0 10px 14px}
@@ -537,6 +574,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .dz-meta{font-size:9.5px;letter-spacing:1px;color:#333;line-height:1.9}
   .dz-rule{border-top:2.5px solid #111;margin:12px 0}
   .dz-rule.thin{border-top:1px solid #999;margin:9px 0}
+  .dz-commend{font-size:9px;letter-spacing:2px;color:#111;border:1.5px solid #111;padding:6px 10px;margin-bottom:12px;text-transform:uppercase}
   .dz-summary{display:flex;gap:0;border:1.5px solid #111;margin-bottom:14px}
   .dz-sum-item{flex:1;text-align:center;padding:9px 4px;border-right:1px solid #111}
   .dz-sum-item:last-child{border-right:none}
@@ -546,6 +584,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .dz-obj-head{display:flex;justify-content:space-between;font-weight:700;letter-spacing:1px;border-bottom:1px solid #111;padding-bottom:2px;margin-bottom:3px}
   .dz-grid{font-size:12px;letter-spacing:3.5px;color:#111;word-break:break-all}
   .dz-obj-meta{font-size:8.5px;color:#666;letter-spacing:1px;margin-top:1px}
+  .dz-note{font-size:9px;color:#333;letter-spacing:.3px;margin-top:3px;padding-left:8px;border-left:2px solid #999}
   .dz-yr-row{display:flex;justify-content:space-between;border-bottom:1px dotted #999;padding:3px 0;letter-spacing:.5px}
   .dz-foot{
     margin-top:20px;border-top:2.5px solid #111;padding-top:8px;
@@ -578,6 +617,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   #mobileBottomNav{display:flex}
   #heatmapPanel{padding:12px;--hm:8px}
   #weekdayIntelMobile{display:block}
+  #medalRackMobile{display:block}
   .bm-text{font-size:1rem;letter-spacing:4px}
   .modal-content{padding:20px}
   .day-grid{gap:6px}
@@ -652,6 +692,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div class="sidebar-habits" id="sidebarHabits"></div>
     <div class="sidebar-stats" id="sidebarStats"></div>
     <div id="weekdayIntel"></div>
+    <div id="medalRack"></div>
     <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">Mission Complete</button>
     <div class="sidebar-hint">
       <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle objectives<br>
@@ -739,6 +780,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div class="today-divider" id="todayDivider"></div>
     <div id="mobileTaskList"></div>
     <div id="weekdayIntelMobile"></div>
+    <div id="medalRackMobile"></div>
 
     <div class="footer-stats" id="footerStats"></div>
   </div>
@@ -751,6 +793,29 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div class="mob-nav-year" id="mobNavYear"></div>
   </div>
   <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
+</div>
+
+<div id="debriefModal">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title">▦ WEEKLY DEBRIEF</div>
+        <div class="modal-month" id="dbRange"></div>
+      </div>
+      <button class="modal-close" onclick="closeDebrief()">✕</button>
+    </div>
+    <div class="db-hero"><span class="db-pct" id="dbPct">0%</span><span class="db-grade" id="dbGrade"></span></div>
+    <div class="db-stats">
+      <div class="db-stat"><div class="db-val" id="dbOps"></div><div class="db-lbl">OPS COMPLETED</div></div>
+      <div class="db-stat"><div class="db-val" id="dbPerfect"></div><div class="db-lbl">PERFECT DAYS</div></div>
+      <div class="db-stat"><div class="db-val" id="dbDelta"></div><div class="db-lbl">VS PRIOR WEEK</div></div>
+    </div>
+    <div class="db-rows">
+      <div class="db-row"><span class="db-row-lbl">STRONGEST</span><span class="db-row-val" id="dbBest"></span></div>
+      <div class="db-row"><span class="db-row-lbl">WEAKEST</span><span class="db-row-val" id="dbWorst"></span></div>
+    </div>
+    <button class="modal-btn-done" onclick="closeDebrief()">Acknowledge · Begin the Week</button>
+  </div>
 </div>
 
 <div id="schedModal">
@@ -784,6 +849,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
       <div class="modal-days-info" id="modalDaysInfo"></div>
     </div>
     <div class="day-grid" id="dayGrid"></div>
+    <div id="modalNotes"></div>
     <button class="modal-btn-done" onclick="closeModal()">Close File</button>
   </div>
 </div>
@@ -904,7 +970,10 @@ function buildDefault() {
     data: {},
     quote: "",
     codename: "",
-    sched: []
+    sched: [],
+    notes: {},
+    medals: {},
+    lastDebrief: ''
   };
 }
 
@@ -915,6 +984,8 @@ function normalizeState(s) {
   if (!Array.isArray(s.sched)) s.sched = [];
   while (s.sched.length < s.habits.length) s.sched.push('1111111');
   s.sched.length = s.habits.length;
+  if (!s.notes || typeof s.notes !== 'object' || Array.isArray(s.notes)) s.notes = {};
+  if (!s.medals || typeof s.medals !== 'object' || Array.isArray(s.medals)) s.medals = {};
   return s;
 }
 
@@ -1199,6 +1270,8 @@ function renderView() {
   renderTodayPanel();
   renderHeatmap();
   renderWeekdayIntel();
+  renderMedals();
+  maybeWeeklyDebrief();
   updateMobileNav();
 }
 
@@ -1582,15 +1655,20 @@ function openModal(r) {
     if (!rest) { schedDays++; if (appState.data[k]) done++; }
     const isToday  = currentView === tMonth() && d === todayDay;
     const isFuture = currentView === tMonth() && d > todayDay;
+    const note = (appState.notes && appState.notes[k]) || '';
     const btn = document.createElement('div');
     btn.className = 'day-btn'
       + (rest ? ' rest-day' : '')
       + (!rest && appState.data[k] ? ' checked' : '')
       + (isToday ? ' today-day' : '')
-      + (isFuture ? ' future-day' : '');
+      + (isFuture ? ' future-day' : '')
+      + (note ? ' has-note' : '');
     btn.textContent = d + 1;
+    if (note) btn.title = note;
+    let lpFired = false;
     if (!rest && !isFuture) {
       btn.onclick = () => {
+        if (lpFired) { lpFired = false; return; }
         haptic(10);
         appState.data[k] = !appState.data[k];
         btn.classList.toggle('checked');
@@ -1600,10 +1678,46 @@ function openModal(r) {
         renderView();
       };
     }
+    btn.addEventListener('contextmenu', e => { e.preventDefault(); editDayNote(r, d); });
+    let lpTimer = null;
+    btn.addEventListener('touchstart', () => {
+      lpTimer = setTimeout(() => { lpTimer = null; lpFired = true; editDayNote(r, d); }, 550);
+    }, { passive: true });
+    btn.addEventListener('touchend', () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
+    btn.addEventListener('touchmove', () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
     grid.appendChild(btn);
   }
   updateModalStats(done, schedDays);
+
+  const notesEl = document.getElementById('modalNotes');
+  if (notesEl) {
+    let nHtml = '';
+    for (let d = 0; d < info.days; d++) {
+      const t = appState.notes && appState.notes[key(currentView, r, d)];
+      if (t) {
+        nHtml += '<div class="note-row" onclick="editDayNote(' + r + ',' + d + ')">'
+          + '<span class="note-day">' + String(d + 1).padStart(2, '0') + '</span>'
+          + '<span class="note-text">' + t.replace(/</g, '&lt;') + '</span></div>';
+      }
+    }
+    notesEl.innerHTML = (nHtml ? '<div class="note-head">\u25A4 FIELD NOTES</div>' + nHtml : '')
+      + '<div class="note-hint">HOLD OR RIGHT-CLICK A DAY TO LOG A FIELD NOTE</div>';
+  }
   document.getElementById('dayModal').style.display = 'flex';
+}
+
+function editDayNote(r, d) {
+  haptic(15);
+  const k = key(currentView, r, d);
+  const existing = (appState.notes && appState.notes[k]) || '';
+  const v = prompt('Field note \u2014 ' + monthsInfo[currentView].name + ' ' + (d + 1) + ', ' + viewYear + ':', existing);
+  if (v === null) return;
+  if (!appState.notes) appState.notes = {};
+  const t = v.trim();
+  if (t) { appState.notes[k] = t; showToast('\u2713 Field note logged', true); }
+  else { delete appState.notes[k]; if (existing) showToast('Field note destroyed'); }
+  safeSave();
+  openModal(r);
 }
 
 function updateModalStats(done, total) {
@@ -1622,6 +1736,10 @@ document.getElementById('dayModal').addEventListener('click', e => {
 
 document.getElementById('schedModal').addEventListener('click', e => {
   if (e.target.id === 'schedModal') closeSchedule();
+});
+
+document.getElementById('debriefModal').addEventListener('click', e => {
+  if (e.target.id === 'debriefModal') closeDebrief();
 });
 
 // ── Schedule editor ──
@@ -1656,9 +1774,7 @@ function closeSchedule() {
   document.getElementById('schedModal').style.display = 'none';
 }
 
-document.getElementById('schedModal').addEventListener('click', e => {
-  if (e.target.id === 'schedModal') closeSchedule();
-});
+
 
 // ════════════════ ACTIONS ════════════════
 function toggleCheckbox(m, r, c) {
@@ -1732,6 +1848,14 @@ function removeTask(i) {
     else if (row > i) newData[key(m, row - 1, d)] = v;
   });
   appState.data = newData;
+  const newNotes = {};
+  Object.entries(appState.notes || {}).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    if (row < i) newNotes[k] = v;
+    else if (row > i) newNotes[key(m, row - 1, d)] = v;
+  });
+  appState.notes = newNotes;
   safeSave();
   renderView();
   showToast('Objective decommissioned');
@@ -1754,6 +1878,15 @@ function moveTask(index, direction) {
     else newData[k] = v;
   });
   appState.data = newData;
+  const newNotes = {};
+  Object.entries(appState.notes || {}).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    if (row === index) newNotes[key(m, newIndex, d)] = v;
+    else if (row === newIndex) newNotes[key(m, index, d)] = v;
+    else newNotes[k] = v;
+  });
+  appState.notes = newNotes;
   safeSave();
   renderView();
 }
@@ -1830,6 +1963,182 @@ function updateCharts(view) {
 }
 
 // ════════════════ WEEKDAY INTEL ════════════════
+// ════════════════ WEEKLY DEBRIEF ════════════════
+let debriefShownSession = false;
+let pendingDebriefISO = null;
+
+function pad2(x) { return String(x).padStart(2, '0'); }
+
+function weekStats(start) { // start = a Monday; covers 7 days, clamped to the live year
+  const n = appState.habits.length;
+  let sched = 0, done = 0, perfectDays = 0, activeDays = 0;
+  const perObj = appState.habits.map(() => ({ s: 0, d: 0 }));
+  for (let i = 0; i < 7; i++) {
+    const dt = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    if (dt.getFullYear() !== THIS_YEAR) continue;
+    const mi = dt.getMonth(), dd = dt.getDate() - 1, dow = dt.getDay();
+    let dS = 0, dD = 0;
+    for (let r = 0; r < n; r++) {
+      if (!isSchedDow(r, dow)) continue;
+      dS++; perObj[r].s++;
+      if (appState.data[key(mi, r, dd)]) { dD++; perObj[r].d++; }
+    }
+    sched += dS; done += dD;
+    if (dS > 0) { activeDays++; if (dD === dS) perfectDays++; }
+  }
+  return { sched, done, perfectDays, activeDays, perObj,
+           pct: sched ? Math.round((done / sched) * 100) : 0 };
+}
+
+function maybeWeeklyDebrief(force) {
+  if (!appState || viewYear !== THIS_YEAR) return;
+  if (!force) {
+    if (debriefShownSession || todayDow !== 1) return; // Mondays only
+  }
+  const t = new Date(THIS_YEAR, _todayMonth, todayDay + 1);
+  const dowMon = (t.getDay() + 6) % 7;
+  const thisMonday = new Date(t.getFullYear(), t.getMonth(), t.getDate() - dowMon);
+  const monISO = thisMonday.getFullYear() + '-' + pad2(thisMonday.getMonth() + 1) + '-' + pad2(thisMonday.getDate());
+  if (!force && appState.lastDebrief === monISO) return;
+
+  const lastMon = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - 7);
+  const stats = weekStats(lastMon);
+  if (!stats.sched) return; // nothing to report
+  debriefShownSession = true;
+  pendingDebriefISO = monISO;
+
+  const prev = weekStats(new Date(lastMon.getFullYear(), lastMon.getMonth(), lastMon.getDate() - 7));
+  const delta = prev.sched ? stats.pct - prev.pct : null;
+
+  let bestI = -1, worstI = -1;
+  stats.perObj.forEach((o, r) => {
+    if (!o.s) return;
+    const p = o.d / o.s;
+    if (bestI < 0 || p > stats.perObj[bestI].d / stats.perObj[bestI].s) bestI = r;
+    if (worstI < 0 || p < stats.perObj[worstI].d / stats.perObj[worstI].s) worstI = r;
+  });
+
+  const sun = new Date(lastMon.getFullYear(), lastMon.getMonth(), lastMon.getDate() + 6);
+  const fmt = d => d.getDate() + ' ' + MONTH_NAMES[d.getMonth()].substring(0, 3).toUpperCase();
+  document.getElementById('dbRange').textContent = fmt(lastMon) + ' \u2013 ' + fmt(sun) + ' ' + THIS_YEAR;
+  document.getElementById('dbPct').textContent = stats.pct + '%';
+  document.getElementById('dbGrade').textContent = statusWord(stats.pct);
+  document.getElementById('dbOps').textContent = stats.done + '/' + stats.sched;
+  document.getElementById('dbPerfect').textContent = stats.perfectDays + '/' + stats.activeDays;
+  const dEl = document.getElementById('dbDelta');
+  dEl.textContent = delta === null ? '\u2014' : (delta >= 0 ? '\u25B2 +' + delta : '\u25BC ' + delta) + '%';
+  dEl.style.color = delta === null ? 'var(--muted)' : (delta >= 0 ? 'var(--primary)' : 'var(--red)');
+  const safe = r => appState.habits[r].replace(/</g, '&lt;');
+  document.getElementById('dbBest').innerHTML = bestI >= 0
+    ? safe(bestI) + ' \u00B7 ' + Math.round((stats.perObj[bestI].d / stats.perObj[bestI].s) * 100) + '%' : '\u2014';
+  document.getElementById('dbWorst').innerHTML = worstI >= 0
+    ? safe(worstI) + ' \u00B7 ' + Math.round((stats.perObj[worstI].d / stats.perObj[worstI].s) * 100) + '%' : '\u2014';
+
+  setTimeout(() => {
+    document.getElementById('debriefModal').style.display = 'flex';
+    haptic(12);
+  }, 450);
+}
+
+window.testDebrief = () => maybeWeeklyDebrief(true); // Q Branch bench-test switch
+
+function closeDebrief() {
+  const el = document.getElementById('debriefModal');
+  if (!el || el.style.display !== 'flex') return;
+  el.style.display = 'none';
+  if (pendingDebriefISO && appState) {
+    appState.lastDebrief = pendingDebriefISO;
+    pendingDebriefISO = null;
+    safeSave();
+  }
+}
+
+// ════════════════ COMMENDATIONS ════════════════
+const MEDAL_DEFS = [
+  { id: 'firstop',   ico: '\u2605', name: 'FIRST OP',      desc: 'Complete your first objective' },
+  { id: 'fullhouse', ico: '\u25C6', name: 'FULL HOUSE',    desc: 'Complete every scheduled objective in a single day' },
+  { id: 'streak7',   ico: '\u2726', name: '7-DAY STREAK',  desc: 'A 7-day streak on any objective (rest days excluded)' },
+  { id: 'streak30',  ico: '\u272A', name: '30-DAY STREAK', desc: 'A 30-day streak on any objective (rest days excluded)' },
+  { id: 'perfweek',  ico: '\u25A3', name: 'PERFECT WEEK',  desc: 'Every scheduled op completed, Monday to Sunday' },
+  { id: 'centurion', ico: '\u2756', name: 'CENTURION',     desc: '100 operations completed this year' }
+];
+
+function computeMedals() {
+  const n = appState.habits.length;
+  let totalOps = 0, fullHouse = false, bestStreak = 0, perfectWeek = false;
+  const dayStat = [];
+
+  monthsInfo.forEach((m, mi) => {
+    for (let d = 0; d < m.days; d++) {
+      const dow = new Date(viewYear, mi, d + 1).getDay();
+      let schedN = 0, doneN = 0;
+      for (let r = 0; r < n; r++) {
+        if (!isSchedDow(r, dow)) continue;
+        schedN++;
+        if (appState.data[key(mi, r, d)]) { doneN++; totalOps++; }
+      }
+      if (schedN > 0 && doneN === schedN) fullHouse = true;
+      const past = viewYear < THIS_YEAR
+        || (viewYear === THIS_YEAR && (mi < _todayMonth || (mi === _todayMonth && d <= todayDay)));
+      dayStat.push({ dow, past, stat: schedN === 0 ? 'rest' : (doneN === schedN ? 'perfect' : 'miss') });
+    }
+  });
+
+  for (let r = 0; r < n; r++) {
+    let s = 0;
+    monthsInfo.forEach((m, mi) => {
+      for (let d = 0; d < m.days; d++) {
+        if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue;
+        if (appState.data[key(mi, r, d)]) { s++; if (s > bestStreak) bestStreak = s; }
+        else s = 0;
+      }
+    });
+  }
+
+  for (let i = 0; i + 6 < dayStat.length; i++) {
+    if (dayStat[i].dow !== 1) continue; // weeks open on Monday
+    let ok = true, anyPerfect = false;
+    for (let j = i; j < i + 7; j++) {
+      if (!dayStat[j].past || dayStat[j].stat === 'miss') { ok = false; break; }
+      if (dayStat[j].stat === 'perfect') anyPerfect = true;
+    }
+    if (ok && anyPerfect) { perfectWeek = true; break; }
+  }
+
+  const earned = {
+    firstop: totalOps > 0,
+    fullhouse: fullHouse,
+    streak7: bestStreak >= 7,
+    streak30: bestStreak >= 30,
+    perfweek: perfectWeek,
+    centurion: totalOps >= 100
+  };
+  return MEDAL_DEFS.map(def => Object.assign({}, def, { earned: !!earned[def.id] }));
+}
+
+function renderMedals() {
+  if (!appState) return;
+  const medals = computeMedals();
+  if (!appState.medals || typeof appState.medals !== 'object') appState.medals = {};
+  const fresh = medals.filter(m => m.earned && !appState.medals[m.id]);
+  if (fresh.length) {
+    fresh.forEach(m => { appState.medals[m.id] = true; });
+    showToast('\u272A Commendation' + (fresh.length > 1 ? 's' : '') + ' earned: '
+      + fresh.map(m => m.name).join(' \u00B7 '), true);
+    haptic([20, 30, 20]);
+    safeSave();
+  }
+  const html = '<div class="md-box"><div class="md-head">\u272A COMMENDATIONS \u00B7 ' + viewYear + '</div>'
+    + '<div class="md-rack">'
+    + medals.map(m => '<div class="medal' + (m.earned ? ' earned' : '') + '" title="' + m.desc + '">'
+      + '<span class="md-ico">' + m.ico + '</span><span class="md-name">' + m.name + '</span></div>').join('')
+    + '</div></div>';
+  const a = document.getElementById('medalRack');
+  const b = document.getElementById('medalRackMobile');
+  if (a) a.innerHTML = html;
+  if (b) b.innerHTML = html;
+}
+
 function renderWeekdayIntel() {
   const html = buildWeekdayIntelHTML();
   const a = document.getElementById('weekdayIntel');
@@ -2057,6 +2366,11 @@ function buildDossier() {
       + '<div class="dz-sum-item"><div class="dz-sum-val">' + appState.habits.length + '</div><div class="dz-sum-lbl">Objectives</div></div>'
       + '</div>';
 
+    const dzMedals = computeMedals().filter(md => md.earned);
+    if (dzMedals.length) {
+      html += '<div class="dz-commend">COMMENDATIONS: ' + dzMedals.map(md => md.name).join(' \u00B7 ') + '</div>';
+    }
+
     appState.habits.forEach((name, r) => {
       let yrDone = 0, yrDays = 0, monthly = '';
       monthsInfo.forEach((m, mi) => {
@@ -2112,11 +2426,16 @@ function buildDossier() {
       }
       const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
       const safe = name.replace(/</g, '&lt;');
+      let dzNotes = '';
+      for (let d = 0; d < info.days; d++) {
+        const t = appState.notes && appState.notes[key(currentView, r, d)];
+        if (t) dzNotes += '<div class="dz-note">' + String(d + 1).padStart(2, '0') + ' \u2014 ' + t.replace(/</g, '&lt;') + '</div>';
+      }
       html += '<div class="dz-obj"><div class="dz-obj-head">'
         + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
         + '<span>' + pct + '% — ' + statusWord(pct) + '</span></div>'
         + '<div class="dz-grid">' + grid + '</div>'
-        + '<div class="dz-obj-meta">' + done + '/' + schedDays + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED · – REST</div></div>';
+        + '<div class="dz-obj-meta">' + done + '/' + schedDays + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED · – REST</div>' + dzNotes + '</div>';
     });
   }
 
@@ -2133,7 +2452,7 @@ function buildDossier() {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (!appState) return;
-  if (e.key === 'Escape') { closeModal(); closeSchedule(); return; }
+  if (e.key === 'Escape') { closeModal(); closeSchedule(); closeDebrief(); return; }
   if (e.key === 'ArrowRight') { mobileNavMonth(1); return; }
   if (e.key === 'ArrowLeft')  { mobileNavMonth(-1); return; }
   const num = parseInt(e.key, 10);

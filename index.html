@@ -422,6 +422,21 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 }
 .btn-mobile-del:active{background:var(--red);color:#fff}
 
+/* ── REST DAYS / SCHEDULES / YEAR NAV ── */
+td.rest-cell{background:#0a0a0d;color:#33333a;font-size:.75rem;cursor:default;text-align:center}
+tbody tr:hover td.rest-cell{background:#0a0a0d}
+.sb-habit.rest{opacity:.4;cursor:default;border-style:dashed}
+.today-habit-btn.rest{opacity:.4;cursor:default;border-style:dashed}
+.day-btn.rest-day{opacity:.25;pointer-events:none;text-decoration:line-through}
+.btn-sched{display:none;background:none;border:none;cursor:pointer;font-size:.95rem;padding:0 3px;filter:grayscale(1) brightness(1.6)}
+.is-editing .btn-sched{display:flex!important}
+#schedModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3100;display:none;flex-direction:column;backdrop-filter:blur(6px)}
+.year-nav{display:flex;gap:10px;align-items:center;margin-top:7px;
+  font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:2px;color:var(--muted)}
+.yn-btn{cursor:pointer;border:1px solid var(--border);padding:2px 10px;color:var(--primary);user-select:none;transition:all .15s;font-size:.8rem;line-height:1.3}
+.yn-btn:hover{background:var(--primary);color:#0a0a0c}
+#yearLabel{color:var(--text);letter-spacing:3px}
+
 /* ── AUTH GATE ── */
 #authGate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:4500;padding:24px;text-align:center}
 .gate-title{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:5px;color:var(--primary);margin-bottom:8px}
@@ -655,6 +670,11 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
       <div class="title-section">
         <h2 id="viewTitle">DASHBOARD</h2>
         <div class="subtitle" id="viewSubtitle"></div>
+        <div class="year-nav">
+          <span class="yn-btn" onclick="changeYear(-1)" title="Previous year">&#8249;</span>
+          <span id="yearLabel">----</span>
+          <span class="yn-btn" onclick="changeYear(1)" title="Next year">&#8250;</span>
+        </div>
       </div>
       <div class="quote-container">
         <input type="text" id="quoteInput" class="quote-input" placeholder="Field notes...">
@@ -733,6 +753,20 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
 </div>
 
+<div id="schedModal">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="schedTaskName">OBJECTIVE</div>
+        <div class="modal-month">TRAINING SCHEDULE &middot; TAP TO TOGGLE REST DAYS</div>
+      </div>
+      <button class="modal-close" onclick="closeSchedule()">✕</button>
+    </div>
+    <div class="day-grid" id="schedGrid" style="margin-top:18px;"></div>
+    <button class="modal-btn-done" onclick="closeSchedule()">Confirm Schedule</button>
+  </div>
+</div>
+
 <div id="dayModal">
   <div class="modal-content">
     <div class="modal-top">
@@ -786,16 +820,20 @@ try {
 
 // ════════════════ CONSTANTS ════════════════
 const today      = new Date();
-const YEAR       = today.getFullYear();
-const todayMonth = today.getMonth();
-const todayDay   = today.getDate() - 1;
+const THIS_YEAR  = today.getFullYear();
+const _todayMonth = today.getMonth();
+const todayDay   = today.getDate() - 1; // 0-indexed
+const todayDow   = today.getDay();
+
+let viewYear = THIS_YEAR;
+const tMonth = () => (viewYear === THIS_YEAR ? _todayMonth : -1);
 
 const MONTH_NAMES = ["January","February","March","April","May","June",
                      "July","August","September","October","November","December"];
-const monthsInfo = MONTH_NAMES.map((name, i) => ({
-  name,
-  days: new Date(YEAR, i + 1, 0).getDate()
-}));
+function monthsFor(year) {
+  return MONTH_NAMES.map((name, i) => ({ name, days: new Date(year, i + 1, 0).getDate() }));
+}
+let monthsInfo = monthsFor(viewYear);
 
 const ICONS = ['🎯','🕶️','⌚','🍸','🚗','♠️','💼','🛰️','🗝️','✈️','📡','🔦'];
 
@@ -833,7 +871,7 @@ const QUOTES = [
 ];
 
 // ════════════════ STATE ════════════════
-let currentView     = todayMonth;
+let currentView     = _todayMonth;
 let isEditing       = false;
 let appState        = null;
 let tabsInitialized = false;
@@ -865,8 +903,33 @@ function buildDefault() {
     habits: ["WORKOUT", "150G PROTEIN", "BED BY 9PM", "AWAKE BY 5AM", "10K STEPS DAILY"],
     data: {},
     quote: "",
-    codename: ""
+    codename: "",
+    sched: []
   };
+}
+
+function normalizeState(s) {
+  if (!s || typeof s !== 'object') s = buildDefault();
+  if (!Array.isArray(s.habits)) s.habits = [];
+  if (!s.data || typeof s.data !== 'object') s.data = {};
+  if (!Array.isArray(s.sched)) s.sched = [];
+  while (s.sched.length < s.habits.length) s.sched.push('1111111');
+  s.sched.length = s.habits.length;
+  return s;
+}
+
+// ── Schedule helpers: sched[r] is a 7-char string, index = JS getDay() (0=Sun) ──
+function schedOf(r) {
+  const s = (appState.sched && appState.sched[r]) || '1111111';
+  return (typeof s === 'string' && s.length === 7) ? s : '1111111';
+}
+function isSchedDow(r, dow) { return schedOf(r)[dow] === '1'; }
+function isSchedToday(r) { return isSchedDow(r, todayDow); }
+function schedCount(r) { return schedOf(r).split('').filter(c => c === '1').length; }
+function dowsForMonth(mi) {
+  const days = monthsInfo[mi].days, out = new Array(days);
+  for (let d = 0; d < days; d++) out[d] = new Date(viewYear, mi, d + 1).getDay();
+  return out;
 }
 
 function safeSave() {
@@ -882,20 +945,25 @@ function safeSave() {
   }, 400);
 }
 
-// ════════════════ BOOT (auth-gated) ════════════════
+// ════════════════ BOOT (auth-gated, year vaults) ════════════════
 let currentUser = null;
 let unsubSnapshot = null;
 let loadTimeout = null;
+
+function vaultRef() {
+  return db.collection('dashboards').doc(currentUser.uid)
+           .collection('years').doc(String(viewYear));
+}
 
 function startLoadTimeout() {
   clearTimeout(loadTimeout);
   loadTimeout = setTimeout(() => {
     if (appState) return;
-    console.warn('Secure link timeout \u2014 offline mode');
+    console.warn('Secure link timeout — offline mode');
     offlineMode = true;
-    appState = buildDefault();
+    appState = normalizeState(buildDefault());
     bootUI();
-    showToast('\u26A0 Offline \u2014 changes will not save');
+    showToast('⚠ Offline — changes will not save');
   }, 6000);
 }
 
@@ -906,7 +974,7 @@ function subscribeToVault() {
     clearTimeout(loadTimeout);
     offlineMode = false;
     if (doc.exists) {
-      appState = doc.data();
+      appState = normalizeState(doc.data());
       bootUI();
     } else {
       migrateOrCreate();
@@ -916,7 +984,7 @@ function subscribeToVault() {
     console.error('Firestore error:', error);
     const lt = document.getElementById('loadingText');
     if (error.code === 'permission-denied') {
-      lt.innerText = 'ACCESS DENIED \u2014 the vault rules reject this identity. Ensure the per-agent rules (dashboards/{uid}) are published in Firestore \u2192 Rules.';
+      lt.innerText = 'ACCESS DENIED — ensure the year-vault rules (dashboards/{uid}/years/{year}) are published in Firestore → Rules.';
     } else {
       lt.innerText = 'Link error: ' + error.message;
     }
@@ -925,24 +993,61 @@ function subscribeToVault() {
   });
 }
 
-// One-time: pull data from the original shared vault into this agent's personal vault
+// Migration chain: prior-year vault → flat personal vault → legacy shared vault → fresh file.
+// Full data only carries into the 2026 vault (the era the old flat files belong to);
+// other years inherit habits/codename/schedules with a clean slate of checks.
 let migrating = false;
 function migrateOrCreate() {
   if (migrating || !docRef) return;
   migrating = true;
-  db.collection('dashboards').doc('final_v8_custom_habits').get()
-    .then(legacy => {
-      appState = legacy.exists ? legacy.data() : buildDefault();
-      if (legacy.exists) showToast('Legacy vault migrated to your personal file', true);
-      return docRef.set(appState);
-    })
-    .catch(() => {
-      // No clearance for the legacy vault (new agent) — fresh mission file
-      appState = buildDefault();
-      return docRef.set(appState);
-    })
-    .then(() => { migrating = false; bootUI(); })
-    .catch(() => { migrating = false; bootUI(); });
+  const targetYear = viewYear;
+  const finish = (st) => {
+    appState = normalizeState(st);
+    docRef.set(appState).catch(() => {});
+    migrating = false;
+    bootUI();
+  };
+  const carry = (d) => ({
+    habits: d.habits || [], data: {}, quote: d.quote || '',
+    codename: d.codename || '', sched: d.sched || []
+  });
+  (async () => {
+    try {
+      if (targetYear !== 2026) {
+        const p = await db.collection('dashboards').doc(currentUser.uid)
+          .collection('years').doc(String(targetYear - 1)).get();
+        if (p.exists) { showToast('New mission year initialised', true); return finish(carry(p.data())); }
+      }
+      const f = await db.collection('dashboards').doc(currentUser.uid).get();
+      if (f.exists) {
+        if (targetYear === 2026) showToast('Vault migrated to year archive', true);
+        return finish(targetYear === 2026 ? f.data() : carry(f.data()));
+      }
+    } catch (e) { /* no clearance — continue chain */ }
+    try {
+      const l = await db.collection('dashboards').doc('final_v8_custom_habits').get();
+      if (l.exists) {
+        if (targetYear === 2026) showToast('Legacy vault migrated', true);
+        return finish(targetYear === 2026 ? l.data() : carry(l.data()));
+      }
+    } catch (e) { /* new agent — no legacy clearance */ }
+    finish(buildDefault());
+  })();
+}
+
+function changeYear(dir) {
+  if (offlineMode || !docRef || !currentUser) { showToast('Archive unavailable offline'); return; }
+  const next = viewYear + dir;
+  if (next < 2024 || next > THIS_YEAR + 1) return;
+  haptic(8);
+  viewYear = next;
+  monthsInfo = monthsFor(viewYear);
+  initTabs();
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  document.getElementById('loadingText').innerText = 'Retrieving ' + viewYear + ' archive...';
+  document.getElementById('loadingText').style.color = '';
+  docRef = vaultRef();
+  subscribeToVault();
 }
 
 function showGate(show) {
@@ -959,9 +1064,9 @@ function setGateError(msg) {
 function gateErrorText(err) {
   if (!err) return 'Verification failed.';
   if (err.code === 'auth/operation-not-allowed')
-    return 'Google sign-in is not enabled yet. Firebase Console \u2192 Authentication \u2192 Sign-in method \u2192 enable Google.';
+    return 'Google sign-in is not enabled yet. Firebase Console → Authentication → Sign-in method → enable Google.';
   if (err.code === 'auth/unauthorized-domain')
-    return 'This domain is not authorised. Firebase Console \u2192 Authentication \u2192 Settings \u2192 Authorized domains \u2192 add this site.';
+    return 'This domain is not authorised. Firebase Console → Authentication → Settings → Authorized domains → add this site.';
   return 'Verification failed: ' + (err.message || err.code);
 }
 
@@ -984,7 +1089,7 @@ function signOutAgent() {
   if (!auth) return;
   if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
   auth.signOut();
-  showToast('Vault sealed \u2014 signed out');
+  showToast('Vault sealed — signed out');
 }
 
 if (db && auth) {
@@ -993,11 +1098,13 @@ if (db && auth) {
     currentUser = user;
     const so = document.getElementById('signOutLink');
     if (user) {
-      console.log('Q BRANCH \u00B7 Agent UID:', user.uid);
-      docRef = db.collection('dashboards').doc(user.uid);
+      console.log('Q BRANCH · Agent UID:', user.uid);
+      viewYear = THIS_YEAR;
+      monthsInfo = monthsFor(viewYear);
+      docRef = vaultRef();
       showGate(false);
       document.getElementById('loadingOverlay').style.display = 'flex';
-      document.getElementById('loadingText').innerText = 'Identity verified \u00B7 establishing secure link...';
+      document.getElementById('loadingText').innerText = 'Identity verified · establishing secure link...';
       if (so) { so.style.display = 'inline'; so.title = user.email || ''; }
       subscribeToVault();
     } else {
@@ -1009,20 +1116,21 @@ if (db && auth) {
     }
   });
 } else {
-  // No Firebase (blocked CDN / sandboxed preview) \u2014 demo mode
+  // No Firebase (blocked CDN / sandboxed preview) — demo mode
   offlineMode = true;
-  appState = buildDefault();
-  setTimeout(() => { bootUI(); showToast('Demo mode \u2014 connect online to save'); }, 600);
+  appState = normalizeState(buildDefault());
+  setTimeout(() => { bootUI(); showToast('Demo mode — connect online to save'); }, 600);
 }
 
 function bootUI() {
+  appState = normalizeState(appState);
   document.getElementById('loadingOverlay').style.display = 'none';
   if (!tabsInitialized) {
     document.getElementById('quoteInput').value = appState.quote || getRandomQuote();
-    document.getElementById('stripYear').textContent = YEAR;
     initTabs();
     tabsInitialized = true;
   }
+  document.getElementById('stripYear').textContent = viewYear;
   updateAgentName();
   renderView();
 }
@@ -1046,7 +1154,7 @@ function initTabs() {
   container.innerHTML = '';
   monthsInfo.forEach((m, i) => {
     const t = document.createElement('div');
-    t.className = 'tab' + (i === todayMonth ? ' current-month' : '');
+    t.className = 'tab' + (viewYear === THIS_YEAR && i === _todayMonth ? ' current-month' : '');
     t.dataset.index = i;
     t.textContent = m.name.substring(0, 3).toUpperCase();
     t.onclick = () => { currentView = i; renderView(); };
@@ -1055,7 +1163,7 @@ function initTabs() {
   const y = document.createElement('div');
   y.className = 'tab year-tab';
   y.dataset.index = 12;
-  y.textContent = String(YEAR);
+  y.textContent = String(viewYear);
   y.onclick = () => { currentView = 12; renderView(); };
   container.appendChild(y);
 }
@@ -1066,11 +1174,13 @@ function updateTabActiveStates() {
   });
 }
 
-// ════════════════ STREAKS ════════════════
+// ════════════════ STREAKS (rest days don't break a streak) ════════════════
 function getCurrentStreak(r) {
   let streak = 0;
   for (let d = todayDay; d >= 0; d--) {
-    if (appState.data[key(todayMonth, r, d)]) streak++;
+    const dow = new Date(THIS_YEAR, _todayMonth, d + 1).getDay();
+    if (!isSchedDow(r, dow)) continue;
+    if (appState.data[key(_todayMonth, r, d)]) streak++;
     else break;
   }
   return streak;
@@ -1080,7 +1190,10 @@ function getCurrentStreak(r) {
 function renderView() {
   updateTabActiveStates();
   document.getElementById('todayBtn').style.display =
-    currentView === todayMonth ? 'inline-flex' : 'none';
+    currentView === tMonth() ? 'inline-flex' : 'none';
+  document.getElementById('stripYear').textContent = viewYear;
+  const yl = document.getElementById('yearLabel');
+  if (yl) yl.textContent = String(viewYear);
   if (currentView === 12) renderYear(); else renderMonth();
   renderDesktopSidebar();
   renderTodayPanel();
@@ -1091,9 +1204,11 @@ function renderView() {
 
 function renderMonth() {
   const info = monthsInfo[currentView];
-  const isCurrentMonth = currentView === todayMonth;
+  const isCurrentMonth = currentView === tMonth();
+  const dows = dowsForMonth(currentView);
 
-  document.getElementById('viewTitle').textContent = info.name.toUpperCase();
+  document.getElementById('viewTitle').textContent = info.name.toUpperCase()
+    + (viewYear !== THIS_YEAR ? ' ' + viewYear : '');
   document.getElementById('viewSubtitle').textContent =
     appState.habits.length + ' objectives · ' + info.days + ' days' + (isCurrentMonth ? ' · ACTIVE' : '');
 
@@ -1110,15 +1225,19 @@ function renderMonth() {
   document.getElementById('tableHead').innerHTML = head;
 
   let rows = '', cards = '';
-  let totalDone = 0, totalPossible = 0;
+  let totalDone = 0, totalSched = 0;
   const circ = (2 * Math.PI * 18).toFixed(1);
 
   appState.habits.forEach((name, r) => {
-    let done = 0;
-    for (let d = 0; d < info.days; d++) if (appState.data[key(currentView, r, d)]) done++;
-    const pct = Math.round((done / info.days) * 100);
+    let done = 0, schedDays = 0;
+    for (let d = 0; d < info.days; d++) {
+      if (!isSchedDow(r, dows[d])) continue;
+      schedDays++;
+      if (appState.data[key(currentView, r, d)]) done++;
+    }
+    const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
     const streak = isCurrentMonth ? getCurrentStreak(r) : 0;
-    totalDone += done; totalPossible += info.days;
+    totalDone += done; totalSched += schedDays;
 
     const dotColor = pct >= 80 ? 'var(--primary)' : pct >= 40 ? '#8a7430' : pct > 0 ? 'var(--red)' : '#2c2c32';
     const safeName = name.replace(/"/g, '&quot;');
@@ -1129,6 +1248,7 @@ function renderMonth() {
       + '<button class="btn-move" onclick="moveTask(' + r + ',-1)" title="Move up">▲</button>'
       + '<button class="btn-move" onclick="moveTask(' + r + ',1)" title="Move down">▼</button>'
       + '</div>'
+      + '<button class="btn-sched" onclick="openSchedule(' + r + ')" title="Training schedule">🗓</button>'
       + '<div class="row-dot" style="background:' + dotColor + '"></div>'
       + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '★ ' + streak : '') + '</span>'
       + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly') + '>'
@@ -1136,22 +1256,29 @@ function renderMonth() {
 
     for (let c = 0; c < info.days; c++) {
       const isToday = isCurrentMonth && c === todayDay;
-      const checked = appState.data[key(currentView, r, c)] ? ' checked' : '';
-      rows += '<td class="check-cell' + (isToday ? ' today-col' : '') + '" onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
+      if (!isSchedDow(r, dows[c])) {
+        rows += '<td class="rest-cell' + (isToday ? ' today-col' : '') + '" title="REST DAY">–</td>';
+      } else {
+        const checked = appState.data[key(currentView, r, c)] ? ' checked' : '';
+        rows += '<td class="check-cell' + (isToday ? ' today-col' : '') + '" onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
+      }
     }
 
     rows += '<td><div class="progress-text">' + pct + '%</div>'
       + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>'
-      + '<div class="progress-count">' + done + '/' + info.days + '</div></td></tr>';
+      + '<div class="progress-count">' + done + '/' + schedDays + '</div></td></tr>';
 
-    const isDoneToday = isCurrentMonth && !!appState.data[key(currentView, r, todayDay)];
+    const restToday = isCurrentMonth && !isSchedToday(r);
+    const isDoneToday = isCurrentMonth && !restToday && !!appState.data[key(currentView, r, todayDay)];
     const dash = (pct / 100 * 2 * Math.PI * 18).toFixed(1);
-    const todayLabel = isCurrentMonth ? (isDoneToday ? ' · ✓ COMPLETE TODAY' : ' · PENDING TODAY') : '';
+    const todayLabel = isCurrentMonth
+      ? (restToday ? ' · REST DAY' : (isDoneToday ? ' · ✓ COMPLETE TODAY' : ' · PENDING TODAY'))
+      : '';
     cards += '<div class="mobile-card' + (isEditing ? ' edit-mode' : '') + (isDoneToday ? ' done-today' : '') + '" '
       + 'onclick="' + (isEditing ? 'event.stopPropagation()' : 'openModal(' + r + ')') + '">'
       + '<div class="mobile-card-header"><div class="mobile-card-left">'
       + '<span class="mobile-card-name">' + safeName + '</span>'
-      + '<span class="mobile-card-meta">' + done + '/' + info.days + ' DAYS' + todayLabel + '</span>'
+      + '<span class="mobile-card-meta">' + done + '/' + schedDays + ' DAYS' + todayLabel + '</span>'
       + (streak >= 2 ? '<div class="mobile-streak">★ ' + streak + '-DAY STREAK</div>' : '')
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
@@ -1161,6 +1288,7 @@ function renderMonth() {
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',-1)">▲</button>'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',1)">▼</button>'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();renameTask(' + r + ')">✎</button>'
+      + '<button class="btn-mobile-sm" onclick="event.stopPropagation();openSchedule(' + r + ')">🗓</button>'
       + '</div><button class="btn-mobile-del" onclick="event.stopPropagation();removeTask(' + r + ')">Delete</button></div>'
       + '</div>';
   });
@@ -1168,11 +1296,14 @@ function renderMonth() {
   document.getElementById('tableBody').innerHTML = rows;
   document.getElementById('mobileTaskList').innerHTML = cards;
 
-  const monthPct = Math.round((totalDone / Math.max(totalPossible, 1)) * 100);
+  const monthPct = Math.round((totalDone / Math.max(totalSched, 1)) * 100);
   const pill = document.getElementById('statsPill');
   if (isCurrentMonth) {
-    const doneToday = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
-    pill.innerHTML = 'Today: <span>' + doneToday + '/' + appState.habits.length + '</span> · Month: <span>' + monthPct + '%</span>';
+    const schedToday = appState.habits.filter((_, r) => isSchedToday(r)).length;
+    const doneToday = appState.habits.filter((_, r) => isSchedToday(r) && appState.data[key(currentView, r, todayDay)]).length;
+    pill.innerHTML = schedToday
+      ? 'Today: <span>' + doneToday + '/' + schedToday + '</span> · Month: <span>' + monthPct + '%</span>'
+      : 'Rest day · Month: <span>' + monthPct + '%</span>';
   } else {
     pill.innerHTML = 'Month: <span>' + monthPct + '%</span>';
   }
@@ -1182,7 +1313,7 @@ function renderMonth() {
 }
 
 function renderYear() {
-  document.getElementById('viewTitle').textContent = YEAR + ' DEBRIEF';
+  document.getElementById('viewTitle').textContent = viewYear + ' DEBRIEF';
   document.getElementById('viewSubtitle').textContent = appState.habits.length + ' objectives tracked';
 
   let head = '<tr><th class="col-habit">OBJECTIVES</th>';
@@ -1190,8 +1321,9 @@ function renderYear() {
   head += '<th class="col-progress">TOTAL</th></tr>';
   document.getElementById('tableHead').innerHTML = head;
 
+  const monthDows = monthsInfo.map((_, mi) => dowsForMonth(mi));
   let rows = '', cards = '';
-  let grandDone = 0, grandTotal = 0;
+  let grandDone = 0, grandSched = 0;
   const circ = (2 * Math.PI * 18).toFixed(1);
 
   appState.habits.forEach((name, r) => {
@@ -1201,26 +1333,30 @@ function renderYear() {
       + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly') + '>'
       + '</div></td>';
 
-    let yrDone = 0, yrDays = 0;
+    let yrDone = 0, yrSched = 0;
     monthsInfo.forEach((m, mi) => {
-      let mDone = 0;
-      for (let d = 0; d < m.days; d++) if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
-      yrDays += m.days;
-      const mPct = Math.round((mDone / m.days) * 100);
+      let mDone = 0, mSched = 0;
+      for (let d = 0; d < m.days; d++) {
+        if (!isSchedDow(r, monthDows[mi][d])) continue;
+        mSched++;
+        if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
+      }
+      yrSched += mSched;
+      const mPct = mSched ? Math.round((mDone / mSched) * 100) : 0;
       const color = mPct >= 80 ? 'var(--primary)' : mPct >= 50 ? '#9b8338' : mPct > 0 ? 'var(--red)' : '#34343a';
       rows += '<td class="summary-cell" style="color:' + color + '">' + (mPct > 0 ? mPct + '%' : '—') + '</td>';
     });
-    grandDone += yrDone; grandTotal += yrDays;
+    grandDone += yrDone; grandSched += yrSched;
 
-    const yrPct = Math.round((yrDone / yrDays) * 100);
+    const yrPct = yrSched ? Math.round((yrDone / yrSched) * 100) : 0;
     rows += '<td><div class="progress-text">' + yrPct + '%</div>'
       + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + yrPct + '%"></div></div>'
-      + '<div class="progress-count">' + yrDone + '/' + yrDays + '</div></td></tr>';
+      + '<div class="progress-count">' + yrDone + '/' + yrSched + '</div></td></tr>';
 
     const dash = (yrPct / 100 * 2 * Math.PI * 18).toFixed(1);
     cards += '<div class="mobile-card"><div class="mobile-card-header"><div class="mobile-card-left">'
       + '<span class="mobile-card-name">' + safeName + '</span>'
-      + '<span class="mobile-card-meta">' + yrDone + ' OF ' + yrDays + ' DAYS THIS YEAR</span>'
+      + '<span class="mobile-card-meta">' + yrDone + ' OF ' + yrSched + ' SCHEDULED DAYS</span>'
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#c9a437" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
@@ -1230,7 +1366,7 @@ function renderYear() {
   document.getElementById('tableBody').innerHTML = rows;
   document.getElementById('mobileTaskList').innerHTML = cards;
   document.getElementById('statsPill').innerHTML =
-    'Year: <span>' + Math.round((grandDone / Math.max(grandTotal, 1)) * 100) + '%</span>';
+    'Year: <span>' + Math.round((grandDone / Math.max(grandSched, 1)) * 100) + '%</span>';
 
   updateCharts(12);
   renderFooterStats(12);
@@ -1248,11 +1384,13 @@ function renderDesktopSidebar() {
   dateEl.textContent = today.toLocaleDateString('en-AU',
     { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
-  if (currentView !== todayMonth) {
+  if (currentView !== tMonth()) {
     habitsEl.innerHTML = '';
     const msg = document.createElement('div');
     msg.className = 'sidebar-msg';
-    msg.textContent = 'Return to current month to run today\u2019s protocol';
+    msg.textContent = viewYear !== THIS_YEAR
+      ? 'Viewing the ' + viewYear + ' archive — return to ' + THIS_YEAR + ' for today\u2019s protocol'
+      : 'Return to current month to run today\u2019s protocol';
     habitsEl.appendChild(msg);
     statsEl.style.display = 'none';
     markBtn.style.display = 'none';
@@ -1262,19 +1400,27 @@ function renderDesktopSidebar() {
   statsEl.style.display = 'grid';
   markBtn.style.display = 'block';
 
-  const doneCount = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
-  const allDone = doneCount === appState.habits.length && appState.habits.length > 0;
-  subEl.textContent = doneCount + ' / ' + appState.habits.length + ' objectives complete';
+  const schedRows = appState.habits.map((_, r) => isSchedToday(r));
+  const schedToday = schedRows.filter(Boolean).length;
+  const doneCount = appState.habits.filter((_, r) => schedRows[r] && appState.data[key(currentView, r, todayDay)]).length;
+  const allDone = schedToday > 0 && doneCount === schedToday;
+  subEl.textContent = schedToday
+    ? doneCount + ' / ' + schedToday + ' objectives complete'
+    : 'Full rest day — nothing scheduled';
   markBtn.textContent = allDone ? '★ Mission Accomplished' : 'Mission Complete';
   markBtn.classList.toggle('all-done', allDone);
+  markBtn.style.display = schedToday ? 'block' : 'none';
 
   habitsEl.innerHTML = '';
   appState.habits.forEach((name, r) => {
-    const done = !!appState.data[key(currentView, r, todayDay)];
+    const rest = !schedRows[r];
+    const done = !rest && !!appState.data[key(currentView, r, todayDay)];
     const row = document.createElement('div');
-    row.className = 'sb-habit' + (done ? ' done' : '');
-    row.title = 'Press ' + (r + 1) + ' to toggle';
-    row.onclick = () => toggleTodayHabit(r);
+    row.className = 'sb-habit' + (done ? ' done' : '') + (rest ? ' rest' : '');
+    if (!rest) {
+      row.title = 'Press ' + (r + 1) + ' to toggle';
+      row.onclick = () => toggleTodayHabit(r);
+    }
 
     const ico = document.createElement('span');
     ico.className = 'sb-icon';
@@ -1285,24 +1431,32 @@ function renderDesktopSidebar() {
     nm.className = 'sb-name';
     nm.textContent = name;
 
-    const chk = document.createElement('div');
-    chk.className = 'sb-check';
-
-    row.append(ico, nm, chk);
+    if (rest) {
+      const chip = document.createElement('span');
+      chip.className = 'sb-rest';
+      chip.textContent = 'REST';
+      row.append(ico, nm, chip);
+    } else {
+      const chk = document.createElement('div');
+      chk.className = 'sb-check';
+      row.append(ico, nm, chk);
+    }
     habitsEl.appendChild(row);
   });
 
   const info = monthsInfo[currentView];
-  let monthDone = 0, monthTotal = 0, longest = 0;
+  const dows = dowsForMonth(currentView);
+  let monthDone = 0, monthSched = 0, longest = 0;
   appState.habits.forEach((_, r) => {
     let s = 0;
     for (let d = 0; d < info.days; d++) {
+      if (!isSchedDow(r, dows[d])) continue;
+      monthSched++;
       if (appState.data[key(currentView, r, d)]) { monthDone++; s++; if (s > longest) longest = s; }
       else s = 0;
     }
-    monthTotal += info.days;
   });
-  const pct = Math.round((monthDone / Math.max(monthTotal, 1)) * 100);
+  const pct = Math.round((monthDone / Math.max(monthSched, 1)) * 100);
   statsEl.innerHTML = '';
   [[pct + '%', 'Success'], [longest + '★', 'Best Streak'],
    [monthDone, 'Ops Done'], [appState.habits.length, 'Objectives']].forEach(([val, lbl]) => {
@@ -1319,23 +1473,27 @@ function renderDesktopSidebar() {
 function renderTodayPanel() {
   const panel = document.getElementById('todayPanel');
   const divider = document.getElementById('todayDivider');
-  if (currentView !== todayMonth) {
+  if (currentView !== tMonth()) {
     panel.innerHTML = '';
     divider.style.display = 'none';
     return;
   }
   const dateStr = today.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
-  const doneCount = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
+  const schedToday = appState.habits.filter((_, r) => isSchedToday(r)).length;
+  const doneCount = appState.habits.filter((_, r) => isSchedToday(r) && appState.data[key(currentView, r, todayDay)]).length;
 
   let html = '<div class="today-panel-header"><div class="today-panel-title">TODAY\u2019S MISSION</div>'
-    + '<div class="today-panel-date">' + dateStr.toUpperCase() + '<br>' + doneCount + '/' + appState.habits.length + ' COMPLETE</div></div>'
+    + '<div class="today-panel-date">' + dateStr.toUpperCase() + '<br>'
+    + (schedToday ? doneCount + '/' + schedToday + ' COMPLETE' : 'FULL REST DAY') + '</div></div>'
     + '<div class="today-habits-grid">';
   appState.habits.forEach((name, r) => {
-    const done = !!appState.data[key(currentView, r, todayDay)];
+    const rest = !isSchedToday(r);
+    const done = !rest && !!appState.data[key(currentView, r, todayDay)];
     const shortName = name.length > 14 ? name.substring(0, 13) + '…' : name;
-    html += '<div class="today-habit-btn' + (done ? ' done' : '') + '" onclick="toggleTodayHabit(' + r + ')">'
-      + '<span class="today-habit-icon">' + (done ? '✓' : ICONS[r % ICONS.length]) + '</span>'
-      + '<span class="today-habit-name">' + shortName.replace(/</g, '&lt;') + '</span></div>';
+    html += '<div class="today-habit-btn' + (done ? ' done' : '') + (rest ? ' rest' : '') + '"'
+      + (rest ? '' : ' onclick="toggleTodayHabit(' + r + ')"') + '>'
+      + '<span class="today-habit-icon">' + (rest ? '–' : (done ? '✓' : ICONS[r % ICONS.length])) + '</span>'
+      + '<span class="today-habit-name">' + shortName.replace(/</g, '&lt;') + (rest ? '<br>REST' : '') + '</span></div>';
   });
   html += '</div>';
   panel.innerHTML = html;
@@ -1345,15 +1503,16 @@ function renderTodayPanel() {
 // ════════════════ MOBILE NAV ════════════════
 function updateMobileNav() {
   document.getElementById('mobNavMonth').textContent =
-    currentView === 12 ? String(YEAR) : monthsInfo[currentView].name.toUpperCase();
+    currentView === 12 ? String(viewYear) : monthsInfo[currentView].name.toUpperCase();
   document.getElementById('mobNavYear').textContent =
-    currentView === 12 ? 'ANNUAL DEBRIEF' : 'MISSION LOG ' + YEAR;
+    currentView === 12 ? 'ANNUAL DEBRIEF' : 'MISSION LOG ' + viewYear;
 }
 
 function mobileNavMonth(dir) {
   haptic(8);
   const next = currentView + dir;
-  if (next < 0 || next > 12) return;
+  if (next < 0)  { currentView = 12; changeYear(-1); return; }
+  if (next > 12) { currentView = 0;  changeYear(1);  return; }
   currentView = next;
   renderView();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1373,24 +1532,28 @@ function renderFooterStats(view) {
   };
 
   if (view === 12) {
-    let total = 0, possible = 0;
+    let total = 0, sched = 0;
+    const monthDows = monthsInfo.map((_, mi) => dowsForMonth(mi));
     appState.habits.forEach((_, r) => {
       monthsInfo.forEach((m, mi) => {
         for (let d = 0; d < m.days; d++) {
+          if (!isSchedDow(r, monthDows[mi][d])) continue;
+          sched++;
           if (appState.data[key(mi, r, d)]) total++;
-          possible++;
         }
       });
     });
     addStat(total, 'Ops Completed');
     addStat(appState.habits.length, 'Objectives');
-    addStat(Math.round((total / Math.max(possible, 1)) * 100) + '%', 'Success Rate');
+    addStat(Math.round((total / Math.max(sched, 1)) * 100) + '%', 'Success Rate');
   } else {
     const info = monthsInfo[view];
+    const dows = dowsForMonth(view);
     let totalDone = 0, longest = 0;
     appState.habits.forEach((_, r) => {
       let s = 0;
       for (let d = 0; d < info.days; d++) {
+        if (!isSchedDow(r, dows[d])) continue;
         if (appState.data[key(view, r, d)]) { totalDone++; s++; if (s > longest) longest = s; }
         else s = 0;
       }
@@ -1405,45 +1568,48 @@ function renderFooterStats(view) {
 function openModal(r) {
   haptic(8);
   const info = monthsInfo[currentView];
+  const dows = dowsForMonth(currentView);
   document.getElementById('modalTaskName').textContent = appState.habits[r];
-  document.getElementById('modalMonthName').textContent = info.name.toUpperCase() + ' ' + YEAR + ' · FIELD LOG';
+  document.getElementById('modalMonthName').textContent = info.name.toUpperCase() + ' ' + viewYear + ' · FIELD LOG';
 
-  let done = 0;
+  let done = 0, schedDays = 0;
   const grid = document.getElementById('dayGrid');
   grid.innerHTML = '';
 
   for (let d = 0; d < info.days; d++) {
     const k = key(currentView, r, d);
-    if (appState.data[k]) done++;
-    const isToday  = currentView === todayMonth && d === todayDay;
-    const isFuture = currentView === todayMonth && d > todayDay;
+    const rest = !isSchedDow(r, dows[d]);
+    if (!rest) { schedDays++; if (appState.data[k]) done++; }
+    const isToday  = currentView === tMonth() && d === todayDay;
+    const isFuture = currentView === tMonth() && d > todayDay;
     const btn = document.createElement('div');
     btn.className = 'day-btn'
-      + (appState.data[k] ? ' checked' : '')
+      + (rest ? ' rest-day' : '')
+      + (!rest && appState.data[k] ? ' checked' : '')
       + (isToday ? ' today-day' : '')
       + (isFuture ? ' future-day' : '');
     btn.textContent = d + 1;
-    if (!isFuture) {
+    if (!rest && !isFuture) {
       btn.onclick = () => {
         haptic(10);
         appState.data[k] = !appState.data[k];
         btn.classList.toggle('checked');
         done += appState.data[k] ? 1 : -1;
-        updateModalStats(done, info.days);
+        updateModalStats(done, schedDays);
         safeSave();
         renderView();
       };
     }
     grid.appendChild(btn);
   }
-  updateModalStats(done, info.days);
+  updateModalStats(done, schedDays);
   document.getElementById('dayModal').style.display = 'flex';
 }
 
 function updateModalStats(done, total) {
-  document.getElementById('modalPct').textContent = Math.round((done / total) * 100) + '%';
+  document.getElementById('modalPct').textContent = Math.round((done / Math.max(total, 1)) * 100) + '%';
   document.getElementById('modalDaysInfo').innerHTML =
-    '<strong>' + done + '</strong> DAYS COMPLETE<br>' + (total - done) + ' REMAINING';
+    '<strong>' + done + '</strong> OF ' + total + ' SCHEDULED<br>' + Math.max(total - done, 0) + ' REMAINING';
 }
 
 function closeModal() {
@@ -1452,6 +1618,46 @@ function closeModal() {
 
 document.getElementById('dayModal').addEventListener('click', e => {
   if (e.target.id === 'dayModal') closeModal();
+});
+
+document.getElementById('schedModal').addEventListener('click', e => {
+  if (e.target.id === 'schedModal') closeSchedule();
+});
+
+// ── Schedule editor ──
+function openSchedule(r) {
+  haptic(8);
+  if (event) event.stopPropagation();
+  // materialise defaults so edits persist
+  appState.sched = appState.habits.map((_, i) => schedOf(i));
+  document.getElementById('schedTaskName').textContent = appState.habits[r];
+  const grid = document.getElementById('schedGrid');
+  grid.innerHTML = '';
+  const LBL = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  for (let dow = 0; dow < 7; dow++) {
+    const btn = document.createElement('div');
+    btn.className = 'day-btn' + (schedOf(r)[dow] === '1' ? ' checked' : '');
+    btn.textContent = LBL[dow];
+    btn.onclick = () => {
+      haptic(10);
+      const s = schedOf(r).split('');
+      s[dow] = s[dow] === '1' ? '0' : '1';
+      appState.sched[r] = s.join('');
+      btn.classList.toggle('checked');
+      safeSave();
+      renderView();
+    };
+    grid.appendChild(btn);
+  }
+  document.getElementById('schedModal').style.display = 'flex';
+}
+
+function closeSchedule() {
+  document.getElementById('schedModal').style.display = 'none';
+}
+
+document.getElementById('schedModal').addEventListener('click', e => {
+  if (e.target.id === 'schedModal') closeSchedule();
 });
 
 // ════════════════ ACTIONS ════════════════
@@ -1464,22 +1670,27 @@ function toggleCheckbox(m, r, c) {
 }
 
 function toggleTodayHabit(r) {
-  if (currentView !== todayMonth) return;
+  if (currentView !== tMonth()) return;
+  if (!isSchedToday(r)) { showToast('Rest day for this objective'); return; }
   haptic(12);
   const k = key(currentView, r, todayDay);
   appState.data[k] = !appState.data[k];
-  const allDone = appState.habits.every((_, i) => appState.data[key(currentView, i, todayDay)]);
+  const sched = appState.habits.map((_, i) => isSchedToday(i));
+  const allDone = sched.some(Boolean)
+    && appState.habits.every((_, i) => !sched[i] || appState.data[key(currentView, i, todayDay)]);
   if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); gunBarrel(); }
   safeSave();
   renderView();
 }
 
 function markAllToday() {
-  if (currentView !== todayMonth) return;
+  if (currentView !== tMonth()) return;
   haptic(12);
-  const allDone = appState.habits.every((_, r) => appState.data[key(currentView, r, todayDay)]);
+  const sched = appState.habits.map((_, i) => isSchedToday(i));
+  if (!sched.some(Boolean)) { showToast('Full rest day — nothing scheduled'); return; }
+  const allDone = appState.habits.every((_, r) => !sched[r] || appState.data[key(currentView, r, todayDay)]);
   appState.habits.forEach((_, r) => {
-    appState.data[key(currentView, r, todayDay)] = !allDone;
+    if (sched[r]) appState.data[key(currentView, r, todayDay)] = !allDone;
   });
   safeSave();
   renderView();
@@ -1497,11 +1708,13 @@ function renameTask(i) {
   const v = prompt('Rename objective:', appState.habits[i]);
   if (v === null) return;
   updateTaskName(i, v);
-  showToast('\u2713 Objective renamed', true);
+  showToast('✓ Objective renamed', true);
 }
 
 function addTask() {
   appState.habits.push('NEW OBJECTIVE');
+  appState.sched = appState.habits.map((_, i) =>
+    i < appState.habits.length - 1 ? schedOf(i) : '1111111');
   safeSave();
   renderView();
   showToast('✓ Objective added', true);
@@ -1510,6 +1723,7 @@ function addTask() {
 function removeTask(i) {
   if (!confirm('Decommission "' + appState.habits[i] + '"? All field data for this objective will be destroyed.')) return;
   appState.habits.splice(i, 1);
+  if (Array.isArray(appState.sched) && appState.sched.length > i) appState.sched.splice(i, 1);
   const newData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
@@ -1528,6 +1742,9 @@ function moveTask(index, direction) {
   if (newIndex < 0 || newIndex >= appState.habits.length) return;
   [appState.habits[index], appState.habits[newIndex]] =
     [appState.habits[newIndex], appState.habits[index]];
+  appState.sched = appState.habits.map((_, i) => schedOf(i));
+  [appState.sched[index], appState.sched[newIndex]] =
+    [appState.sched[newIndex], appState.sched[index]];
   const newData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
@@ -1551,29 +1768,35 @@ function toggleEditMode() {
 // ════════════════ CHARTS ════════════════
 function updateCharts(view) {
   let totalAvg = 0;
-  const dailyPcts = [];
+  const dailyPcts = []; // null = nothing scheduled that day
 
   if (view === 12) {
-    let yrD = 0, yrT = 0;
+    let yrD = 0, yrS = 0;
+    const monthDows = monthsInfo.map((_, mi) => dowsForMonth(mi));
     monthsInfo.forEach((m, mi) => {
       appState.habits.forEach((_, r) => {
         for (let d = 0; d < m.days; d++) {
+          if (!isSchedDow(r, monthDows[mi][d])) continue;
+          yrS++;
           if (appState.data[key(mi, r, d)]) yrD++;
-          yrT++;
         }
       });
     });
-    totalAvg = yrT > 0 ? Math.round((yrD / yrT) * 100) : 0;
+    totalAvg = yrS > 0 ? Math.round((yrD / yrS) * 100) : 0;
   } else {
     const info = monthsInfo[view];
-    const n = appState.habits.length;
+    const dows = dowsForMonth(view);
     for (let c = 0; c < info.days; c++) {
-      let cnt = 0;
-      for (let r = 0; r < n; r++) if (appState.data[key(view, r, c)]) cnt++;
-      dailyPcts.push(n ? Math.round((cnt / n) * 100) : 0);
+      let cnt = 0, sch = 0;
+      appState.habits.forEach((_, r) => {
+        if (!isSchedDow(r, dows[c])) return;
+        sch++;
+        if (appState.data[key(view, r, c)]) cnt++;
+      });
+      dailyPcts.push(sch ? Math.round((cnt / sch) * 100) : null);
     }
-    totalAvg = dailyPcts.length
-      ? Math.round(dailyPcts.reduce((a, b) => a + b, 0) / info.days) : 0;
+    const live = dailyPcts.filter(v => v !== null);
+    totalAvg = live.length ? Math.round(live.reduce((a, b) => a + b, 0) / live.length) : 0;
   }
 
   document.getElementById('doughnutFill').setAttribute('stroke-dasharray', totalAvg + ',100');
@@ -1581,12 +1804,14 @@ function updateCharts(view) {
 
   const lineEl = document.getElementById('areaPathLine');
   const fillEl = document.getElementById('areaPathFill');
-  if (dailyPcts.length > 1) {
-    const W = 200, H = 70, n = dailyPcts.length;
-    const pts = dailyPcts.map((p, i) => ({
-      x: (i / (n - 1)) * W,
-      y: H - (p / 100) * (H - 4) - 2
-    }));
+  const n = dailyPcts.length;
+  const pts = [];
+  const W = 200, H = 70;
+  dailyPcts.forEach((p, i) => {
+    if (p === null) return;
+    pts.push({ x: (i / Math.max(n - 1, 1)) * W, y: H - (p / 100) * (H - 4) - 2 });
+  });
+  if (pts.length > 1) {
     let line = 'M' + pts[0].x.toFixed(1) + ',' + pts[0].y.toFixed(1);
     for (let i = 1; i < pts.length; i++) {
       const dx = (pts[i].x - pts[i - 1].x) / 3;
@@ -1595,7 +1820,9 @@ function updateCharts(view) {
         + ' ' + pts[i].x.toFixed(1) + ',' + pts[i].y.toFixed(1);
     }
     lineEl.setAttribute('d', line);
-    fillEl.setAttribute('d', line + ' L' + W + ',' + H + ' L0,' + H + ' Z');
+    fillEl.setAttribute('d', line
+      + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + H
+      + ' L' + pts[0].x.toFixed(1) + ',' + H + ' Z');
   } else {
     lineEl.setAttribute('d', '');
     fillEl.setAttribute('d', '');
@@ -1614,11 +1841,13 @@ function renderWeekdayIntel() {
 function buildWeekdayIntelHTML() {
   const n = appState.habits.length;
   const done = [0,0,0,0,0,0,0], poss = [0,0,0,0,0,0,0];
-  if (n) {
-    const dt = new Date(YEAR, 0, 1);
-    while (dt <= today) {
+  const endDate = viewYear < THIS_YEAR ? new Date(viewYear, 11, 31) : today;
+  if (n && viewYear <= THIS_YEAR) {
+    const dt = new Date(viewYear, 0, 1);
+    while (dt <= endDate) {
       const mi = dt.getMonth(), dd = dt.getDate() - 1, dow = dt.getDay();
       for (let r = 0; r < n; r++) {
+        if (!isSchedDow(r, dow)) continue;
         poss[dow]++;
         if (appState.data[key(mi, r, dd)]) done[dow]++;
       }
@@ -1626,7 +1855,8 @@ function buildWeekdayIntelHTML() {
     }
   }
   const totalChecks = done.reduce((x, y) => x + y, 0);
-  const head = '<div class="wi-head">\u25A3 WEEKDAY INTEL \u00B7 YTD</div>';
+  const periodLbl = viewYear === THIS_YEAR ? 'YTD' : viewYear;
+  const head = '<div class="wi-head">▣ WEEKDAY INTEL · ' + periodLbl + '</div>';
   if (!n || totalChecks === 0) {
     return '<div class="wi-box">' + head + '<div class="wi-none">Insufficient field data</div></div>';
   }
@@ -1634,35 +1864,39 @@ function buildWeekdayIntelHTML() {
   const ORDER  = [1, 2, 3, 4, 5, 6, 0];
   const SHORT  = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   const NAMES  = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
-  const rates  = ORDER.map(d => poss[d] ? Math.round((done[d] / poss[d]) * 100) : 0);
+  const rates  = ORDER.map(d => poss[d] ? Math.round((done[d] / poss[d]) * 100) : null);
+  const live = rates.map((v, i) => v === null ? null : i).filter(i => i !== null);
   const totalPoss = poss.reduce((x, y) => x + y, 0);
   const avg = Math.round((totalChecks / Math.max(totalPoss, 1)) * 100);
 
-  let bestI = 0, worstI = 0;
-  rates.forEach((rt, i) => {
-    if (rt > rates[bestI]) bestI = i;
-    if (rt < rates[worstI]) worstI = i;
+  let bestI = live[0], worstI = live[0];
+  live.forEach(i => {
+    if (rates[i] > rates[bestI]) bestI = i;
+    if (rates[i] < rates[worstI]) worstI = i;
   });
   const flat = rates[bestI] === rates[worstI];
 
   let bars = '<div class="wi-bars">';
   ORDER.forEach((d, i) => {
-    const cls = flat ? '' : i === bestI ? ' best' : i === worstI ? ' worst' : '';
-    bars += '<div class="wi-col" title="' + NAMES[d] + ' \u00B7 ' + rates[i] + '%">'
-      + '<div class="wi-track"><div class="wi-bar' + cls + '" style="height:' + rates[i] + '%"></div></div>'
+    const offSched = rates[i] === null;
+    const cls = offSched || flat ? '' : i === bestI ? ' best' : i === worstI ? ' worst' : '';
+    const h = offSched ? 0 : rates[i];
+    const tip = offSched ? NAMES[d] + ' · NOT SCHEDULED' : NAMES[d] + ' · ' + rates[i] + '%';
+    bars += '<div class="wi-col" title="' + tip + '">'
+      + '<div class="wi-track"><div class="wi-bar' + cls + '" style="height:' + h + '%"></div></div>'
       + '<div class="wi-day">' + SHORT[i] + '</div></div>';
   });
   bars += '</div>';
 
   let verdict;
   if (flat) {
-    verdict = '<div class="wi-verdict">UNIFORM PERFORMANCE \u00B7 AVG <span class="gold">' + avg + '%</span></div>';
+    verdict = '<div class="wi-verdict">UNIFORM PERFORMANCE · AVG <span class="gold">' + avg + '%</span></div>';
   } else {
     const drop = avg - rates[worstI];
     verdict = '<div class="wi-verdict">'
-      + 'STRONGEST: <span class="gold">' + NAMES[ORDER[bestI]] + ' \u00B7 ' + rates[bestI] + '%</span><br>'
-      + 'WEAKEST: <span class="red">' + NAMES[ORDER[worstI]] + ' \u00B7 ' + rates[worstI] + '%</span>'
-      + (drop > 0 ? ' (\u2212' + drop + '% VS AVG)' : '')
+      + 'STRONGEST: <span class="gold">' + NAMES[ORDER[bestI]] + ' · ' + rates[bestI] + '%</span><br>'
+      + 'WEAKEST: <span class="red">' + NAMES[ORDER[worstI]] + ' · ' + rates[worstI] + '%</span>'
+      + (drop > 0 ? ' (−' + drop + '% VS AVG)' : '')
       + '</div>';
   }
   return '<div class="wi-box">' + head + bars + verdict + '</div>';
@@ -1707,7 +1941,7 @@ function renderHeatmap() {
   panel.style.display = 'block';
 
   const n = appState.habits.length;
-  const startPad = new Date(YEAR, 0, 1).getDay(); // 0 = Sunday
+  const startPad = new Date(viewYear, 0, 1).getDay(); // 0 = Sunday
   const totalDays = monthsInfo.reduce((a, m) => a + m.days, 0);
   const monthStartWeek = [];
 
@@ -1715,18 +1949,23 @@ function renderHeatmap() {
   for (let i = 0; i < startPad; i++) cells += '<div class="hm-cell hm-empty"></div>';
 
   for (let i = 0; i < totalDays; i++) {
-    const dt = new Date(YEAR, 0, 1 + i);
+    const dt = new Date(viewYear, 0, 1 + i);
     const mi = dt.getMonth(), dd = dt.getDate() - 1;
     if (dd === 0) monthStartWeek[mi] = Math.floor((startPad + i) / 7);
 
-    let cnt = 0;
-    for (let r = 0; r < n; r++) if (appState.data[key(mi, r, dd)]) cnt++;
-    const frac = n ? cnt / n : 0;
+    const hmDow = dt.getDay();
+    let cnt = 0, schedN = 0;
+    for (let r = 0; r < n; r++) {
+      if (!isSchedDow(r, hmDow)) continue;
+      schedN++;
+      if (appState.data[key(mi, r, dd)]) cnt++;
+    }
+    const frac = schedN ? cnt / schedN : 0;
     const lvl = frac === 0 ? 0 : Math.min(4, Math.ceil(frac * 4));
     const isFuture = dt > today;
-    const isToday = mi === todayMonth && dd === todayDay;
+    const isToday = viewYear === THIS_YEAR && mi === _todayMonth && dd === todayDay;
     const label = dt.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }).toUpperCase()
-      + ' \u00B7 ' + cnt + '/' + n + ' OBJECTIVES';
+      + ' \u00B7 ' + cnt + '/' + schedN + ' OBJECTIVES';
 
     cells += '<div class="hm-cell lvl' + lvl
       + (isFuture ? ' hm-future' : '') + (isToday ? ' hm-today' : '')
@@ -1741,7 +1980,7 @@ function renderHeatmap() {
   });
 
   panel.innerHTML = '<div class="hm-title">'
-    + '<span>\u25C9 OPERATIONS MAP \u00B7 ' + YEAR + '</span>'
+    + '<span>\u25C9 OPERATIONS MAP \u00B7 ' + viewYear + '</span>'
     + '<span class="hm-legend">LESS'
     + ' <i class="hm-cell"></i><i class="hm-cell lvl1"></i><i class="hm-cell lvl2"></i><i class="hm-cell lvl3"></i><i class="hm-cell lvl4"></i>'
     + ' MORE</span></div>'
@@ -1763,6 +2002,7 @@ function exportDossier() {
 function bestStreakIn(r, mi, days) {
   let best = 0, s = 0;
   for (let d = 0; d < days; d++) {
+    if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue; // rest day: streak survives
     if (appState.data[key(mi, r, d)]) { s++; if (s > best) best = s; }
     else s = 0;
   }
@@ -1777,13 +2017,13 @@ function buildDossier() {
   const el = document.getElementById('dossier');
   const isYear = currentView === 12;
   const now = new Date();
-  const fileNo = 'CD-' + YEAR + '-'
+  const fileNo = 'CD-' + viewYear + '-'
     + String(isYear ? 13 : currentView + 1).padStart(2, '0')
     + String(now.getDate()).padStart(2, '0')
     + String(now.getHours()).padStart(2, '0');
   const periodLabel = isYear
-    ? YEAR + ' · ANNUAL DEBRIEF'
-    : monthsInfo[currentView].name.toUpperCase() + ' ' + YEAR;
+    ? viewYear + ' · ANNUAL DEBRIEF'
+    : monthsInfo[currentView].name.toUpperCase() + ' ' + viewYear;
 
   let html = '<div class="dz-stamp">TOP SECRET</div>'
     + '<div class="dz-title">FIELD DOSSIER</div>'
@@ -1800,8 +2040,9 @@ function buildDossier() {
     appState.habits.forEach((_, r) => {
       monthsInfo.forEach((m, mi) => {
         for (let d = 0; d < m.days; d++) {
-          if (appState.data[key(mi, r, d)]) grandDone++;
+          if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue;
           grandTotal++;
+          if (appState.data[key(mi, r, d)]) grandDone++;
         }
         const b = bestStreakIn(r, mi, m.days);
         if (b > grandBest) grandBest = b;
@@ -1819,10 +2060,14 @@ function buildDossier() {
     appState.habits.forEach((name, r) => {
       let yrDone = 0, yrDays = 0, monthly = '';
       monthsInfo.forEach((m, mi) => {
-        let mDone = 0;
-        for (let d = 0; d < m.days; d++) if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
-        yrDays += m.days;
-        const mPct = Math.round((mDone / m.days) * 100);
+        let mDone = 0, mSched = 0;
+        for (let d = 0; d < m.days; d++) {
+          if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue;
+          mSched++;
+          if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
+        }
+        yrDays += mSched;
+        const mPct = mSched ? Math.round((mDone / mSched) * 100) : 0;
         monthly += '<div class="dz-yr-row"><span>' + m.name.toUpperCase() + '</span><span>'
           + (mPct > 0 ? mPct + '%' : '—') + '</span></div>';
       });
@@ -1838,8 +2083,11 @@ function buildDossier() {
     const info = monthsInfo[currentView];
     let totalDone = 0, totalPossible = 0, best = 0;
     appState.habits.forEach((_, r) => {
-      for (let d = 0; d < info.days; d++) if (appState.data[key(currentView, r, d)]) totalDone++;
-      totalPossible += info.days;
+      for (let d = 0; d < info.days; d++) {
+        if (!isSchedDow(r, new Date(viewYear, currentView, d + 1).getDay())) continue;
+        totalPossible++;
+        if (appState.data[key(currentView, r, d)]) totalDone++;
+      }
       const b = bestStreakIn(r, currentView, info.days);
       if (b > best) best = b;
     });
@@ -1853,20 +2101,22 @@ function buildDossier() {
       + '</div>';
 
     appState.habits.forEach((name, r) => {
-      let done = 0, grid = '';
+      let done = 0, schedDays = 0, grid = '';
       for (let d = 0; d < info.days; d++) {
-        const hit = !!appState.data[key(currentView, r, d)];
+        const off = !isSchedDow(r, new Date(viewYear, currentView, d + 1).getDay());
+        const hit = !off && !!appState.data[key(currentView, r, d)];
+        if (!off) schedDays++;
         if (hit) done++;
-        grid += hit ? '■' : '·';
+        grid += off ? '–' : (hit ? '■' : '·');
         if (d % 7 === 6 && d !== info.days - 1) grid += ' ';
       }
-      const pct = Math.round((done / info.days) * 100);
+      const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
       const safe = name.replace(/</g, '&lt;');
       html += '<div class="dz-obj"><div class="dz-obj-head">'
         + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
         + '<span>' + pct + '% — ' + statusWord(pct) + '</span></div>'
         + '<div class="dz-grid">' + grid + '</div>'
-        + '<div class="dz-obj-meta">' + done + '/' + info.days + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED</div></div>';
+        + '<div class="dz-obj-meta">' + done + '/' + schedDays + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED · – REST</div></div>';
     });
   }
 
@@ -1883,11 +2133,11 @@ function buildDossier() {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (!appState) return;
-  if (e.key === 'Escape') { closeModal(); return; }
+  if (e.key === 'Escape') { closeModal(); closeSchedule(); return; }
   if (e.key === 'ArrowRight') { mobileNavMonth(1); return; }
   if (e.key === 'ArrowLeft')  { mobileNavMonth(-1); return; }
   const num = parseInt(e.key, 10);
-  if (num >= 1 && num <= Math.min(appState.habits.length, 9) && currentView === todayMonth) {
+  if (num >= 1 && num <= Math.min(appState.habits.length, 9) && currentView === tMonth()) {
     toggleTodayHabit(num - 1);
   }
 });

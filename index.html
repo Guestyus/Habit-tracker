@@ -416,6 +416,125 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 }
 .btn-mobile-del:active{background:var(--red);color:#fff}
 
+/* ── AUTH GATE ── */
+#authGate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:4500;padding:24px;text-align:center}
+.gate-title{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:5px;color:var(--primary);margin-bottom:8px}
+.gate-sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:26px}
+.gate-btn{padding:14px 30px;background:transparent;border:1px solid var(--primary);color:var(--primary);
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:2.5px;text-transform:uppercase;
+  cursor:pointer;transition:all .15s}
+.gate-btn:hover{background:var(--primary);color:#0a0a0c}
+.gate-error{display:none;margin-top:18px;max-width:420px;padding:10px 14px;border:1px solid var(--red);color:#e08a99;
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.5px;line-height:1.7;text-align:left}
+.gate-foot{position:absolute;bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:3px;color:#3a3933;text-transform:uppercase}
+#signOutLink:hover{color:var(--red)!important}
+
+/* ── WEEKDAY INTEL ── */
+#weekdayIntel{margin:0 10px 14px}
+#weekdayIntelMobile{display:none;margin:12px 12px 0}
+.wi-box{padding:12px;background:var(--surface-2);border:1px solid var(--border)}
+.wi-head{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.wi-bars{display:flex;gap:6px;align-items:flex-end;height:54px;margin-bottom:4px}
+.wi-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%}
+.wi-track{flex:1;width:100%;background:#15161b;display:flex;align-items:flex-end}
+.wi-bar{width:100%;background:rgba(201,164,55,.5);transition:height .4s ease}
+.wi-bar.best{background:var(--primary);box-shadow:0 0 6px var(--primary-glow)}
+.wi-bar.worst{background:var(--red)}
+.wi-day{font-family:'IBM Plex Mono',monospace;font-size:.5rem;color:var(--muted)}
+.wi-verdict{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1px;color:var(--text);line-height:1.9;text-transform:uppercase;margin-top:6px}
+.wi-verdict .gold{color:var(--primary)}
+.wi-verdict .red{color:var(--red)}
+.wi-none{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* ── GUN-BARREL MOMENT ── */
+#barrelMoment{position:fixed;inset:0;z-index:5000;display:none;pointer-events:none;overflow:hidden}
+#barrelMoment.play{display:block}
+.bm-shade{position:absolute;inset:0;background:#000;animation:bmFade 2.4s ease forwards}
+.bm-circle{
+  position:absolute;top:50%;left:-15%;width:170px;height:170px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle,#241c08 0%,#0a0903 45%,#000 70%);
+  box-shadow:0 0 0 5px var(--primary),0 0 0 9px #050505,0 0 0 13px #6b5a1e,
+             0 0 0 17px #050505,0 0 0 21px #463a13,0 0 0 26px #000,0 0 30px 30px #000;
+  animation:bmSweep 2.4s cubic-bezier(.6,.05,.3,1) forwards;
+}
+.bm-text{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Cinzel',serif;font-size:1.4rem;letter-spacing:6px;color:var(--primary);
+  text-align:center;line-height:1.6;opacity:0;
+  animation:bmText 2.4s ease forwards;text-shadow:0 0 18px var(--primary-glow);
+}
+@keyframes bmFade{0%{opacity:0}8%,82%{opacity:1}100%{opacity:0}}
+@keyframes bmSweep{
+  0%{left:-15%;transform:translate(-50%,-50%) scale(1)}
+  38%,58%{left:50%;transform:translate(-50%,-50%) scale(1)}
+  100%{left:50%;transform:translate(-50%,-50%) scale(16);opacity:0}
+}
+@keyframes bmText{0%,42%{opacity:0}58%,78%{opacity:1}100%{opacity:0}}
+
+/* ── OPERATIONS HEATMAP ── */
+#heatmapPanel{--hm:12px;display:none;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.hm-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.hm-legend{display:flex;align-items:center;gap:4px}
+.hm-legend .hm-cell{width:9px;height:9px}
+.hm-scroll{overflow-x:auto;padding-bottom:4px}
+.hm-scroll::-webkit-scrollbar{height:4px}
+.hm-scroll::-webkit-scrollbar-thumb{background:#2a2a30}
+.hm-months{display:grid;gap:3px;margin-bottom:4px;
+  font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:1px;color:var(--muted)}
+.hm-months span{grid-row:1;white-space:nowrap}
+.hm-grid{display:grid;grid-template-rows:repeat(7,var(--hm));grid-auto-flow:column;grid-auto-columns:var(--hm);gap:3px}
+.hm-cell{width:var(--hm);height:var(--hm);background:#15161b;border-radius:2px}
+.hm-empty{background:transparent}
+.hm-cell.lvl1{background:rgba(201,164,55,.25)}
+.hm-cell.lvl2{background:rgba(201,164,55,.5)}
+.hm-cell.lvl3{background:rgba(201,164,55,.75)}
+.hm-cell.lvl4{background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
+.hm-future{opacity:.3}
+.hm-today{outline:1.5px solid var(--primary-bright);outline-offset:1px}
+
+/* ── DOSSIER EXPORT (print only) ── */
+#dossier{display:none}
+@media print{
+  @page{margin:14mm}
+  body > *:not(#dossier){display:none!important}
+  body{background:#fff!important}
+  #dossier{
+    display:block!important;position:static;
+    background:#fff;color:#111;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.7;
+  }
+  .dz-stamp{
+    float:right;margin:0 0 10px 16px;padding:6px 14px;
+    border:3px double #a8132c;color:#a8132c;
+    font-size:15px;font-weight:700;letter-spacing:4px;
+    transform:rotate(-6deg);
+  }
+  .dz-title{font-family:'Cinzel',serif;font-size:25px;letter-spacing:7px;color:#111;margin-bottom:4px}
+  .dz-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#555;margin-bottom:12px}
+  .dz-meta{font-size:9.5px;letter-spacing:1px;color:#333;line-height:1.9}
+  .dz-rule{border-top:2.5px solid #111;margin:12px 0}
+  .dz-rule.thin{border-top:1px solid #999;margin:9px 0}
+  .dz-summary{display:flex;gap:0;border:1.5px solid #111;margin-bottom:14px}
+  .dz-sum-item{flex:1;text-align:center;padding:9px 4px;border-right:1px solid #111}
+  .dz-sum-item:last-child{border-right:none}
+  .dz-sum-val{font-family:'Cinzel',serif;font-size:19px;color:#111;line-height:1.1}
+  .dz-sum-lbl{font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-top:2px}
+  .dz-obj{margin-bottom:11px;page-break-inside:avoid}
+  .dz-obj-head{display:flex;justify-content:space-between;font-weight:700;letter-spacing:1px;border-bottom:1px solid #111;padding-bottom:2px;margin-bottom:3px}
+  .dz-grid{font-size:12px;letter-spacing:3.5px;color:#111;word-break:break-all}
+  .dz-obj-meta{font-size:8.5px;color:#666;letter-spacing:1px;margin-top:1px}
+  .dz-yr-row{display:flex;justify-content:space-between;border-bottom:1px dotted #999;padding:3px 0;letter-spacing:.5px}
+  .dz-foot{
+    margin-top:20px;border-top:2.5px solid #111;padding-top:8px;
+    font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#555;
+    display:flex;justify-content:space-between;
+  }
+  .dz-sign{margin-top:26px;display:flex;justify-content:space-between;gap:40px}
+  .dz-sign div{flex:1;border-top:1px solid #111;padding-top:4px;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#555}
+}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .outer{padding:0}
@@ -437,6 +556,9 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   #mobileTaskList{display:flex}
   #mobileBottomNav{display:flex}
   .classified-strip{font-size:.5rem;letter-spacing:1.5px}
+  #heatmapPanel{padding:12px;--hm:8px}
+  #weekdayIntelMobile{display:block}
+  .bm-text{font-size:1rem;letter-spacing:4px}
   .modal-content{padding:20px}
   .day-grid{gap:6px}
   .day-btn{font-size:.72rem}
@@ -457,6 +579,15 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   <button id="retryBtn" onclick="location.reload()" style="display:none;margin-top:20px;padding:12px 28px;background:var(--primary);border:none;color:#0a0a0c;font-weight:600;font-size:.8rem;cursor:pointer;letter-spacing:2px;font-family:'Oswald',sans-serif;text-transform:uppercase;">↺ Retry Link</button>
 </div>
 
+<div id="authGate">
+  <div class="barrel"><span></span><span></span><span></span><span></span></div>
+  <div class="gate-title">IDENTIFICATION REQUIRED</div>
+  <div class="gate-sub">This mission file is classified &middot; verify to proceed</div>
+  <button class="gate-btn" onclick="signInAgent()">&#9673; Verify with Google</button>
+  <div id="gateError" class="gate-error"></div>
+  <div class="gate-foot">Q Branch Security Protocol &middot; Eyes Only</div>
+</div>
+
 <div id="toast"></div>
 
 <div class="outer">
@@ -469,6 +600,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
     </div>
     <div class="sidebar-habits" id="sidebarHabits"></div>
     <div class="sidebar-stats" id="sidebarStats"></div>
+    <div id="weekdayIntel"></div>
     <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">Mission Complete</button>
     <div class="sidebar-hint">
       <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle objectives<br>
@@ -479,7 +611,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   <div class="main-panel" id="mainDashboard">
     <div class="classified-strip">
       <span class="dot-live"></span>
-      <b>CLASSIFIED</b>&nbsp;· FOR YOUR EYES ONLY · MISSION LOG <span id="stripYear"></span>
+      <b>CLASSIFIED</b>&nbsp;· FOR YOUR EYES ONLY · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span>
     </div>
     <div class="tabs" id="tabsContainer"></div>
 
@@ -533,9 +665,12 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
         <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ Edit Objectives</button>
         <button class="btn btn-add" onclick="addTask()">+ New Objective</button>
         <button class="btn btn-today" id="todayBtn" onclick="markAllToday()">◉ Mark Today</button>
+        <button class="btn" onclick="exportDossier()" title="Print or save a classified PDF report">📁 Export Dossier</button>
       </div>
       <div class="stats-pill" id="statsPill"></div>
     </div>
+
+    <div id="heatmapPanel"></div>
 
     <div class="table-wrapper">
       <table>
@@ -547,6 +682,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
     <div id="todayPanel"></div>
     <div class="today-divider" id="todayDivider"></div>
     <div id="mobileTaskList"></div>
+    <div id="weekdayIntelMobile"></div>
 
     <div class="footer-stats" id="footerStats"></div>
   </div>
@@ -582,11 +718,16 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   </div>
 </div>
 
+<div id="barrelMoment"><div class="bm-shade"></div><div class="bm-circle"></div><div class="bm-text">MISSION<br>ACCOMPLISHED</div></div>
+
+<div id="dossier"></div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script>
 // ════════════════ FIREBASE (guarded — falls back to demo mode if blocked) ════════════════
-let db = null, docRef = null;
+let db = null, docRef = null, auth = null;
 try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp({
@@ -601,6 +742,7 @@ try {
     db = firebase.firestore();
     db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     docRef = db.collection("dashboards").doc("final_v8_custom_habits");
+    auth = firebase.auth();
   }
 } catch (e) {
   console.warn('Firebase unavailable:', e);
@@ -686,7 +828,8 @@ function buildDefault() {
   return {
     habits: ["WORKOUT", "150G PROTEIN", "BED BY 9PM", "AWAKE BY 5AM", "10K STEPS DAILY"],
     data: {},
-    quote: ""
+    quote: "",
+    codename: ""
   };
 }
 
@@ -703,18 +846,27 @@ function safeSave() {
   }, 400);
 }
 
-// ════════════════ BOOT ════════════════
-const loadTimeout = setTimeout(() => {
-  if (appState) return;
-  console.warn('Secure link timeout — demo mode');
-  offlineMode = true;
-  appState = buildDefault();
-  bootUI();
-  showToast('⚠ Offline — changes will not save');
-}, 6000);
+// ════════════════ BOOT (auth-gated) ════════════════
+let currentUser = null;
+let unsubSnapshot = null;
+let loadTimeout = null;
 
-if (docRef) {
-  docRef.onSnapshot(doc => {
+function startLoadTimeout() {
+  clearTimeout(loadTimeout);
+  loadTimeout = setTimeout(() => {
+    if (appState) return;
+    console.warn('Secure link timeout \u2014 offline mode');
+    offlineMode = true;
+    appState = buildDefault();
+    bootUI();
+    showToast('\u26A0 Offline \u2014 changes will not save');
+  }, 6000);
+}
+
+function subscribeToVault() {
+  if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
+  startLoadTimeout();
+  unsubSnapshot = docRef.onSnapshot(doc => {
     clearTimeout(loadTimeout);
     offlineMode = false;
     appState = doc.exists ? doc.data() : buildDefault();
@@ -723,16 +875,83 @@ if (docRef) {
   }, error => {
     clearTimeout(loadTimeout);
     console.error('Firestore error:', error);
-    document.getElementById('loadingText').innerText = 'Link error: ' + error.message;
-    document.getElementById('loadingText').style.color = '#a8132c';
+    const lt = document.getElementById('loadingText');
+    if (error.code === 'permission-denied') {
+      lt.innerText = 'ACCESS DENIED \u2014 the vault rules reject this identity. Check the UID in your Firestore Rules matches the one in Authentication \u2192 Users.';
+    } else {
+      lt.innerText = 'Link error: ' + error.message;
+    }
+    lt.style.color = '#a8132c';
     document.getElementById('retryBtn').style.display = 'inline-block';
   });
+}
+
+function showGate(show) {
+  document.getElementById('authGate').style.display = show ? 'flex' : 'none';
+  if (show) document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function setGateError(msg) {
+  const el = document.getElementById('gateError');
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function gateErrorText(err) {
+  if (!err) return 'Verification failed.';
+  if (err.code === 'auth/operation-not-allowed')
+    return 'Google sign-in is not enabled yet. Firebase Console \u2192 Authentication \u2192 Sign-in method \u2192 enable Google.';
+  if (err.code === 'auth/unauthorized-domain')
+    return 'This domain is not authorised. Firebase Console \u2192 Authentication \u2192 Settings \u2192 Authorized domains \u2192 add this site.';
+  return 'Verification failed: ' + (err.message || err.code);
+}
+
+function signInAgent() {
+  if (!auth) return;
+  setGateError('');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    if (err.code === 'auth/popup-blocked') {
+      auth.signInWithRedirect(provider).catch(e2 => setGateError(gateErrorText(e2)));
+    } else if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      setGateError('');
+    } else {
+      setGateError(gateErrorText(err));
+    }
+  });
+}
+
+function signOutAgent() {
+  if (!auth) return;
+  if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
+  auth.signOut();
+  showToast('Vault sealed \u2014 signed out');
+}
+
+if (docRef && auth) {
+  auth.getRedirectResult().catch(err => setGateError(gateErrorText(err)));
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+    const so = document.getElementById('signOutLink');
+    if (user) {
+      console.log('Q BRANCH \u00B7 Your UID for the Firestore Rules:', user.uid);
+      showGate(false);
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      document.getElementById('loadingText').innerText = 'Identity verified \u00B7 establishing secure link...';
+      if (so) { so.style.display = 'inline'; so.title = user.email || ''; }
+      subscribeToVault();
+    } else {
+      appState = null;
+      tabsInitialized = false;
+      if (so) so.style.display = 'none';
+      showGate(true);
+    }
+  });
 } else {
-  // No Firebase at all (blocked CDN / sandboxed preview) — demo mode immediately
-  clearTimeout(loadTimeout);
+  // No Firebase (blocked CDN / sandboxed preview) \u2014 demo mode
   offlineMode = true;
   appState = buildDefault();
-  setTimeout(() => { bootUI(); showToast('Demo mode — connect online to save'); }, 600);
+  setTimeout(() => { bootUI(); showToast('Demo mode \u2014 connect online to save'); }, 600);
 }
 
 function bootUI() {
@@ -743,6 +962,7 @@ function bootUI() {
     initTabs();
     tabsInitialized = true;
   }
+  updateAgentName();
   renderView();
 }
 
@@ -803,6 +1023,8 @@ function renderView() {
   if (currentView === 12) renderYear(); else renderMonth();
   renderDesktopSidebar();
   renderTodayPanel();
+  renderHeatmap();
+  renderWeekdayIntel();
   updateMobileNav();
 }
 
@@ -1185,7 +1407,7 @@ function toggleTodayHabit(r) {
   const k = key(currentView, r, todayDay);
   appState.data[k] = !appState.data[k];
   const allDone = appState.habits.every((_, i) => appState.data[key(currentView, i, todayDay)]);
-  if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); }
+  if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); gunBarrel(); }
   safeSave();
   renderView();
 }
@@ -1200,6 +1422,7 @@ function markAllToday() {
   safeSave();
   renderView();
   showToast(allDone ? 'Today cleared' : '★ Mission accomplished', !allDone);
+  if (!allDone) gunBarrel();
 }
 
 function updateTaskName(i, v) {
@@ -1308,6 +1531,283 @@ function updateCharts(view) {
     lineEl.setAttribute('d', '');
     fillEl.setAttribute('d', '');
   }
+}
+
+// ════════════════ WEEKDAY INTEL ════════════════
+function renderWeekdayIntel() {
+  const html = buildWeekdayIntelHTML();
+  const a = document.getElementById('weekdayIntel');
+  const b = document.getElementById('weekdayIntelMobile');
+  if (a) a.innerHTML = html;
+  if (b) b.innerHTML = html;
+}
+
+function buildWeekdayIntelHTML() {
+  const n = appState.habits.length;
+  const done = [0,0,0,0,0,0,0], poss = [0,0,0,0,0,0,0];
+  if (n) {
+    const dt = new Date(YEAR, 0, 1);
+    while (dt <= today) {
+      const mi = dt.getMonth(), dd = dt.getDate() - 1, dow = dt.getDay();
+      for (let r = 0; r < n; r++) {
+        poss[dow]++;
+        if (appState.data[key(mi, r, dd)]) done[dow]++;
+      }
+      dt.setDate(dt.getDate() + 1);
+    }
+  }
+  const totalChecks = done.reduce((x, y) => x + y, 0);
+  const head = '<div class="wi-head">\u25A3 WEEKDAY INTEL \u00B7 YTD</div>';
+  if (!n || totalChecks === 0) {
+    return '<div class="wi-box">' + head + '<div class="wi-none">Insufficient field data</div></div>';
+  }
+
+  const ORDER  = [1, 2, 3, 4, 5, 6, 0];
+  const SHORT  = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const NAMES  = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  const rates  = ORDER.map(d => poss[d] ? Math.round((done[d] / poss[d]) * 100) : 0);
+  const totalPoss = poss.reduce((x, y) => x + y, 0);
+  const avg = Math.round((totalChecks / Math.max(totalPoss, 1)) * 100);
+
+  let bestI = 0, worstI = 0;
+  rates.forEach((rt, i) => {
+    if (rt > rates[bestI]) bestI = i;
+    if (rt < rates[worstI]) worstI = i;
+  });
+  const flat = rates[bestI] === rates[worstI];
+
+  let bars = '<div class="wi-bars">';
+  ORDER.forEach((d, i) => {
+    const cls = flat ? '' : i === bestI ? ' best' : i === worstI ? ' worst' : '';
+    bars += '<div class="wi-col" title="' + NAMES[d] + ' \u00B7 ' + rates[i] + '%">'
+      + '<div class="wi-track"><div class="wi-bar' + cls + '" style="height:' + rates[i] + '%"></div></div>'
+      + '<div class="wi-day">' + SHORT[i] + '</div></div>';
+  });
+  bars += '</div>';
+
+  let verdict;
+  if (flat) {
+    verdict = '<div class="wi-verdict">UNIFORM PERFORMANCE \u00B7 AVG <span class="gold">' + avg + '%</span></div>';
+  } else {
+    const drop = avg - rates[worstI];
+    verdict = '<div class="wi-verdict">'
+      + 'STRONGEST: <span class="gold">' + NAMES[ORDER[bestI]] + ' \u00B7 ' + rates[bestI] + '%</span><br>'
+      + 'WEAKEST: <span class="red">' + NAMES[ORDER[worstI]] + ' \u00B7 ' + rates[worstI] + '%</span>'
+      + (drop > 0 ? ' (\u2212' + drop + '% VS AVG)' : '')
+      + '</div>';
+  }
+  return '<div class="wi-box">' + head + bars + verdict + '</div>';
+}
+
+// ════════════════ GUN-BARREL MOMENT ════════════════
+let barrelPlaying = false;
+function gunBarrel() {
+  if (barrelPlaying) return;
+  const el = document.getElementById('barrelMoment');
+  if (!el) return;
+  barrelPlaying = true;
+  el.innerHTML = el.innerHTML; // restart CSS animations
+  el.classList.add('play');
+  setTimeout(() => {
+    el.classList.remove('play');
+    barrelPlaying = false;
+  }, 2500);
+}
+
+// ════════════════ AGENT CODENAME ════════════════
+function updateAgentName() {
+  const el = document.getElementById('agentName');
+  if (el && appState) el.textContent = appState.codename || 'UNASSIGNED';
+}
+
+function setCodename() {
+  if (!appState) return;
+  const v = prompt('Enter your codename, agent:', appState.codename || '');
+  if (v === null) return;
+  appState.codename = v.toUpperCase().trim();
+  updateAgentName();
+  safeSave();
+  showToast(appState.codename ? 'Welcome, Agent ' + appState.codename : 'Codename cleared', true);
+}
+
+// ════════════════ OPERATIONS HEATMAP ════════════════
+function renderHeatmap() {
+  const panel = document.getElementById('heatmapPanel');
+  if (!panel) return;
+  if (currentView !== 12) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  const n = appState.habits.length;
+  const startPad = new Date(YEAR, 0, 1).getDay(); // 0 = Sunday
+  const totalDays = monthsInfo.reduce((a, m) => a + m.days, 0);
+  const monthStartWeek = [];
+
+  let cells = '';
+  for (let i = 0; i < startPad; i++) cells += '<div class="hm-cell hm-empty"></div>';
+
+  for (let i = 0; i < totalDays; i++) {
+    const dt = new Date(YEAR, 0, 1 + i);
+    const mi = dt.getMonth(), dd = dt.getDate() - 1;
+    if (dd === 0) monthStartWeek[mi] = Math.floor((startPad + i) / 7);
+
+    let cnt = 0;
+    for (let r = 0; r < n; r++) if (appState.data[key(mi, r, dd)]) cnt++;
+    const frac = n ? cnt / n : 0;
+    const lvl = frac === 0 ? 0 : Math.min(4, Math.ceil(frac * 4));
+    const isFuture = dt > today;
+    const isToday = mi === todayMonth && dd === todayDay;
+    const label = dt.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }).toUpperCase()
+      + ' \u00B7 ' + cnt + '/' + n + ' OBJECTIVES';
+
+    cells += '<div class="hm-cell lvl' + lvl
+      + (isFuture ? ' hm-future' : '') + (isToday ? ' hm-today' : '')
+      + '" title="' + label + '"></div>';
+  }
+
+  const weeks = Math.ceil((startPad + totalDays) / 7);
+  let monthLabels = '';
+  monthStartWeek.forEach((w, mi) => {
+    monthLabels += '<span style="grid-column:' + (w + 1) + ' / span 4">'
+      + MONTH_NAMES[mi].substring(0, 3).toUpperCase() + '</span>';
+  });
+
+  panel.innerHTML = '<div class="hm-title">'
+    + '<span>\u25C9 OPERATIONS MAP \u00B7 ' + YEAR + '</span>'
+    + '<span class="hm-legend">LESS'
+    + ' <i class="hm-cell"></i><i class="hm-cell lvl1"></i><i class="hm-cell lvl2"></i><i class="hm-cell lvl3"></i><i class="hm-cell lvl4"></i>'
+    + ' MORE</span></div>'
+    + '<div class="hm-scroll">'
+    + '<div class="hm-months" style="grid-template-columns:repeat(' + weeks + ',var(--hm))">' + monthLabels + '</div>'
+    + '<div class="hm-grid">' + cells + '</div>'
+    + '</div>';
+}
+
+// ════════════════ DOSSIER EXPORT ════════════════
+function exportDossier() {
+  if (!appState) return;
+  haptic(10);
+  buildDossier();
+  window.print();
+  showToast('Dossier prepared — save as PDF', true);
+}
+
+function bestStreakIn(r, mi, days) {
+  let best = 0, s = 0;
+  for (let d = 0; d < days; d++) {
+    if (appState.data[key(mi, r, d)]) { s++; if (s > best) best = s; }
+    else s = 0;
+  }
+  return best;
+}
+
+function statusWord(pct) {
+  return pct >= 80 ? 'EXCELLENT' : pct >= 50 ? 'SATISFACTORY' : pct > 0 ? 'UNDERPERFORMING' : 'NO ACTIVITY';
+}
+
+function buildDossier() {
+  const el = document.getElementById('dossier');
+  const isYear = currentView === 12;
+  const now = new Date();
+  const fileNo = 'CD-' + YEAR + '-'
+    + String(isYear ? 13 : currentView + 1).padStart(2, '0')
+    + String(now.getDate()).padStart(2, '0')
+    + String(now.getHours()).padStart(2, '0');
+  const periodLabel = isYear
+    ? YEAR + ' · ANNUAL DEBRIEF'
+    : monthsInfo[currentView].name.toUpperCase() + ' ' + YEAR;
+
+  let html = '<div class="dz-stamp">TOP SECRET</div>'
+    + '<div class="dz-title">FIELD DOSSIER</div>'
+    + '<div class="dz-sub">Mission: Consistency · Eyes Only</div>'
+    + '<div class="dz-meta">FILE NO. ' + fileNo
+    + (appState.codename ? '<br>AGENT: ' + appState.codename.replace(/</g, '&lt;') : '')
+    + '<br>REPORTING PERIOD: ' + periodLabel
+    + '<br>GENERATED: ' + now.toLocaleString('en-AU').toUpperCase()
+    + '<br>OBJECTIVES UNDER REVIEW: ' + appState.habits.length + '</div>'
+    + '<div class="dz-rule"></div>';
+
+  if (isYear) {
+    let grandDone = 0, grandTotal = 0, grandBest = 0;
+    appState.habits.forEach((_, r) => {
+      monthsInfo.forEach((m, mi) => {
+        for (let d = 0; d < m.days; d++) {
+          if (appState.data[key(mi, r, d)]) grandDone++;
+          grandTotal++;
+        }
+        const b = bestStreakIn(r, mi, m.days);
+        if (b > grandBest) grandBest = b;
+      });
+    });
+    const grandPct = Math.round((grandDone / Math.max(grandTotal, 1)) * 100);
+
+    html += '<div class="dz-summary">'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + grandPct + '%</div><div class="dz-sum-lbl">Success Rate</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + grandDone + '</div><div class="dz-sum-lbl">Ops Completed</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + grandBest + '</div><div class="dz-sum-lbl">Best Streak</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + appState.habits.length + '</div><div class="dz-sum-lbl">Objectives</div></div>'
+      + '</div>';
+
+    appState.habits.forEach((name, r) => {
+      let yrDone = 0, yrDays = 0, monthly = '';
+      monthsInfo.forEach((m, mi) => {
+        let mDone = 0;
+        for (let d = 0; d < m.days; d++) if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
+        yrDays += m.days;
+        const mPct = Math.round((mDone / m.days) * 100);
+        monthly += '<div class="dz-yr-row"><span>' + m.name.toUpperCase() + '</span><span>'
+          + (mPct > 0 ? mPct + '%' : '—') + '</span></div>';
+      });
+      const yrPct = Math.round((yrDone / Math.max(yrDays, 1)) * 100);
+      const safe = name.replace(/</g, '&lt;');
+      html += '<div class="dz-obj"><div class="dz-obj-head">'
+        + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
+        + '<span>' + yrPct + '% — ' + statusWord(yrPct) + '</span></div>'
+        + monthly
+        + '<div class="dz-obj-meta">' + yrDone + '/' + yrDays + ' DAYS COMPLETED THIS YEAR</div></div>';
+    });
+  } else {
+    const info = monthsInfo[currentView];
+    let totalDone = 0, totalPossible = 0, best = 0;
+    appState.habits.forEach((_, r) => {
+      for (let d = 0; d < info.days; d++) if (appState.data[key(currentView, r, d)]) totalDone++;
+      totalPossible += info.days;
+      const b = bestStreakIn(r, currentView, info.days);
+      if (b > best) best = b;
+    });
+    const monthPct = Math.round((totalDone / Math.max(totalPossible, 1)) * 100);
+
+    html += '<div class="dz-summary">'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + monthPct + '%</div><div class="dz-sum-lbl">Success Rate</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + totalDone + '</div><div class="dz-sum-lbl">Ops Completed</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + best + '</div><div class="dz-sum-lbl">Best Streak</div></div>'
+      + '<div class="dz-sum-item"><div class="dz-sum-val">' + appState.habits.length + '</div><div class="dz-sum-lbl">Objectives</div></div>'
+      + '</div>';
+
+    appState.habits.forEach((name, r) => {
+      let done = 0, grid = '';
+      for (let d = 0; d < info.days; d++) {
+        const hit = !!appState.data[key(currentView, r, d)];
+        if (hit) done++;
+        grid += hit ? '■' : '·';
+        if (d % 7 === 6 && d !== info.days - 1) grid += ' ';
+      }
+      const pct = Math.round((done / info.days) * 100);
+      const safe = name.replace(/</g, '&lt;');
+      html += '<div class="dz-obj"><div class="dz-obj-head">'
+        + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
+        + '<span>' + pct + '% — ' + statusWord(pct) + '</span></div>'
+        + '<div class="dz-grid">' + grid + '</div>'
+        + '<div class="dz-obj-meta">' + done + '/' + info.days + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED</div></div>';
+    });
+  }
+
+  html += '<div class="dz-sign"><div>'
+    + (appState.codename ? 'AGENT ' + appState.codename.replace(/</g, '&lt;') : 'AGENT SIGNATURE')
+    + '</div><div>STATION CHIEF</div></div>'
+    + '<div class="dz-foot"><span>ISSUED BY Q BRANCH</span>'
+    + '<span>FOR YOUR EYES ONLY · UNAUTHORISED DISCLOSURE PROHIBITED</span></div>';
+
+  el.innerHTML = html;
 }
 
 // ════════════════ KEYBOARD ════════════════

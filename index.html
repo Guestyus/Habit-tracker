@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Mission: Consistency</title>
 <meta name="theme-color" content="#070708">
 <link rel="manifest" href="./manifest.json">
@@ -569,8 +569,39 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   .day-grid{gap:6px}
   .day-btn{font-size:.72rem}
   .footer-stats{padding:10px 12px}
-  .stat-value{font-size:1.05rem}
-  .stat-label{font-size:.48rem}
+  /* ── mobile polish: bigger type, bigger targets ── */
+  .btn{height:46px;font-size:.72rem;flex:1 1 40%;letter-spacing:1.2px}
+  .controls-left{flex-wrap:wrap}
+  .classified-strip{white-space:normal;flex-wrap:wrap;line-height:1.9;font-size:.56rem;letter-spacing:1.2px;padding:8px 10px}
+  .strip-extra{display:none}
+  #agentName,#signOutLink{padding:4px 3px;display:inline-block}
+  .today-panel-title{font-size:1.15rem}
+  .today-panel-date{font-size:.62rem}
+  .today-habit-btn{padding:14px 8px}
+  .today-habit-icon{font-size:1.5rem;margin-bottom:6px}
+  .today-habit-name{font-size:.64rem}
+  .mobile-card{padding:16px}
+  .mobile-card-name{font-size:.98rem}
+  .mobile-card-meta{font-size:.64rem}
+  .mobile-streak{font-size:.68rem}
+  .mob-nav-btn{width:48px;height:48px;font-size:1.2rem}
+  .wi-head{font-size:.6rem}
+  .wi-verdict{font-size:.62rem}
+  .wi-day{font-size:.56rem}
+  .quote-input{font-size:.85rem}
+  .gate-title{font-size:1.25rem;letter-spacing:3px}
+  .modal-title{font-size:1.25rem}
+  .btn-mobile-sm{height:42px;width:50px;font-size:1rem}
+  .btn-mobile-del{height:42px;font-size:.76rem}
+  .day-btn{font-size:.8rem}
+  .stat-value{font-size:1.15rem}
+  .stat-label{font-size:.55rem}
+}
+/* installed-app safe areas (notch / home bar) */
+@media (display-mode: standalone) and (max-width: 900px){
+  .classified-strip{padding-top:calc(8px + env(safe-area-inset-top))}
+  #mobileBottomNav{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .main-panel{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 }
 </style>
 </head>
@@ -617,7 +648,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   <div class="main-panel" id="mainDashboard">
     <div class="classified-strip">
       <span class="dot-live"></span>
-      <b>CLASSIFIED</b>&nbsp;· FOR YOUR EYES ONLY · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span>
+      <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span>
     </div>
     <div class="tabs" id="tabsContainer"></div>
 
@@ -748,7 +779,6 @@ try {
     db = firebase.firestore();
     db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {}); // offline writes queue + sync
-    docRef = db.collection("dashboards").doc("final_v8_custom_habits");
     auth = firebase.auth();
   }
 } catch (e) {
@@ -876,21 +906,44 @@ function subscribeToVault() {
   unsubSnapshot = docRef.onSnapshot(doc => {
     clearTimeout(loadTimeout);
     offlineMode = false;
-    appState = doc.exists ? doc.data() : buildDefault();
-    if (!doc.exists) docRef.set(appState);
-    bootUI();
+    if (doc.exists) {
+      appState = doc.data();
+      bootUI();
+    } else {
+      migrateOrCreate();
+    }
   }, error => {
     clearTimeout(loadTimeout);
     console.error('Firestore error:', error);
     const lt = document.getElementById('loadingText');
     if (error.code === 'permission-denied') {
-      lt.innerText = 'ACCESS DENIED \u2014 the vault rules reject this identity. Check the UID in your Firestore Rules matches the one in Authentication \u2192 Users.';
+      lt.innerText = 'ACCESS DENIED \u2014 the vault rules reject this identity. Ensure the per-agent rules (dashboards/{uid}) are published in Firestore \u2192 Rules.';
     } else {
       lt.innerText = 'Link error: ' + error.message;
     }
     lt.style.color = '#a8132c';
     document.getElementById('retryBtn').style.display = 'inline-block';
   });
+}
+
+// One-time: pull data from the original shared vault into this agent's personal vault
+let migrating = false;
+function migrateOrCreate() {
+  if (migrating || !docRef) return;
+  migrating = true;
+  db.collection('dashboards').doc('final_v8_custom_habits').get()
+    .then(legacy => {
+      appState = legacy.exists ? legacy.data() : buildDefault();
+      if (legacy.exists) showToast('Legacy vault migrated to your personal file', true);
+      return docRef.set(appState);
+    })
+    .catch(() => {
+      // No clearance for the legacy vault (new agent) — fresh mission file
+      appState = buildDefault();
+      return docRef.set(appState);
+    })
+    .then(() => { migrating = false; bootUI(); })
+    .catch(() => { migrating = false; bootUI(); });
 }
 
 function showGate(show) {
@@ -935,13 +988,14 @@ function signOutAgent() {
   showToast('Vault sealed \u2014 signed out');
 }
 
-if (docRef && auth) {
+if (db && auth) {
   auth.getRedirectResult().catch(err => setGateError(gateErrorText(err)));
   auth.onAuthStateChanged(user => {
     currentUser = user;
     const so = document.getElementById('signOutLink');
     if (user) {
-      console.log('Q BRANCH \u00B7 Your UID for the Firestore Rules:', user.uid);
+      console.log('Q BRANCH \u00B7 Agent UID:', user.uid);
+      docRef = db.collection('dashboards').doc(user.uid);
       showGate(false);
       document.getElementById('loadingOverlay').style.display = 'flex';
       document.getElementById('loadingText').innerText = 'Identity verified \u00B7 establishing secure link...';
@@ -949,6 +1003,7 @@ if (docRef && auth) {
       subscribeToVault();
     } else {
       appState = null;
+      docRef = null;
       tabsInitialized = false;
       if (so) so.style.display = 'none';
       showGate(true);
@@ -1106,6 +1161,7 @@ function renderMonth() {
       + '<div class="mobile-edit-footer"><div style="display:flex;gap:8px;">'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',-1)">▲</button>'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',1)">▼</button>'
+      + '<button class="btn-mobile-sm" onclick="event.stopPropagation();renameTask(' + r + ')">✎</button>'
       + '</div><button class="btn-mobile-del" onclick="event.stopPropagation();removeTask(' + r + ')">Delete</button></div>'
       + '</div>';
   });
@@ -1436,6 +1492,13 @@ function updateTaskName(i, v) {
   appState.habits[i] = v.toUpperCase().trim() || 'UNNAMED OBJECTIVE';
   safeSave();
   renderView();
+}
+
+function renameTask(i) {
+  const v = prompt('Rename objective:', appState.habits[i]);
+  if (v === null) return;
+  updateTaskName(i, v);
+  showToast('\u2713 Objective renamed', true);
 }
 
 function addTask() {
@@ -1832,14 +1895,16 @@ document.addEventListener('keydown', e => {
 
 // ════════════════ SWIPE (mobile) ════════════════
 (function () {
-  let startX = 0, startY = 0;
+  let startX = 0, startY = 0, startEl = null;
   document.addEventListener('touchstart', e => {
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
+    startEl = e.target;
   }, { passive: true });
   document.addEventListener('touchend', e => {
     if (!appState) return;
     if (document.getElementById('dayModal').style.display === 'flex') return;
+    if (startEl && startEl.closest && startEl.closest('.hm-scroll, .table-wrapper, .tabs')) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
     if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;

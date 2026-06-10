@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mission: Consistency</title>
+<meta name="theme-color" content="#070708">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Consistency">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -741,6 +747,7 @@ try {
     });
     db = firebase.firestore();
     db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {}); // offline writes queue + sync
     docRef = db.collection("dashboards").doc("final_v8_custom_habits");
     auth = firebase.auth();
   }
@@ -1839,6 +1846,14 @@ document.addEventListener('keydown', e => {
     mobileNavMonth(dx < 0 ? 1 : -1);
   }, { passive: true });
 })();
+
+// ════════════════ SERVICE WORKER (PWA) ════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err => console.warn('SW registration unavailable:', err));
+  });
+}
 </script>
 </body>
 </html>

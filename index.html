@@ -89,12 +89,12 @@ body{
 .classified-strip{
   display:flex;align-items:center;justify-content:center;gap:10px;
   background:#0a0a0d;border-bottom:1px solid var(--border);
-  padding:7px 12px;font-family:'IBM Plex Mono',monospace;
-  font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+  padding:12px 14px;font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:#9a978c;
   white-space:nowrap;overflow:hidden;
 }
 .classified-strip b{color:var(--red);font-weight:500}
-.dot-live{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:blink 1.6s ease-in-out infinite;flex-shrink:0}
+.dot-live{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:blink 1.6s ease-in-out infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* ── LAYOUT ── */
@@ -561,7 +561,6 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   #todayPanel{display:block}
   #mobileTaskList{display:flex}
   #mobileBottomNav{display:flex}
-  .classified-strip{font-size:.5rem;letter-spacing:1.5px}
   #heatmapPanel{padding:12px;--hm:8px}
   #weekdayIntelMobile{display:block}
   .bm-text{font-size:1rem;letter-spacing:4px}
@@ -572,7 +571,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
   /* ── mobile polish: bigger type, bigger targets ── */
   .btn{height:46px;font-size:.72rem;flex:1 1 40%;letter-spacing:1.2px}
   .controls-left{flex-wrap:wrap}
-  .classified-strip{white-space:normal;flex-wrap:wrap;line-height:1.9;font-size:.56rem;letter-spacing:1.2px;padding:8px 10px}
+  .classified-strip{white-space:normal;flex-wrap:wrap;line-height:1.9;font-size:.72rem;letter-spacing:1.2px;padding:11px 12px}
   .strip-extra{display:none}
   #agentName,#signOutLink{padding:4px 3px;display:inline-block}
   .today-panel-title{font-size:1.15rem}

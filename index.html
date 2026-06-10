@@ -3,30 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Consistency Dashboard</title>
+<title>Mission: Consistency</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --primary:#4caf50;
-  --primary-light:rgba(76,175,80,.12);
-  --primary-glow:rgba(76,175,80,.28);
-  --today-col:rgba(76,175,80,.07);
-  --today-border:rgba(76,175,80,.45);
-  --bg:#0d0d0d;
-  --surface:#161616;
-  --surface-2:#1c1c1c;
-  --surface-3:#242424;
-  --border:#2a2a2a;
-  --text:#e8e8e8;
-  --muted:#777;
-  --danger:#ff4757;
-  --streak:#ff6b35;
-  --gold:#f1c40f;
+  --primary:#c9a437;          /* 00-gold */
+  --primary-bright:#e8c96a;
+  --primary-light:rgba(201,164,55,.12);
+  --primary-glow:rgba(201,164,55,.25);
+  --today-col:rgba(201,164,55,.07);
+  --today-border:rgba(201,164,55,.45);
+  --red:#a8132c;              /* poster red */
+  --red-glow:rgba(168,19,44,.4);
+  --bg:#070708;
+  --surface:#0d0e11;
+  --surface-2:#13141a;
+  --surface-3:#1a1c24;
+  --border:#23242c;
+  --text:#e9e7df;             /* platinum */
+  --muted:#76746a;            /* smoke */
+  --danger:#a8132c;
+  --streak:#c9a437;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:'DM Sans',sans-serif;
+  font-family:'Oswald',sans-serif;
   background:var(--bg);color:var(--text);
   -webkit-tap-highlight-color:transparent;
   min-height:100vh;
@@ -40,139 +42,166 @@ body{
   position:fixed;bottom:28px;left:50%;
   transform:translateX(-50%) translateY(16px);
   background:var(--surface-3);border:1px solid var(--border);
-  color:var(--text);padding:10px 20px;border-radius:100px;
-  font-weight:700;font-size:.8rem;letter-spacing:.4px;
+  color:var(--text);padding:10px 22px;border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:1.5px;text-transform:uppercase;
   opacity:0;transition:opacity .25s,transform .25s;z-index:9999;
   pointer-events:none;white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  box-shadow:0 8px 24px rgba(0,0,0,.6);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#toast.green{background:var(--primary);border-color:var(--primary)}
+#toast.green{background:var(--primary);border-color:var(--primary);color:#0a0a0c;font-weight:500}
 
-/* ── LOADING ── */
+/* ── LOADING — gun-barrel rings ── */
 #loadingOverlay{
   position:fixed;inset:0;background:var(--bg);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   z-index:4000;padding:20px;text-align:center;
 }
-.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--primary);letter-spacing:6px;margin-bottom:20px}
-.loading-bar{width:200px;height:3px;background:#1e1e1e;border-radius:2px;overflow:hidden}
-.loading-fill{height:100%;background:var(--primary);border-radius:2px;animation:loadPulse 1.3s ease-in-out infinite}
+.barrel{position:relative;width:120px;height:120px;margin-bottom:26px}
+.barrel span{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px solid var(--primary);opacity:.18;
+  animation:barrelPulse 2.2s ease-in-out infinite;
+}
+.barrel span:nth-child(2){inset:16px;animation-delay:.25s;opacity:.3}
+.barrel span:nth-child(3){inset:32px;animation-delay:.5s;opacity:.45}
+.barrel span:nth-child(4){inset:48px;animation-delay:.75s;opacity:.7;border-width:3px}
+.barrel::after{
+  content:'';position:absolute;inset:56px;border-radius:50%;
+  background:var(--primary);box-shadow:0 0 18px var(--primary-glow);
+  animation:barrelPulse 2.2s ease-in-out infinite;animation-delay:1s;
+}
+@keyframes barrelPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.loading-logo{font-family:'Cinzel',serif;font-size:2rem;color:var(--primary);letter-spacing:8px;margin-bottom:6px}
+.loading-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:4px;text-transform:uppercase;margin-bottom:18px}
+.loading-bar{width:220px;height:2px;background:#1a1a1e;overflow:hidden}
+.loading-fill{height:100%;background:var(--primary);animation:loadPulse 1.3s ease-in-out infinite}
 @keyframes loadPulse{0%{width:0%}60%{width:80%}100%{width:100%}}
-.loading-text{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:12px;line-height:1.7}
+.loading-text{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;margin-top:14px;line-height:1.8}
+
+/* ── CLASSIFIED STRIP ── */
+.classified-strip{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#0a0a0d;border-bottom:1px solid var(--border);
+  padding:7px 12px;font-family:'IBM Plex Mono',monospace;
+  font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+  white-space:nowrap;overflow:hidden;
+}
+.classified-strip b{color:var(--red);font-weight:500}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:blink 1.6s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* ── LAYOUT ── */
 .outer{display:flex;align-items:flex-start;max-width:1900px;margin:0 auto;padding:14px}
 
 /* ── DESKTOP SIDEBAR ── */
 #desktopSidebar{
-  width:260px;flex-shrink:0;
+  width:262px;flex-shrink:0;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;overflow:hidden;
-  position:sticky;top:14px;
+  border-top:2px solid var(--primary);
+  overflow:hidden;position:sticky;top:14px;
   display:flex;flex-direction:column;
 }
 .sidebar-header{
   padding:18px 16px 14px;border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,255,255,.025),transparent);
+  background:linear-gradient(180deg,rgba(201,164,55,.05),transparent);
 }
-.sidebar-date{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
-.sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:#fff;line-height:1}
-.sidebar-sub{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--primary);margin-top:3px}
+.sidebar-date{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:5px}
+.sidebar-title{font-family:'Cinzel',serif;font-size:1.35rem;letter-spacing:3px;color:var(--primary);line-height:1}
+.sidebar-sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--text);margin-top:5px;letter-spacing:1px}
 .sidebar-habits{padding:10px;display:flex;flex-direction:column;gap:6px}
 .sb-habit{
   display:flex;align-items:center;gap:10px;padding:10px 12px;
-  border-radius:10px;border:1px solid var(--border);
+  border:1px solid var(--border);border-left:3px solid var(--border);
   background:var(--surface-2);cursor:pointer;user-select:none;
-  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  transition:all .18s ease;
 }
-.sb-habit:hover{border-color:#3a3a3a;background:var(--surface-3)}
-.sb-habit.done{background:var(--primary-light);border-color:var(--primary);box-shadow:0 2px 12px var(--primary-glow)}
-.sb-habit:active{transform:scale(.96)}
-.sb-icon{font-size:1.2rem;flex-shrink:0;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
-.sb-habit.done .sb-icon{transform:scale(1.15)}
-.sb-name{font-size:.8rem;font-weight:800;letter-spacing:.2px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
-.sb-habit.done .sb-name{color:var(--primary)}
-.sb-check{width:18px;height:18px;border-radius:5px;border:2px solid #3a3a3a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;transition:all .15s}
-.sb-habit.done .sb-check{background:var(--primary);border-color:var(--primary);color:#fff}
-.sb-habit.done .sb-check::after{content:'✓'}
-.sidebar-msg{padding:16px;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--muted);text-align:center;line-height:1.7}
+.sb-habit:hover{border-color:#34353f;background:var(--surface-3)}
+.sb-habit.done{background:var(--primary-light);border-color:var(--primary);border-left-color:var(--primary)}
+.sb-habit:active{transform:scale(.97)}
+.sb-icon{font-size:1.1rem;flex-shrink:0;transition:transform .2s ease}
+.sb-habit.done .sb-icon{transform:scale(1.12)}
+.sb-name{font-size:.78rem;font-weight:600;letter-spacing:.8px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);text-transform:uppercase}
+.sb-habit.done .sb-name{color:var(--primary-bright)}
+.sb-check{width:17px;height:17px;border-radius:50%;border:2px solid #3c3a30;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative}
+.sb-habit.done .sb-check{background:var(--primary);border-color:var(--primary)}
+.sb-habit.done .sb-check::after{content:'';width:5px;height:5px;border-radius:50%;background:#0a0a0c}
+.sidebar-msg{padding:16px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);text-align:center;line-height:1.8;letter-spacing:1px;text-transform:uppercase}
 .sidebar-stats{
   margin:0 10px 10px;padding:12px;background:var(--surface-2);
-  border-radius:10px;border:1px solid var(--border);
+  border:1px solid var(--border);
   display:grid;grid-template-columns:1fr 1fr;gap:10px;
 }
 .ss-item{text-align:center}
-.ss-val{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--primary);line-height:1}
-.ss-lbl{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+.ss-val{font-family:'Cinzel',serif;font-size:1.35rem;color:var(--primary);line-height:1}
+.ss-lbl{font-family:'IBM Plex Mono',monospace;font-size:.54rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
 .sidebar-mark-btn{
-  margin:0 10px 14px;padding:12px;border-radius:10px;
-  background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.25);
-  color:var(--primary);font-family:'DM Sans',sans-serif;
-  font-weight:800;font-size:.82rem;cursor:pointer;letter-spacing:.3px;
+  margin:0 10px 14px;padding:12px;
+  background:transparent;border:1px solid var(--primary);
+  color:var(--primary);font-family:'Oswald',sans-serif;
+  font-weight:600;font-size:.78rem;cursor:pointer;letter-spacing:2px;text-transform:uppercase;
   transition:all .15s;
 }
-.sidebar-mark-btn:hover{background:rgba(76,175,80,.2)}
-.sidebar-mark-btn.all-done{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sidebar-mark-btn:hover{background:var(--primary);color:#0a0a0c}
+.sidebar-mark-btn.all-done{background:var(--primary);color:#0a0a0c}
 .sidebar-hint{
-  margin:0 10px 14px;padding:10px 12px;border-radius:8px;
-  background:rgba(255,255,255,.02);border:1px solid var(--border);
-  font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);line-height:1.8;
+  margin:0 10px 14px;padding:10px 12px;
+  background:rgba(255,255,255,.015);border:1px solid var(--border);
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);line-height:1.9;letter-spacing:.5px;
 }
-.key-badge{display:inline-block;background:var(--surface-3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:.58rem;color:var(--text);margin-right:3px}
+.key-badge{display:inline-block;background:var(--surface-3);border:1px solid var(--border);padding:1px 5px;font-size:.54rem;color:var(--primary);margin-right:3px}
 
 /* ── MAIN PANEL ── */
 .main-panel{
   flex:1;min-width:0;margin-left:14px;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;overflow:hidden;
-  box-shadow:0 16px 50px rgba(0,0,0,.45);
+  border-top:2px solid var(--primary);
+  overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,.5);
 }
 
-/* ── TABS ── */
-.tabs{display:flex;background:#080808;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+/* ── TABS — dossier folders ── */
+.tabs{display:flex;background:#08080a;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
 .tabs::-webkit-scrollbar{display:none}
 .tab{
-  flex:1;text-align:center;padding:13px 8px;color:var(--muted);cursor:pointer;
-  font-family:'DM Mono',monospace;font-weight:500;font-size:.7rem;
-  text-transform:uppercase;letter-spacing:.8px;
-  border-right:1px solid #181818;white-space:nowrap;
+  flex:1;text-align:center;padding:12px 8px;color:var(--muted);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.64rem;
+  text-transform:uppercase;letter-spacing:1.5px;
+  border-right:1px solid #131318;white-space:nowrap;
   position:relative;user-select:none;transition:color .2s,background .2s;
 }
-.tab:hover:not(.active){color:#ccc;background:rgba(255,255,255,.025)}
-.tab.active{color:#fff;background:linear-gradient(180deg,rgba(76,175,80,.18),rgba(76,175,80,.04))}
+.tab:hover:not(.active){color:#bdbab0;background:rgba(255,255,255,.02)}
+.tab.active{color:var(--primary-bright);background:linear-gradient(180deg,rgba(201,164,55,.14),rgba(201,164,55,.02))}
 .tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--primary)}
-.tab.current-month::before{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 5px var(--primary)}
-.tab.year-tab{background:#0e0e0e;color:var(--gold);flex:1.3}
-.tab.year-tab.active{background:linear-gradient(180deg,rgba(241,196,15,.14),rgba(241,196,15,.03))}
-.tab.year-tab.active::after{background:var(--gold)}
+.tab.current-month::before{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 5px var(--red-glow)}
+.tab.year-tab{background:#0b0b0e;color:var(--text);flex:1.3}
+.tab.year-tab.active{color:var(--primary-bright)}
 
 /* ── HEADER ── */
 .header{
   display:flex;justify-content:space-between;align-items:center;
   padding:18px 22px;gap:18px;flex-wrap:wrap;
   border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+  background:linear-gradient(180deg,rgba(201,164,55,.03),transparent);
 }
-.title-section h2{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;font-weight:400;letter-spacing:3px;color:#fff;line-height:1}
-.title-section .subtitle{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.title-section h2{font-family:'Cinzel',serif;font-size:2.1rem;font-weight:600;letter-spacing:6px;color:var(--primary);line-height:1}
+.title-section .subtitle{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;margin-top:5px}
 .quote-container{
   flex:1;min-width:200px;display:flex;align-items:center;
-  background:rgba(255,255,255,.02);border-left:3px solid var(--primary);
-  padding:10px 14px;border-radius:6px;
+  background:rgba(255,255,255,.015);border-left:2px solid var(--primary);
+  padding:10px 14px;
 }
-.quote-container:focus-within{background:rgba(76,175,80,.04)}
-.quote-input{width:100%;background:transparent;border:none;color:var(--muted);font-style:italic;font-size:.88rem;outline:none;font-family:'DM Sans',sans-serif}
-.quote-input::placeholder{color:#383838}
+.quote-container:focus-within{background:rgba(201,164,55,.05)}
+.quote-input{width:100%;background:transparent;border:none;color:var(--muted);font-style:italic;font-size:.85rem;outline:none;font-family:Georgia,serif}
+.quote-input::placeholder{color:#34322c}
 #shuffleBtn{background:none;border:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:0 0 0 8px;flex-shrink:0;transition:transform .4s}
 .charts-row{display:flex;align-items:center;gap:14px}
-.chart-label{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:center;margin-top:4px}
-.area-chart{width:160px;height:62px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.donut-wrapper{position:relative;width:74px;height:74px}
-.donut-wrapper svg{width:74px;height:74px;transform:rotate(-90deg)}
+.chart-label{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;text-align:center;margin-top:5px}
+.area-chart{width:160px;height:62px;background:rgba(0,0,0,.35);border:1px solid var(--border);overflow:hidden}
+.donut-wrapper{position:relative;width:78px;height:78px}
+.donut-wrapper svg{width:78px;height:78px;transform:rotate(-90deg)}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.donut-pct{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px;color:#fff;line-height:1}
-.donut-sub{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted)}
+.donut-pct{font-family:'Cinzel',serif;font-size:1.05rem;letter-spacing:1px;color:var(--text);line-height:1}
+.donut-sub{font-family:'IBM Plex Mono',monospace;font-size:.48rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
 /* ── CONTROLS ── */
 .table-controls{
@@ -181,243 +210,251 @@ body{
 }
 .controls-left{display:flex;gap:8px;align-items:center}
 .stats-pill{
-  font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);
-  background:rgba(255,255,255,.03);border:1px solid var(--border);
-  border-radius:100px;padding:5px 14px;white-space:nowrap;
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+  background:rgba(255,255,255,.02);border:1px solid var(--border);
+  padding:6px 14px;white-space:nowrap;letter-spacing:1px;text-transform:uppercase;
 }
-.stats-pill span{color:var(--primary);font-weight:700}
+.stats-pill span{color:var(--primary);font-weight:500}
 .btn{
   height:36px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;
-  border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:.8rem;
-  font-family:'DM Sans',sans-serif;letter-spacing:.2px;white-space:nowrap;min-width:0;
+  border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+  font-weight:600;cursor:pointer;font-size:.74rem;
+  font-family:'Oswald',sans-serif;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;min-width:0;
   transition:all .15s;
 }
 .btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.btn-edit{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
-.btn-edit:hover{background:var(--surface-3);border-color:#3a3a3a}
-.btn-add{background:var(--primary);color:#fff;display:none;box-shadow:0 4px 14px var(--primary-glow)}
-.btn-add:hover{background:#5cbf60;transform:translateY(-1px)}
-.btn-today{background:rgba(76,175,80,.08);color:var(--primary);border:1px solid rgba(76,175,80,.25)}
-.btn-today:hover{background:rgba(76,175,80,.18)}
+.btn-edit:hover{background:var(--surface-3);border-color:#34353f}
+.btn-add{background:var(--primary);color:#0a0a0c;border-color:var(--primary);display:none}
+.btn-add:hover{background:var(--primary-bright)}
+.btn-today{background:transparent;color:var(--primary);border-color:var(--primary)}
+.btn-today:hover{background:var(--primary);color:#0a0a0c}
 .is-editing .btn-add{display:inline-flex!important}
 
 /* ── TABLE ── */
 .table-wrapper{width:100%;overflow-x:auto}
 .table-wrapper::-webkit-scrollbar{height:4px}
-.table-wrapper::-webkit-scrollbar-thumb{background:#2e2e2e;border-radius:2px}
+.table-wrapper::-webkit-scrollbar-thumb{background:#2a2a30}
 table{table-layout:fixed;border-collapse:collapse;width:100%;min-width:1100px}
 th,td{border:1px solid var(--border);text-align:center;height:40px;transition:background .12s}
-th{background:var(--surface-3);font-family:'DM Mono',monospace;font-weight:500;font-size:.66rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
-th.week-header{color:var(--text);font-size:.63rem}
-tbody tr:hover td{background:rgba(255,255,255,.018)}
+th{background:var(--surface-3);font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+th.week-header{color:var(--text);font-size:.58rem}
+tbody tr:hover td{background:rgba(255,255,255,.015)}
 tbody tr:hover td.col-habit{background:var(--surface-3)}
-tbody tr:hover td.today-col{background:rgba(76,175,80,.14)}
+tbody tr:hover td.today-col{background:rgba(201,164,55,.12)}
 td.today-col{background:var(--today-col);border-left-color:var(--today-border)!important;border-right-color:var(--today-border)!important}
-th.today-col{background:rgba(76,175,80,.14)!important;color:var(--primary)!important}
+th.today-col{background:rgba(201,164,55,.13)!important;color:var(--primary)!important}
 .col-habit{width:250px;background:var(--surface-3)!important;position:sticky;left:0;z-index:10}
 .col-progress{width:148px}
 td.check-cell{cursor:pointer;position:relative}
 td.check-cell:hover{background:var(--primary-light)!important}
 td.check-cell:active{opacity:.75}
 td.check-cell.today-col:hover::after{
-  content:'★ TODAY';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  background:var(--surface-3);border:1px solid var(--border);color:var(--text);
-  font-family:'DM Mono',monospace;font-size:.6rem;padding:3px 8px;border-radius:6px;
-  white-space:nowrap;pointer-events:none;z-index:200;letter-spacing:.5px;
+  content:'◉ TODAY';position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--surface-3);border:1px solid var(--primary);color:var(--primary);
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;padding:3px 8px;
+  white-space:nowrap;pointer-events:none;z-index:200;letter-spacing:1px;
 }
+/* target-style checkboxes */
 input[type="checkbox"]{
   appearance:none;width:19px;height:19px;background:transparent;
-  border:2px solid #353535;border-radius:4px;cursor:pointer;
+  border:2px solid #3c3a30;border-radius:50%;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
   vertical-align:middle;transition:all .13s;pointer-events:none;
 }
 input[type="checkbox"]:checked{background:var(--primary);border-color:var(--primary);box-shadow:0 0 7px var(--primary-glow)}
-input[type="checkbox"]:checked::after{content:'✓';color:#fff;font-weight:900;font-size:11px}
+input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-radius:50%;background:#0a0a0c}
 
 /* ── HABIT CELL ── */
 .habit-cell{display:flex;align-items:center;height:100%;padding:0 8px;gap:4px}
 .row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .2s}
 .habit-input{
-  flex:1;border:none;background:transparent;color:#fff;
-  font-size:.86rem;font-weight:700;text-align:right;outline:none;padding:0 4px;
-  font-family:'DM Sans',sans-serif;letter-spacing:.15px;min-width:0;
+  flex:1;border:none;background:transparent;color:var(--text);
+  font-size:.8rem;font-weight:600;text-align:right;outline:none;padding:0 4px;
+  font-family:'Oswald',sans-serif;letter-spacing:1px;min-width:0;text-transform:uppercase;
 }
-.habit-input:focus{color:var(--primary)}
-.streak-badge{font-size:.68rem;white-space:nowrap;color:var(--streak);font-family:'DM Mono',monospace;opacity:0;transition:opacity .2s}
+.habit-input:focus{color:var(--primary-bright)}
+.streak-badge{font-size:.62rem;white-space:nowrap;color:var(--streak);font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .2s}
 .streak-badge.visible{opacity:1}
 
 /* ── PROGRESS ── */
-.progress-bar-bg{width:82%;height:5px;background:#1a1a1a;margin:0 auto 3px;border-radius:3px;overflow:hidden}
-.progress-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#388e3c,var(--primary));transition:width .4s ease}
-.progress-text{font-family:'DM Mono',monospace;font-size:.73rem;font-weight:500}
-.progress-count{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)}
+.progress-bar-bg{width:82%;height:4px;background:#191a1f;margin:0 auto 4px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,#8a6f24,var(--primary));transition:width .4s ease}
+.progress-text{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:500;color:var(--text)}
+.progress-count{font-family:'IBM Plex Mono',monospace;font-size:.54rem;color:var(--muted);letter-spacing:.5px}
 
 /* ── EDIT MODE ── */
 .is-editing .btn-delete,.is-editing .reorder-btns{display:flex!important}
 .reorder-btns{display:none;flex-direction:column;gap:1px}
-.btn-move{background:none;border:none;color:var(--muted);cursor:pointer;padding:1px 2px;font-size:.62rem;line-height:1;transition:color .15s}
+.btn-move{background:none;border:none;color:var(--muted);cursor:pointer;padding:1px 2px;font-size:.6rem;line-height:1;transition:color .15s}
 .btn-move:hover{color:var(--primary)}
 .btn-delete{display:none;background:none;border:none;color:var(--danger);font-size:1.5rem;cursor:pointer;line-height:1;padding:0 4px;transition:opacity .15s}
 .btn-delete:hover{opacity:.7}
 
 /* ── YEAR ── */
-.summary-cell{font-family:'DM Mono',monospace;font-weight:500;font-size:.76rem}
+.summary-cell{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.7rem}
 
 /* ── FOOTER STATS ── */
 .footer-stats{display:flex;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface-2)}
 .stat-item{flex:1;text-align:center;padding:6px 0;border-right:1px solid var(--border)}
 .stat-item:last-child{border-right:none}
-.stat-value{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--primary);line-height:1}
-.stat-label{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:1px}
+.stat-value{font-family:'Cinzel',serif;font-size:1.25rem;color:var(--primary);line-height:1}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:.53rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
 
 /* ── DAY MODAL ── */
 #dayModal{
-  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;
+  position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3000;
   display:none;flex-direction:column;backdrop-filter:blur(6px);
 }
 .modal-content{
-  margin-top:auto;background:var(--surface);border-radius:24px 24px 0 0;
-  padding:28px;max-height:90%;overflow-y:auto;border-top:1px solid var(--border);
-  animation:slideUp .28s cubic-bezier(.34,1.56,.64,1);
+  margin-top:auto;background:var(--surface);
+  border-top:2px solid var(--primary);
+  padding:28px;max-height:90%;overflow-y:auto;
+  animation:slideUp .28s ease-out;
 }
 @keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-top{display:flex;justify-content:space-between;align-items:flex-start}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px}
-.modal-month{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.modal-title{font-family:'Cinzel',serif;font-size:1.5rem;letter-spacing:3px;color:var(--primary)}
+.modal-month{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:2.5px;margin-top:4px}
 .modal-close{
-  background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);
-  font-size:1.4rem;width:40px;height:40px;border-radius:10px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:1.3rem;width:40px;height:40px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
-.modal-progress{margin:14px 0;padding:12px;background:var(--surface-2);border-radius:10px;display:flex;justify-content:space-between;align-items:center}
-.modal-pct{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--primary)}
-.modal-pct-lbl{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted)}
-.modal-days-info{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);text-align:right;line-height:1.6}
+.modal-close:hover{border-color:var(--primary);color:var(--primary)}
+.modal-progress{margin:14px 0;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-pct{font-family:'Cinzel',serif;font-size:1.7rem;color:var(--primary)}
+.modal-pct-lbl{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.modal-days-info{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);text-align:right;line-height:1.7;letter-spacing:.5px}
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
 .day-btn{
-  aspect-ratio:1;border-radius:10px;border:1px solid var(--border);
+  aspect-ratio:1;border-radius:50%;border:1px solid var(--border);
   background:var(--surface-2);color:var(--muted);
-  font-family:'DM Mono',monospace;font-weight:500;font-size:.85rem;
+  font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.8rem;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;user-select:none;transition:all .14s;
 }
-.day-btn:hover{border-color:#444;background:var(--surface-3);color:var(--text)}
+.day-btn:hover{border-color:#44443c;background:var(--surface-3);color:var(--text)}
 .day-btn:active{transform:scale(.9)}
-.day-btn.checked{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px var(--primary-glow)}
-.day-btn.today-day{border-color:var(--primary);color:var(--primary);font-weight:700}
-.day-btn.today-day.checked{color:#fff}
-.day-btn.future-day{opacity:.3;pointer-events:none}
+.day-btn.checked{background:var(--primary);border-color:var(--primary);color:#0a0a0c;font-weight:700}
+.day-btn.today-day{border-color:var(--primary);color:var(--primary)}
+.day-btn.today-day.checked{color:#0a0a0c}
+.day-btn.future-day{opacity:.25;pointer-events:none}
 .modal-btn-done{
-  width:100%;padding:15px;margin-top:20px;border-radius:14px;
-  background:var(--primary);border:none;color:#fff;
-  font-family:'DM Sans',sans-serif;font-weight:900;font-size:.95rem;
-  cursor:pointer;box-shadow:0 6px 20px var(--primary-glow);transition:all .15s;
+  width:100%;padding:15px;margin-top:20px;
+  background:var(--primary);border:none;color:#0a0a0c;
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;
+  cursor:pointer;transition:all .15s;
 }
-.modal-btn-done:hover{background:#5cbf60;transform:translateY(-1px)}
+.modal-btn-done:hover{background:var(--primary-bright)}
 
 /* ── TODAY PANEL (mobile) ── */
 #todayPanel{display:none;padding:12px 12px 0}
 .today-panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.today-panel-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;color:#fff}
-.today-panel-date{font-family:'DM Mono',monospace;font-size:.64rem;color:var(--muted);text-align:right}
+.today-panel-title{font-family:'Cinzel',serif;font-size:1.05rem;letter-spacing:2.5px;color:var(--primary)}
+.today-panel-date{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);text-align:right;letter-spacing:.5px;line-height:1.6}
 .today-habits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:14px}
 .today-habit-btn{
-  border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;
-  border:2px solid var(--border);background:var(--surface-2);
+  padding:12px 8px;text-align:center;cursor:pointer;
+  border:1px solid var(--border);border-top:2px solid var(--border);
+  background:var(--surface-2);
   user-select:none;-webkit-user-select:none;
-  transition:all .2s cubic-bezier(.34,1.56,.64,1);
+  transition:all .2s ease;
 }
-.today-habit-btn.done{background:var(--primary-light);border-color:var(--primary);box-shadow:0 4px 16px var(--primary-glow)}
+.today-habit-btn.done{background:var(--primary-light);border-color:var(--primary);border-top-color:var(--primary)}
 .today-habit-btn:active{transform:scale(.93)}
-.today-habit-icon{font-size:1.4rem;margin-bottom:4px;display:block;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
-.today-habit-btn.done .today-habit-icon{transform:scale(1.2)}
-.today-habit-name{font-size:.6rem;font-weight:700;letter-spacing:.2px;color:var(--muted);text-transform:uppercase;line-height:1.2;display:block}
-.today-habit-btn.done .today-habit-name{color:var(--primary)}
+.today-habit-icon{font-size:1.3rem;margin-bottom:4px;display:block;transition:transform .3s ease}
+.today-habit-btn.done .today-habit-icon{transform:scale(1.15)}
+.today-habit-name{font-size:.56rem;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase;line-height:1.3;display:block;font-family:'Oswald',sans-serif}
+.today-habit-btn.done .today-habit-name{color:var(--primary-bright)}
 .today-divider{height:1px;background:var(--border);margin:0 12px 12px;display:none}
 
 /* ── MOBILE BOTTOM NAV ── */
 #mobileBottomNav{
   display:none;position:fixed;bottom:0;left:0;right:0;
-  background:rgba(12,12,12,.96);border-top:1px solid var(--border);
+  background:rgba(8,8,10,.97);border-top:1px solid var(--primary);
   padding:12px 20px;z-index:100;backdrop-filter:blur(12px);
   align-items:center;justify-content:space-between;
 }
 .mob-nav-btn{
-  width:44px;height:44px;border-radius:12px;border:1px solid var(--border);
-  background:var(--surface-2);color:var(--text);font-size:1.1rem;cursor:pointer;
+  width:44px;height:44px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--primary);font-size:1.1rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
-.mob-nav-btn:active{background:var(--primary);border-color:var(--primary);transform:scale(.9)}
+.mob-nav-btn:active{background:var(--primary);color:#0a0a0c;transform:scale(.9)}
 .mob-nav-center{text-align:center;flex:1}
-.mob-nav-month{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:#fff;line-height:1}
-.mob-nav-year{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px}
+.mob-nav-month{font-family:'Cinzel',serif;font-size:1.2rem;letter-spacing:3px;color:var(--primary);line-height:1}
+.mob-nav-year{font-family:'IBM Plex Mono',monospace;font-size:.54rem;color:var(--muted);letter-spacing:2px;margin-top:2px}
 
 /* ── MOBILE CARDS ── */
 #mobileTaskList{display:none;padding:12px 12px 0;flex-direction:column;gap:10px}
 .mobile-card{
-  background:var(--surface-2);border-radius:14px;padding:14px;
-  border:1px solid var(--border);cursor:pointer;overflow:hidden;
+  background:var(--surface-2);padding:14px;
+  border:1px solid var(--border);border-left:3px solid var(--border);
+  cursor:pointer;overflow:hidden;
   user-select:none;-webkit-user-select:none;
-  transition:border-color .2s,transform .18s,box-shadow .2s;
+  transition:border-color .2s,transform .18s;
 }
-.mobile-card.done-today{border-color:rgba(76,175,80,.4);box-shadow:0 4px 20px rgba(76,175,80,.1)}
+.mobile-card.done-today{border-left-color:var(--primary);border-color:rgba(201,164,55,.35)}
 .mobile-card:active{transform:scale(.97)}
 .mobile-card.edit-mode{cursor:default}
 .mobile-card-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .mobile-card-left{flex:1;min-width:0}
-.mobile-card-name{font-weight:900;font-size:.95rem;letter-spacing:.3px;display:block;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mobile-card-meta{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted)}
-.mobile-streak{font-size:.7rem;color:var(--streak);font-family:'DM Mono',monospace;margin-top:5px}
+.mobile-card-name{font-weight:600;font-size:.9rem;letter-spacing:1px;display:block;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
+.mobile-card-meta{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.5px}
+.mobile-streak{font-size:.64rem;color:var(--streak);font-family:'IBM Plex Mono',monospace;margin-top:5px;letter-spacing:.5px}
 .mobile-ring{flex-shrink:0;width:48px;height:48px;position:relative}
 .mobile-ring svg{width:48px;height:48px;transform:rotate(-90deg)}
-.mobile-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:.5px;color:#fff}
+.mobile-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.78rem;color:var(--text)}
 .mobile-edit-footer{display:none;border-top:1px solid var(--border);margin-top:12px;padding-top:12px;justify-content:space-between;align-items:center}
 .is-editing .mobile-edit-footer{display:flex}
-.btn-mobile-sm{height:38px;width:46px;font-size:.9rem;border-radius:10px;background:#262626;border:1px solid var(--border);color:#fff;cursor:pointer}
-.btn-mobile-sm:active{background:#383838}
+.btn-mobile-sm{height:38px;width:46px;font-size:.9rem;background:#1c1d24;border:1px solid var(--border);color:var(--text);cursor:pointer}
+.btn-mobile-sm:active{background:#2a2b33}
 .btn-mobile-del{
-  background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--danger);
-  padding:0 18px;font-weight:700;font-size:.8rem;border-radius:10px;cursor:pointer;height:38px;
-  font-family:'DM Sans',sans-serif;
+  background:transparent;border:1px solid var(--red);color:var(--red);
+  padding:0 18px;font-weight:600;font-size:.72rem;cursor:pointer;height:38px;
+  font-family:'Oswald',sans-serif;letter-spacing:2px;text-transform:uppercase;
 }
-.btn-mobile-del:active{background:rgba(255,71,87,.2)}
+.btn-mobile-del:active{background:var(--red);color:#fff}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .outer{padding:0}
   #desktopSidebar{display:none}
-  .main-panel{margin-left:0;border-radius:0;border:none;padding-bottom:76px}
+  .main-panel{margin-left:0;border-left:none;border-right:none;border-bottom:none;padding-bottom:76px}
   .header{flex-direction:column;align-items:stretch;padding:14px 14px 12px;gap:10px}
-  .title-section h2{font-size:1.6rem;letter-spacing:2px}
+  .title-section h2{font-size:1.5rem;letter-spacing:4px}
   .subtitle{display:none}
   .charts-row{display:none}
   .quote-container{padding:8px 12px;min-width:0}
-  .quote-input{font-size:.82rem}
+  .quote-input{font-size:.8rem}
   .tabs{display:none}
   .table-wrapper{display:none}
   .table-controls{padding:10px 12px}
   .controls-left{width:100%;display:flex;gap:6px}
-  .btn{flex:1;font-size:.74rem;padding:0 8px;height:40px}
+  .btn{flex:1;font-size:.66rem;padding:0 8px;height:40px;letter-spacing:1px}
   .stats-pill{display:none}
   #todayPanel{display:block}
   #mobileTaskList{display:flex}
   #mobileBottomNav{display:flex}
+  .classified-strip{font-size:.5rem;letter-spacing:1.5px}
   .modal-content{padding:20px}
   .day-grid{gap:6px}
-  .day-btn{font-size:.78rem;border-radius:8px}
+  .day-btn{font-size:.72rem}
   .footer-stats{padding:10px 12px}
-  .stat-value{font-size:1.2rem}
-  .stat-label{font-size:.52rem}
+  .stat-value{font-size:1.05rem}
+  .stat-label{font-size:.48rem}
 }
 </style>
 </head>
 <body>
 
 <div id="loadingOverlay">
+  <div class="barrel"><span></span><span></span><span></span><span></span></div>
   <div class="loading-logo">CONSISTENCY</div>
+  <div class="loading-eyebrow">Mission File · Eyes Only</div>
   <div class="loading-bar"><div class="loading-fill"></div></div>
-  <div class="loading-text" id="loadingText">Syncing your data...</div>
-  <button id="retryBtn" onclick="location.reload()" style="display:none;margin-top:20px;padding:12px 28px;background:var(--primary);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;letter-spacing:.5px;">↺ RETRY</button>
+  <div class="loading-text" id="loadingText">Establishing secure link...</div>
+  <button id="retryBtn" onclick="location.reload()" style="display:none;margin-top:20px;padding:12px 28px;background:var(--primary);border:none;color:#0a0a0c;font-weight:600;font-size:.8rem;cursor:pointer;letter-spacing:2px;font-family:'Oswald',sans-serif;text-transform:uppercase;">↺ Retry Link</button>
 </div>
 
 <div id="toast"></div>
@@ -427,19 +464,23 @@ input[type="checkbox"]:checked::after{content:'✓';color:#fff;font-weight:900;f
   <div id="desktopSidebar">
     <div class="sidebar-header">
       <div class="sidebar-date" id="sidebarDate">—</div>
-      <div class="sidebar-title">TODAY</div>
+      <div class="sidebar-title">TODAY'S MISSION</div>
       <div class="sidebar-sub" id="sidebarSub"></div>
     </div>
     <div class="sidebar-habits" id="sidebarHabits"></div>
     <div class="sidebar-stats" id="sidebarStats"></div>
-    <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">⚡ MARK ALL DONE</button>
+    <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">Mission Complete</button>
     <div class="sidebar-hint">
-      <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle today&rsquo;s habits<br>
+      <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle objectives<br>
       <span class="key-badge">←</span><span class="key-badge">→</span> switch months
     </div>
   </div>
 
   <div class="main-panel" id="mainDashboard">
+    <div class="classified-strip">
+      <span class="dot-live"></span>
+      <b>CLASSIFIED</b>&nbsp;· FOR YOUR EYES ONLY · MISSION LOG <span id="stripYear"></span>
+    </div>
     <div class="tabs" id="tabsContainer"></div>
 
     <div class="header">
@@ -448,47 +489,50 @@ input[type="checkbox"]:checked::after{content:'✓';color:#fff;font-weight:900;f
         <div class="subtitle" id="viewSubtitle"></div>
       </div>
       <div class="quote-container">
-        <input type="text" id="quoteInput" class="quote-input" placeholder="Add a motivational quote...">
-        <button id="shuffleBtn" onclick="shuffleQuote()" title="New random quote">🎲</button>
+        <input type="text" id="quoteInput" class="quote-input" placeholder="Field notes...">
+        <button id="shuffleBtn" onclick="shuffleQuote()" title="New briefing">🎲</button>
       </div>
       <div class="charts-row">
         <div>
           <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4caf50" stop-opacity="0.38"/>
-                <stop offset="100%" stop-color="#4caf50" stop-opacity="0.02"/>
+                <stop offset="0%" stop-color="#c9a437" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#c9a437" stop-opacity="0.02"/>
               </linearGradient>
             </defs>
             <path id="areaPathFill" fill="url(#areaGrad)"></path>
-            <path id="areaPathLine" fill="none" stroke="#4caf50" stroke-width="1.5" stroke-linejoin="round"></path>
+            <path id="areaPathLine" fill="none" stroke="#c9a437" stroke-width="1.5" stroke-linejoin="round"></path>
           </svg>
-          <div class="chart-label">Monthly trend</div>
+          <div class="chart-label">Operational trend</div>
         </div>
         <div>
           <div class="donut-wrapper">
             <svg viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#222" stroke-width="3.5"/>
+              <!-- gun-barrel rifling rings -->
+              <circle cx="18" cy="18" r="11" fill="none" stroke="#17171c" stroke-width="1"/>
+              <circle cx="18" cy="18" r="6.5" fill="none" stroke="#17171c" stroke-width="1"/>
+              <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#1c1c22" stroke-width="3.5"/>
               <circle id="doughnutFill" cx="18" cy="18" r="15.9155" fill="none"
-                stroke="#4caf50" stroke-width="3.5"
+                stroke="#c9a437" stroke-width="3.5"
                 stroke-dasharray="0,100" stroke-linecap="round"
                 style="transition:stroke-dasharray .6s ease;"/>
             </svg>
             <div class="donut-center">
               <div class="donut-pct" id="doughnutText">0%</div>
-              <div class="donut-sub">avg</div>
+              <div class="donut-sub">rate</div>
             </div>
           </div>
-          <div class="chart-label">Completion</div>
+          <div class="chart-label">Success rate</div>
         </div>
       </div>
     </div>
 
     <div class="table-controls">
       <div class="controls-left">
-        <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ EDIT HABITS</button>
-        <button class="btn btn-add" onclick="addTask()">+ ADD HABIT</button>
-        <button class="btn btn-today" id="todayBtn" onclick="markAllToday()">⚡ MARK TODAY</button>
+        <button class="btn btn-edit" id="editToggleBtn" onclick="toggleEditMode()">✏️ Edit Objectives</button>
+        <button class="btn btn-add" onclick="addTask()">+ New Objective</button>
+        <button class="btn btn-today" id="todayBtn" onclick="markAllToday()">◉ Mark Today</button>
       </div>
       <div class="stats-pill" id="statsPill"></div>
     </div>
@@ -521,7 +565,7 @@ input[type="checkbox"]:checked::after{content:'✓';color:#fff;font-weight:900;f
   <div class="modal-content">
     <div class="modal-top">
       <div>
-        <div class="modal-title" id="modalTaskName">HABIT</div>
+        <div class="modal-title" id="modalTaskName">OBJECTIVE</div>
         <div class="modal-month" id="modalMonthName"></div>
       </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
@@ -529,40 +573,45 @@ input[type="checkbox"]:checked::after{content:'✓';color:#fff;font-weight:900;f
     <div class="modal-progress">
       <div>
         <div class="modal-pct" id="modalPct">0%</div>
-        <div class="modal-pct-lbl">completion rate</div>
+        <div class="modal-pct-lbl">success rate</div>
       </div>
       <div class="modal-days-info" id="modalDaysInfo"></div>
     </div>
     <div class="day-grid" id="dayGrid"></div>
-    <button class="modal-btn-done" onclick="closeModal()">DONE</button>
+    <button class="modal-btn-done" onclick="closeModal()">Close File</button>
   </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
-// ════════════════ FIREBASE ════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4",
-  authDomain: "habit-tracker-48336.firebaseapp.com",
-  projectId: "habit-tracker-48336",
-  storageBucket: "habit-tracker-48336.firebasestorage.app",
-  messagingSenderId: "197128681235",
-  appId: "1:197128681235:web:7afcfb89fcec875256cce6",
-  measurementId: "G-L9M6XVL2KW"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
-const docRef = db.collection("dashboards").doc("final_v8_custom_habits");
+// ════════════════ FIREBASE (guarded — falls back to demo mode if blocked) ════════════════
+let db = null, docRef = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4",
+      authDomain: "habit-tracker-48336.firebaseapp.com",
+      projectId: "habit-tracker-48336",
+      storageBucket: "habit-tracker-48336.firebasestorage.app",
+      messagingSenderId: "197128681235",
+      appId: "1:197128681235:web:7afcfb89fcec875256cce6",
+      measurementId: "G-L9M6XVL2KW"
+    });
+    db = firebase.firestore();
+    db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+    docRef = db.collection("dashboards").doc("final_v8_custom_habits");
+  }
+} catch (e) {
+  console.warn('Firebase unavailable:', e);
+}
 
 // ════════════════ CONSTANTS ════════════════
 const today      = new Date();
 const YEAR       = today.getFullYear();
 const todayMonth = today.getMonth();
-const todayDay   = today.getDate() - 1; // 0-indexed
+const todayDay   = today.getDate() - 1;
 
-// Dynamic month lengths — handles leap years automatically
 const MONTH_NAMES = ["January","February","March","April","May","June",
                      "July","August","September","October","November","December"];
 const monthsInfo = MONTH_NAMES.map((name, i) => ({
@@ -570,43 +619,43 @@ const monthsInfo = MONTH_NAMES.map((name, i) => ({
   days: new Date(YEAR, i + 1, 0).getDate()
 }));
 
-const ICONS = ['💪','🥩','🌙','⏰','👟','📚','💧','🧘','🏃','🎯','✅','⭐'];
+const ICONS = ['🎯','🕶️','⌚','🍸','🚗','♠️','💼','🛰️','🗝️','✈️','📡','🔦'];
 
 const QUOTES = [
-  "We are what we repeatedly do. Excellence is not an act, but a habit.",
-  "Success is the sum of small efforts repeated day in and day out.",
-  "Motivation gets you started. Habit keeps you going.",
-  "You will never always be motivated. You have to learn to be disciplined.",
-  "Small daily improvements over time lead to stunning results.",
-  "The secret of your future is hidden in your daily routine.",
-  "Discipline is choosing between what you want now and what you want most.",
-  "Either you run the day or the day runs you.",
-  "Be consistent. Half the battle is just showing up.",
-  "A year from now you may wish you had started today.",
-  "Champions are not born. They are built daily.",
-  "Don't count the days. Make the days count.",
-  "What you do every day matters more than what you do once in a while.",
-  "One day or day one. You decide.",
-  "Push yourself because no one else is going to do it for you.",
-  "It's not about being the best. It's about being better than yesterday.",
-  "Fall seven times, stand up eight.",
-  "Consistency is more important than perfection.",
-  "Hard work beats talent when talent doesn't work hard.",
-  "The pain of discipline is far less than the pain of regret.",
-  "Rome wasn't built in a day, but they were laying bricks every hour.",
-  "Show up every day. That's the whole game.",
-  "Your habits will determine your future.",
-  "Little by little, a little becomes a lot.",
-  "The only bad workout is the one that didn't happen.",
-  "Wake up with determination. Go to bed with satisfaction.",
-  "Earn your rest.",
-  "What gets measured gets improved.",
-  "Build the life you want, one day at a time.",
-  "Streaks are built one unglamorous day at a time."
+  "Discipline is the deadliest weapon in any arsenal.",
+  "A mission is won in the preparation, not the execution.",
+  "The best agents never miss twice in a row.",
+  "Precision daily. Excellence eventually.",
+  "Every objective completed is intel on who you're becoming.",
+  "Trained instincts are just habits that survived contact.",
+  "The streak is the mission. Protect it.",
+  "Amateurs wait for motivation. Professionals run the protocol.",
+  "Quiet consistency beats loud intentions.",
+  "Your cover story is tomorrow. Your real work is today.",
+  "No gadget replaces showing up.",
+  "Debrief honestly. Execute relentlessly.",
+  "Small wins, compounded daily, are unstoppable.",
+  "The world's best operatives are simply consistent.",
+  "Failure is recoverable. Quitting is not.",
+  "Comfort is the enemy's best agent.",
+  "Hold the line, one day at a time.",
+  "Routine is the agent's true superpower.",
+  "Trust the protocol when the will is weak.",
+  "Mission readiness is built before the mission.",
+  "Be lethal at the basics.",
+  "Tomorrow's agent is built from today's checklist.",
+  "Every checked box is a debt paid to your future self.",
+  "Slow is smooth. Smooth is fast. Daily is forever.",
+  "An objective a day keeps mediocrity away.",
+  "License to rest is earned, never given.",
+  "Show up sharp. Leave nothing unchecked.",
+  "The target is yesterday's version of you.",
+  "Win the morning, win the mission.",
+  "Consistency: shaken, never stirred."
 ];
 
 // ════════════════ STATE ════════════════
-let currentView     = todayMonth; // 0–11 = month, 12 = year view
+let currentView     = todayMonth;
 let isEditing       = false;
 let appState        = null;
 let tabsInitialized = false;
@@ -642,53 +691,61 @@ function buildDefault() {
 }
 
 function safeSave() {
-  if (offlineMode) { showToast('⚠️ Offline — changes not saved'); return; }
+  if (offlineMode || !docRef) { showToast('⚠ Offline — intel not saved'); return; }
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     docRef.set(appState)
-      .then(() => showToast('✓ Saved'))
+      .then(() => showToast('✓ Intel secured'))
       .catch(err => {
         console.warn('Save failed:', err);
-        showToast('⚠️ Save failed — check connection');
+        showToast('⚠ Transmission failed');
       });
   }, 400);
 }
 
-// ════════════════ FIREBASE LISTENER ════════════════
+// ════════════════ BOOT ════════════════
 const loadTimeout = setTimeout(() => {
   if (appState) return;
-  console.warn('Firebase timeout — loading offline with defaults');
+  console.warn('Secure link timeout — demo mode');
   offlineMode = true;
   appState = buildDefault();
   bootUI();
-  showToast('⚠️ Offline — changes will not save');
+  showToast('⚠ Offline — changes will not save');
 }, 6000);
 
-docRef.onSnapshot(doc => {
+if (docRef) {
+  docRef.onSnapshot(doc => {
+    clearTimeout(loadTimeout);
+    offlineMode = false;
+    appState = doc.exists ? doc.data() : buildDefault();
+    if (!doc.exists) docRef.set(appState);
+    bootUI();
+  }, error => {
+    clearTimeout(loadTimeout);
+    console.error('Firestore error:', error);
+    document.getElementById('loadingText').innerText = 'Link error: ' + error.message;
+    document.getElementById('loadingText').style.color = '#a8132c';
+    document.getElementById('retryBtn').style.display = 'inline-block';
+  });
+} else {
+  // No Firebase at all (blocked CDN / sandboxed preview) — demo mode immediately
   clearTimeout(loadTimeout);
-  offlineMode = false;
-  appState = doc.exists ? doc.data() : buildDefault();
-  if (!doc.exists) docRef.set(appState);
-  bootUI();
-}, error => {
-  clearTimeout(loadTimeout);
-  console.error('Firestore error:', error);
-  document.getElementById('loadingText').innerText = 'Firebase error: ' + error.message;
-  document.getElementById('loadingText').style.color = '#ff4757';
-  document.getElementById('retryBtn').style.display = 'inline-block';
-});
+  offlineMode = true;
+  appState = buildDefault();
+  setTimeout(() => { bootUI(); showToast('Demo mode — connect online to save'); }, 600);
+}
 
 function bootUI() {
   document.getElementById('loadingOverlay').style.display = 'none';
   if (!tabsInitialized) {
     document.getElementById('quoteInput').value = appState.quote || getRandomQuote();
+    document.getElementById('stripYear').textContent = YEAR;
     initTabs();
     tabsInitialized = true;
   }
   renderView();
 }
 
-// Quote saves as you type (debounced via safeSave)
 document.getElementById('quoteInput').addEventListener('input', e => {
   if (appState) { appState.quote = e.target.value; safeSave(); }
 });
@@ -730,7 +787,6 @@ function updateTabActiveStates() {
 
 // ════════════════ STREAKS ════════════════
 function getCurrentStreak(r) {
-  // Consecutive checked days ending today (current month only)
   let streak = 0;
   for (let d = todayDay; d >= 0; d--) {
     if (appState.data[key(todayMonth, r, d)]) streak++;
@@ -756,22 +812,20 @@ function renderMonth() {
 
   document.getElementById('viewTitle').textContent = info.name.toUpperCase();
   document.getElementById('viewSubtitle').textContent =
-    appState.habits.length + ' habits · ' + info.days + ' days' + (isCurrentMonth ? ' · TODAY' : '');
+    appState.habits.length + ' objectives · ' + info.days + ' days' + (isCurrentMonth ? ' · ACTIVE' : '');
 
-  // ── Header ──
-  let head = '<tr><th rowspan="2" class="col-habit">HABITS</th>';
+  let head = '<tr><th rowspan="2" class="col-habit">OBJECTIVES</th>';
   for (let i = 0; i < info.days; i += 7) {
-    head += '<th colspan="' + Math.min(7, info.days - i) + '" class="week-header">W' + (Math.floor(i / 7) + 1) + '</th>';
+    head += '<th colspan="' + Math.min(7, info.days - i) + '" class="week-header">WK ' + (Math.floor(i / 7) + 1) + '</th>';
   }
-  head += '<th rowspan="2" class="col-progress">PROGRESS</th></tr><tr>';
+  head += '<th rowspan="2" class="col-progress">STATUS</th></tr><tr>';
   for (let i = 1; i <= info.days; i++) {
     const isToday = isCurrentMonth && (i - 1) === todayDay;
-    head += '<th' + (isToday ? ' class="today-col"' : '') + '>' + (isToday ? '★' : i) + '</th>';
+    head += '<th' + (isToday ? ' class="today-col"' : '') + '>' + (isToday ? '◉' : i) + '</th>';
   }
   head += '</tr>';
   document.getElementById('tableHead').innerHTML = head;
 
-  // ── Rows + mobile cards ──
   let rows = '', cards = '';
   let totalDone = 0, totalPossible = 0;
   const circ = (2 * Math.PI * 18).toFixed(1);
@@ -783,17 +837,17 @@ function renderMonth() {
     const streak = isCurrentMonth ? getCurrentStreak(r) : 0;
     totalDone += done; totalPossible += info.days;
 
-    const dotColor = pct >= 80 ? 'var(--primary)' : pct >= 40 ? 'var(--gold)' : pct > 0 ? 'var(--streak)' : '#333';
+    const dotColor = pct >= 80 ? 'var(--primary)' : pct >= 40 ? '#8a7430' : pct > 0 ? 'var(--red)' : '#2c2c32';
     const safeName = name.replace(/"/g, '&quot;');
 
     rows += '<tr><td class="col-habit"><div class="habit-cell">'
-      + '<button class="btn-delete" onclick="removeTask(' + r + ')" title="Remove habit">&times;</button>'
+      + '<button class="btn-delete" onclick="removeTask(' + r + ')" title="Remove objective">&times;</button>'
       + '<div class="reorder-btns">'
       + '<button class="btn-move" onclick="moveTask(' + r + ',-1)" title="Move up">▲</button>'
       + '<button class="btn-move" onclick="moveTask(' + r + ',1)" title="Move down">▼</button>'
       + '</div>'
       + '<div class="row-dot" style="background:' + dotColor + '"></div>'
-      + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '🔥 ' + streak : '') + '</span>'
+      + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '★ ' + streak : '') + '</span>'
       + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly') + '>'
       + '</div></td>';
 
@@ -807,38 +861,36 @@ function renderMonth() {
       + '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>'
       + '<div class="progress-count">' + done + '/' + info.days + '</div></td></tr>';
 
-    // Mobile card
     const isDoneToday = isCurrentMonth && !!appState.data[key(currentView, r, todayDay)];
     const dash = (pct / 100 * 2 * Math.PI * 18).toFixed(1);
-    const todayLabel = isCurrentMonth ? (isDoneToday ? ' · ✓ done today' : ' · not done today') : '';
+    const todayLabel = isCurrentMonth ? (isDoneToday ? ' · ✓ COMPLETE TODAY' : ' · PENDING TODAY') : '';
     cards += '<div class="mobile-card' + (isEditing ? ' edit-mode' : '') + (isDoneToday ? ' done-today' : '') + '" '
       + 'onclick="' + (isEditing ? 'event.stopPropagation()' : 'openModal(' + r + ')') + '">'
       + '<div class="mobile-card-header"><div class="mobile-card-left">'
       + '<span class="mobile-card-name">' + safeName + '</span>'
-      + '<span class="mobile-card-meta">' + done + '/' + info.days + ' days' + todayLabel + '</span>'
-      + (streak >= 2 ? '<div class="mobile-streak">🔥 ' + streak + '-day streak</div>' : '')
+      + '<span class="mobile-card-meta">' + done + '/' + info.days + ' DAYS' + todayLabel + '</span>'
+      + (streak >= 2 ? '<div class="mobile-streak">★ ' + streak + '-DAY STREAK</div>' : '')
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#2a2a2a" stroke-width="4"/>'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#4caf50" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#c9a437" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
       + '</svg><div class="mobile-ring-text">' + pct + '%</div></div></div>'
       + '<div class="mobile-edit-footer"><div style="display:flex;gap:8px;">'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',-1)">▲</button>'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',1)">▼</button>'
-      + '</div><button class="btn-mobile-del" onclick="event.stopPropagation();removeTask(' + r + ')">DELETE</button></div>'
+      + '</div><button class="btn-mobile-del" onclick="event.stopPropagation();removeTask(' + r + ')">Delete</button></div>'
       + '</div>';
   });
 
   document.getElementById('tableBody').innerHTML = rows;
   document.getElementById('mobileTaskList').innerHTML = cards;
 
-  // ── Stats pill ──
   const monthPct = Math.round((totalDone / Math.max(totalPossible, 1)) * 100);
   const pill = document.getElementById('statsPill');
   if (isCurrentMonth) {
     const doneToday = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
-    pill.innerHTML = 'Today: <span>' + doneToday + '/' + appState.habits.length + '</span> · Month avg: <span>' + monthPct + '%</span>';
+    pill.innerHTML = 'Today: <span>' + doneToday + '/' + appState.habits.length + '</span> · Month: <span>' + monthPct + '%</span>';
   } else {
-    pill.innerHTML = 'Month avg: <span>' + monthPct + '%</span>';
+    pill.innerHTML = 'Month: <span>' + monthPct + '%</span>';
   }
 
   updateCharts(currentView);
@@ -846,10 +898,10 @@ function renderMonth() {
 }
 
 function renderYear() {
-  document.getElementById('viewTitle').textContent = YEAR + ' SUMMARY';
-  document.getElementById('viewSubtitle').textContent = appState.habits.length + ' habits tracked';
+  document.getElementById('viewTitle').textContent = YEAR + ' DEBRIEF';
+  document.getElementById('viewSubtitle').textContent = appState.habits.length + ' objectives tracked';
 
-  let head = '<tr><th class="col-habit">HABITS</th>';
+  let head = '<tr><th class="col-habit">OBJECTIVES</th>';
   monthsInfo.forEach(m => { head += '<th>' + m.name.substring(0, 3) + '</th>'; });
   head += '<th class="col-progress">TOTAL</th></tr>';
   document.getElementById('tableHead').innerHTML = head;
@@ -871,7 +923,7 @@ function renderYear() {
       for (let d = 0; d < m.days; d++) if (appState.data[key(mi, r, d)]) { mDone++; yrDone++; }
       yrDays += m.days;
       const mPct = Math.round((mDone / m.days) * 100);
-      const color = mPct >= 80 ? 'var(--primary)' : mPct >= 50 ? 'var(--gold)' : mPct > 0 ? '#e67e22' : '#3a3a3a';
+      const color = mPct >= 80 ? 'var(--primary)' : mPct >= 50 ? '#9b8338' : mPct > 0 ? 'var(--red)' : '#34343a';
       rows += '<td class="summary-cell" style="color:' + color + '">' + (mPct > 0 ? mPct + '%' : '—') + '</td>';
     });
     grandDone += yrDone; grandTotal += yrDays;
@@ -884,17 +936,17 @@ function renderYear() {
     const dash = (yrPct / 100 * 2 * Math.PI * 18).toFixed(1);
     cards += '<div class="mobile-card"><div class="mobile-card-header"><div class="mobile-card-left">'
       + '<span class="mobile-card-name">' + safeName + '</span>'
-      + '<span class="mobile-card-meta">' + yrDone + ' of ' + yrDays + ' days this year</span>'
+      + '<span class="mobile-card-meta">' + yrDone + ' OF ' + yrDays + ' DAYS THIS YEAR</span>'
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#2a2a2a" stroke-width="4"/>'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#4caf50" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#c9a437" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
       + '</svg><div class="mobile-ring-text">' + yrPct + '%</div></div></div></div>';
   });
 
   document.getElementById('tableBody').innerHTML = rows;
   document.getElementById('mobileTaskList').innerHTML = cards;
   document.getElementById('statsPill').innerHTML =
-    'Year avg: <span>' + Math.round((grandDone / Math.max(grandTotal, 1)) * 100) + '%</span>';
+    'Year: <span>' + Math.round((grandDone / Math.max(grandTotal, 1)) * 100) + '%</span>';
 
   updateCharts(12);
   renderFooterStats(12);
@@ -916,7 +968,7 @@ function renderDesktopSidebar() {
     habitsEl.innerHTML = '';
     const msg = document.createElement('div');
     msg.className = 'sidebar-msg';
-    msg.textContent = 'Switch to the current month to manage today';
+    msg.textContent = 'Return to current month to run today\u2019s protocol';
     habitsEl.appendChild(msg);
     statsEl.style.display = 'none';
     markBtn.style.display = 'none';
@@ -928,8 +980,8 @@ function renderDesktopSidebar() {
 
   const doneCount = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
   const allDone = doneCount === appState.habits.length && appState.habits.length > 0;
-  subEl.textContent = doneCount + ' / ' + appState.habits.length + ' complete';
-  markBtn.textContent = allDone ? '✅ ALL DONE!' : '⚡ MARK ALL DONE';
+  subEl.textContent = doneCount + ' / ' + appState.habits.length + ' objectives complete';
+  markBtn.textContent = allDone ? '★ Mission Accomplished' : 'Mission Complete';
   markBtn.classList.toggle('all-done', allDone);
 
   habitsEl.innerHTML = '';
@@ -942,7 +994,8 @@ function renderDesktopSidebar() {
 
     const ico = document.createElement('span');
     ico.className = 'sb-icon';
-    ico.textContent = done ? '✅' : ICONS[r % ICONS.length];
+    ico.textContent = done ? '✓' : ICONS[r % ICONS.length];
+    if (done) { ico.style.color = '#c9a437'; ico.style.fontWeight = '700'; }
 
     const nm = document.createElement('span');
     nm.className = 'sb-name';
@@ -955,7 +1008,6 @@ function renderDesktopSidebar() {
     habitsEl.appendChild(row);
   });
 
-  // Sidebar stats
   const info = monthsInfo[currentView];
   let monthDone = 0, monthTotal = 0, longest = 0;
   appState.habits.forEach((_, r) => {
@@ -968,8 +1020,8 @@ function renderDesktopSidebar() {
   });
   const pct = Math.round((monthDone / Math.max(monthTotal, 1)) * 100);
   statsEl.innerHTML = '';
-  [[pct + '%', 'Month Avg'], [longest + '🔥', 'Best Streak'],
-   [monthDone, 'Checks'], [appState.habits.length, 'Habits']].forEach(([val, lbl]) => {
+  [[pct + '%', 'Success'], [longest + '★', 'Best Streak'],
+   [monthDone, 'Ops Done'], [appState.habits.length, 'Objectives']].forEach(([val, lbl]) => {
     const item = document.createElement('div');
     item.className = 'ss-item';
     const v = document.createElement('div'); v.className = 'ss-val'; v.textContent = val;
@@ -991,14 +1043,14 @@ function renderTodayPanel() {
   const dateStr = today.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
   const doneCount = appState.habits.filter((_, r) => appState.data[key(currentView, r, todayDay)]).length;
 
-  let html = '<div class="today-panel-header"><div class="today-panel-title">TODAY</div>'
-    + '<div class="today-panel-date">' + dateStr + '<br>' + doneCount + '/' + appState.habits.length + ' done</div></div>'
+  let html = '<div class="today-panel-header"><div class="today-panel-title">TODAY\u2019S MISSION</div>'
+    + '<div class="today-panel-date">' + dateStr.toUpperCase() + '<br>' + doneCount + '/' + appState.habits.length + ' COMPLETE</div></div>'
     + '<div class="today-habits-grid">';
   appState.habits.forEach((name, r) => {
     const done = !!appState.data[key(currentView, r, todayDay)];
     const shortName = name.length > 14 ? name.substring(0, 13) + '…' : name;
     html += '<div class="today-habit-btn' + (done ? ' done' : '') + '" onclick="toggleTodayHabit(' + r + ')">'
-      + '<span class="today-habit-icon">' + (done ? '✅' : ICONS[r % ICONS.length]) + '</span>'
+      + '<span class="today-habit-icon">' + (done ? '✓' : ICONS[r % ICONS.length]) + '</span>'
       + '<span class="today-habit-name">' + shortName.replace(/</g, '&lt;') + '</span></div>';
   });
   html += '</div>';
@@ -1011,7 +1063,7 @@ function updateMobileNav() {
   document.getElementById('mobNavMonth').textContent =
     currentView === 12 ? String(YEAR) : monthsInfo[currentView].name.toUpperCase();
   document.getElementById('mobNavYear').textContent =
-    currentView === 12 ? 'YEAR VIEW' : String(YEAR);
+    currentView === 12 ? 'ANNUAL DEBRIEF' : 'MISSION LOG ' + YEAR;
 }
 
 function mobileNavMonth(dir) {
@@ -1046,9 +1098,9 @@ function renderFooterStats(view) {
         }
       });
     });
-    addStat(total, 'Days Completed');
-    addStat(appState.habits.length, 'Habits Tracked');
-    addStat(Math.round((total / Math.max(possible, 1)) * 100) + '%', 'Overall Rate');
+    addStat(total, 'Ops Completed');
+    addStat(appState.habits.length, 'Objectives');
+    addStat(Math.round((total / Math.max(possible, 1)) * 100) + '%', 'Success Rate');
   } else {
     const info = monthsInfo[view];
     let totalDone = 0, longest = 0;
@@ -1059,9 +1111,9 @@ function renderFooterStats(view) {
         else s = 0;
       }
     });
-    addStat(totalDone, 'Checks This Month');
-    addStat(longest + '🔥', 'Longest Streak');
-    addStat(appState.habits.length, 'Habits');
+    addStat(totalDone, 'Ops This Month');
+    addStat(longest + '★', 'Best Streak');
+    addStat(appState.habits.length, 'Objectives');
   }
 }
 
@@ -1070,7 +1122,7 @@ function openModal(r) {
   haptic(8);
   const info = monthsInfo[currentView];
   document.getElementById('modalTaskName').textContent = appState.habits[r];
-  document.getElementById('modalMonthName').textContent = info.name.toUpperCase() + ' ' + YEAR;
+  document.getElementById('modalMonthName').textContent = info.name.toUpperCase() + ' ' + YEAR + ' · FIELD LOG';
 
   let done = 0;
   const grid = document.getElementById('dayGrid');
@@ -1107,7 +1159,7 @@ function openModal(r) {
 function updateModalStats(done, total) {
   document.getElementById('modalPct').textContent = Math.round((done / total) * 100) + '%';
   document.getElementById('modalDaysInfo').innerHTML =
-    '<strong>' + done + '</strong> days complete<br>' + (total - done) + ' remaining';
+    '<strong>' + done + '</strong> DAYS COMPLETE<br>' + (total - done) + ' REMAINING';
 }
 
 function closeModal() {
@@ -1133,7 +1185,7 @@ function toggleTodayHabit(r) {
   const k = key(currentView, r, todayDay);
   appState.data[k] = !appState.data[k];
   const allDone = appState.habits.every((_, i) => appState.data[key(currentView, i, todayDay)]);
-  if (allDone) { showToast('🔥 All habits done today!', true); haptic([30, 20, 30]); }
+  if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); }
   safeSave();
   renderView();
 }
@@ -1147,38 +1199,36 @@ function markAllToday() {
   });
   safeSave();
   renderView();
-  showToast(allDone ? 'Cleared today' : '🔥 Today marked complete!', !allDone);
+  showToast(allDone ? 'Today cleared' : '★ Mission accomplished', !allDone);
 }
 
 function updateTaskName(i, v) {
-  appState.habits[i] = v.toUpperCase().trim() || 'UNNAMED HABIT';
+  appState.habits[i] = v.toUpperCase().trim() || 'UNNAMED OBJECTIVE';
   safeSave();
   renderView();
 }
 
 function addTask() {
-  appState.habits.push('NEW HABIT');
+  appState.habits.push('NEW OBJECTIVE');
   safeSave();
   renderView();
-  showToast('✓ Habit added', true);
+  showToast('✓ Objective added', true);
 }
 
 function removeTask(i) {
-  if (!confirm('Remove "' + appState.habits[i] + '"? All tracked data for this habit will be deleted.')) return;
+  if (!confirm('Decommission "' + appState.habits[i] + '"? All field data for this objective will be destroyed.')) return;
   appState.habits.splice(i, 1);
-  // Re-index data: rows above i shift down by one
   const newData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     const [m, row, d] = k.split('_').map(Number);
     if (row < i) newData[k] = v;
     else if (row > i) newData[key(m, row - 1, d)] = v;
-    // row === i is dropped
   });
   appState.data = newData;
   safeSave();
   renderView();
-  showToast('Habit removed');
+  showToast('Objective decommissioned');
 }
 
 function moveTask(index, direction) {
@@ -1186,7 +1236,6 @@ function moveTask(index, direction) {
   if (newIndex < 0 || newIndex >= appState.habits.length) return;
   [appState.habits[index], appState.habits[newIndex]] =
     [appState.habits[newIndex], appState.habits[index]];
-  // Swap the two row indices throughout the data
   const newData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
@@ -1203,7 +1252,7 @@ function moveTask(index, direction) {
 function toggleEditMode() {
   isEditing = !isEditing;
   document.getElementById('mainDashboard').classList.toggle('is-editing', isEditing);
-  document.getElementById('editToggleBtn').textContent = isEditing ? '✅ DONE' : '✏️ EDIT HABITS';
+  document.getElementById('editToggleBtn').textContent = isEditing ? '✓ Done' : '✏️ Edit Objectives';
   renderView();
 }
 
@@ -1235,11 +1284,9 @@ function updateCharts(view) {
       ? Math.round(dailyPcts.reduce((a, b) => a + b, 0) / info.days) : 0;
   }
 
-  // Donut (r = 15.9155 makes circumference exactly 100, so dasharray maps to %)
   document.getElementById('doughnutFill').setAttribute('stroke-dasharray', totalAvg + ',100');
   document.getElementById('doughnutText').textContent = totalAvg + '%';
 
-  // Smooth bezier area chart
   const lineEl = document.getElementById('areaPathLine');
   const fillEl = document.getElementById('areaPathFill');
   if (dailyPcts.length > 1) {

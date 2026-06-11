@@ -430,14 +430,21 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
 .day-btn{position:relative;-webkit-touch-callout:none}
 .day-btn.rest-day{opacity:.3;text-decoration:line-through}
 .day-btn.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
-td.has-note{position:relative}
-td.has-note::before{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow);pointer-events:none;z-index:5}
-.note-hint{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:12px;text-align:center}
-.note-head{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--primary);text-transform:uppercase;margin:14px 0 8px}
-.note-row{display:flex;gap:10px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--primary);margin-bottom:6px;cursor:pointer;align-items:baseline}
-.note-row:hover{background:var(--surface-3)}
-.note-day{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--primary);flex-shrink:0}
-.note-text{font-size:.74rem;color:var(--text);line-height:1.5;word-break:break-word}
+
+/* ── FIELD NOTES JOURNAL ── */
+#journalPanel{display:none;padding:16px 20px;border-top:1px solid var(--border);background:var(--surface)}
+.jr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.jr-add{background:transparent;border:1px solid var(--primary);color:var(--primary);
+  font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1.5px;padding:7px 14px;cursor:pointer;text-transform:uppercase;transition:all .15s}
+.jr-add:hover{background:var(--primary);color:#0a0a0c}
+.jr-row{display:flex;gap:14px;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);
+  border-left:2px solid var(--primary);margin-bottom:7px;cursor:pointer;align-items:baseline}
+.jr-row:hover{background:var(--surface-3)}
+.jr-row.today{border-color:var(--primary)}
+.jr-date{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--primary);flex-shrink:0;letter-spacing:1px;min-width:66px}
+.jr-text{font-size:.84rem;color:var(--text);line-height:1.55;word-break:break-word}
+.jr-empty{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
 .btn-sched{display:none;background:none;border:none;cursor:pointer;font-size:.95rem;padding:0 3px;filter:grayscale(1) brightness(1.6)}
 .is-editing .btn-sched{display:flex!important}
 #schedModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3100;display:none;flex-direction:column;backdrop-filter:blur(6px)}
@@ -587,6 +594,7 @@ td.has-note::before{content:'';position:absolute;top:2px;right:2px;width:5px;hei
   .dz-grid{font-size:12px;letter-spacing:3.5px;color:#111;word-break:break-all}
   .dz-obj-meta{font-size:8.5px;color:#666;letter-spacing:1px;margin-top:1px}
   .dz-note{font-size:9px;color:#333;letter-spacing:.3px;margin-top:3px;padding-left:8px;border-left:2px solid #999}
+  .dz-notes-head{font-weight:700;letter-spacing:2px;border-bottom:1px solid #111;margin:14px 0 6px;padding-bottom:2px}
   .dz-yr-row{display:flex;justify-content:space-between;border-bottom:1px dotted #999;padding:3px 0;letter-spacing:.5px}
   .dz-foot{
     margin-top:20px;border-top:2.5px solid #111;padding-top:8px;
@@ -784,6 +792,8 @@ td.has-note::before{content:'';position:absolute;top:2px;right:2px;width:5px;hei
     <div id="weekdayIntelMobile"></div>
     <div id="medalRackMobile"></div>
 
+    <div id="journalPanel"></div>
+
     <div class="footer-stats" id="footerStats"></div>
   </div>
 </div>
@@ -851,7 +861,6 @@ td.has-note::before{content:'';position:absolute;top:2px;right:2px;width:5px;hei
       <div class="modal-days-info" id="modalDaysInfo"></div>
     </div>
     <div class="day-grid" id="dayGrid"></div>
-    <div id="modalNotes"></div>
     <button class="modal-btn-done" onclick="closeModal()">Close File</button>
   </div>
 </div>
@@ -973,7 +982,7 @@ function buildDefault() {
     quote: "",
     codename: "",
     sched: [],
-    notes: {},
+    journal: {},
     medals: {},
     lastDebrief: ''
   };
@@ -986,7 +995,17 @@ function normalizeState(s) {
   if (!Array.isArray(s.sched)) s.sched = [];
   while (s.sched.length < s.habits.length) s.sched.push('1111111');
   s.sched.length = s.habits.length;
-  if (!s.notes || typeof s.notes !== 'object' || Array.isArray(s.notes)) s.notes = {};
+  if (!s.journal || typeof s.journal !== 'object' || Array.isArray(s.journal)) s.journal = {};
+  if (s.notes && typeof s.notes === 'object' && !Array.isArray(s.notes)) {
+    Object.entries(s.notes).forEach(([k, v]) => { // legacy per-objective notes \u2192 daily journal
+      if (!v) return;
+      const p = k.split('_');
+      if (p.length !== 3) return;
+      const jk = p[0] + '_' + p[2];
+      s.journal[jk] = s.journal[jk] ? s.journal[jk] + ' \u00B7 ' + v : v;
+    });
+    delete s.notes;
+  }
   if (!s.medals || typeof s.medals !== 'object' || Array.isArray(s.medals)) s.medals = {};
   return s;
 }
@@ -1273,6 +1292,7 @@ function renderView() {
   renderHeatmap();
   renderWeekdayIntel();
   renderMedals();
+  renderJournal();
   maybeWeeklyDebrief();
   updateMobileNav();
 }
@@ -1326,29 +1346,16 @@ function renderMonth() {
       + '<button class="btn-sched" onclick="openSchedule(' + r + ')" title="Training schedule">🗓</button>'
       + '<div class="row-dot" style="background:' + dotColor + '"></div>'
       + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '★ ' + streak : '') + '</span>'
-      + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly onclick="openModal(' + r + ')" style="cursor:pointer" title="Open field log · right-click any day cell to add a note"') + '>'
+      + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly onclick="openModal(' + r + ')" style="cursor:pointer" title="Open field log"') + '>'
       + '</div></td>';
 
     for (let c = 0; c < info.days; c++) {
       const isToday = isCurrentMonth && c === todayDay;
       if (!isSchedDow(r, dows[c])) {
-        rows += (function () {
-          const t = appState.notes && appState.notes[key(currentView, r, c)];
-          const esc = t ? t.replace(/"/g, '&quot;').replace(/</g, '&lt;') : '';
-          return '<td class="rest-cell' + (isToday ? ' today-col' : '') + (t ? ' has-note' : '') + '"'
-            + ' title="' + (t ? esc : 'REST DAY') + '"'
-            + ' oncontextmenu="event.preventDefault();editDayNote(' + r + ',' + c + ')">–</td>';
-        })();
+        rows += '<td class="rest-cell' + (isToday ? ' today-col' : '') + '" title="REST DAY">–</td>';
       } else {
         const checked = appState.data[key(currentView, r, c)] ? ' checked' : '';
-        rows += (function () {
-          const t = appState.notes && appState.notes[key(currentView, r, c)];
-          const esc = t ? t.replace(/"/g, '&quot;').replace(/</g, '&lt;') : '';
-          return '<td class="check-cell' + (isToday ? ' today-col' : '') + (t ? ' has-note' : '') + '"'
-            + (t ? ' title="' + esc + '"' : '')
-            + ' oncontextmenu="event.preventDefault();editDayNote(' + r + ',' + c + ')"'
-            + ' onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
-        })();
+        rows += '<td class="check-cell' + (isToday ? ' today-col' : '') + '" onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
       }
     }
 
@@ -1670,20 +1677,18 @@ function openModal(r) {
     if (!rest) { schedDays++; if (appState.data[k]) done++; }
     const isToday  = currentView === tMonth() && d === todayDay;
     const isFuture = currentView === tMonth() && d > todayDay;
-    const note = (appState.notes && appState.notes[k]) || '';
+    const jNote = (appState.journal && appState.journal[currentView + '_' + d]) || '';
     const btn = document.createElement('div');
     btn.className = 'day-btn'
       + (rest ? ' rest-day' : '')
       + (!rest && appState.data[k] ? ' checked' : '')
       + (isToday ? ' today-day' : '')
       + (isFuture ? ' future-day' : '')
-      + (note ? ' has-note' : '');
+      + (jNote ? ' has-note' : '');
     btn.textContent = d + 1;
-    if (note) btn.title = note;
-    let lpFired = false;
+    if (jNote) btn.title = jNote;
     if (!rest && !isFuture) {
       btn.onclick = () => {
-        if (lpFired) { lpFired = false; return; }
         haptic(10);
         appState.data[k] = !appState.data[k];
         btn.classList.toggle('checked');
@@ -1693,47 +1698,56 @@ function openModal(r) {
         renderView();
       };
     }
-    btn.addEventListener('contextmenu', e => { e.preventDefault(); editDayNote(r, d); });
-    let lpTimer = null;
-    btn.addEventListener('touchstart', () => {
-      lpTimer = setTimeout(() => { lpTimer = null; lpFired = true; editDayNote(r, d); }, 550);
-    }, { passive: true });
-    btn.addEventListener('touchend', () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
-    btn.addEventListener('touchmove', () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
     grid.appendChild(btn);
   }
   updateModalStats(done, schedDays);
-
-  const notesEl = document.getElementById('modalNotes');
-  if (notesEl) {
-    let nHtml = '';
-    for (let d = 0; d < info.days; d++) {
-      const t = appState.notes && appState.notes[key(currentView, r, d)];
-      if (t) {
-        nHtml += '<div class="note-row" onclick="editDayNote(' + r + ',' + d + ')">'
-          + '<span class="note-day">' + String(d + 1).padStart(2, '0') + '</span>'
-          + '<span class="note-text">' + t.replace(/</g, '&lt;') + '</span></div>';
-      }
-    }
-    notesEl.innerHTML = (nHtml ? '<div class="note-head">\u25A4 FIELD NOTES</div>' + nHtml : '')
-      + '<div class="note-hint">HOLD OR RIGHT-CLICK A DAY TO LOG A FIELD NOTE</div>';
-  }
   document.getElementById('dayModal').style.display = 'flex';
 }
 
-function editDayNote(r, d) {
-  haptic(15);
-  const k = key(currentView, r, d);
-  const existing = (appState.notes && appState.notes[k]) || '';
+function renderJournal() {
+  const panel = document.getElementById('journalPanel');
+  if (!panel) return;
+  if (!appState || currentView === 12) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const info = monthsInfo[currentView];
+  const isLiveMonth = currentView === tMonth();
+  let rowsH = '';
+  for (let d = info.days - 1; d >= 0; d--) {
+    const t = appState.journal && appState.journal[currentView + '_' + d];
+    if (!t) continue;
+    const dt = new Date(viewYear, currentView, d + 1);
+    const lbl = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric' }).toUpperCase();
+    rowsH += '<div class="jr-row' + (isLiveMonth && d === todayDay ? ' today' : '') + '" onclick="editJournal(' + d + ')" title="Tap to edit">'
+      + '<span class="jr-date">' + lbl + '</span>'
+      + '<span class="jr-text">' + t.replace(/</g, '&lt;') + '</span></div>';
+  }
+  panel.innerHTML = '<div class="jr-head"><span>\u25A4 FIELD NOTES \u00B7 ' + info.name.toUpperCase() + ' ' + viewYear + '</span>'
+    + '<button class="jr-add" onclick="addJournalEntry()">+ Log Entry</button></div>'
+    + (rowsH || '<div class="jr-empty">No field notes this month \u2014 log an entry to begin the record</div>');
+}
+
+function addJournalEntry() {
+  if (!appState || currentView === 12) return;
+  if (currentView === tMonth()) { editJournal(todayDay); return; }
+  const v = prompt('Day of ' + monthsInfo[currentView].name + ' (1\u2013' + monthsInfo[currentView].days + '):');
+  if (v === null) return;
+  const d = parseInt(v, 10) - 1;
+  if (isNaN(d) || d < 0 || d >= monthsInfo[currentView].days) { showToast('Invalid day, agent'); return; }
+  editJournal(d);
+}
+
+function editJournal(d) {
+  haptic(12);
+  const jk = currentView + '_' + d;
+  const existing = (appState.journal && appState.journal[jk]) || '';
   const v = prompt('Field note \u2014 ' + monthsInfo[currentView].name + ' ' + (d + 1) + ', ' + viewYear + ':', existing);
   if (v === null) return;
-  if (!appState.notes) appState.notes = {};
+  if (!appState.journal) appState.journal = {};
   const t = v.trim();
-  if (t) { appState.notes[k] = t; showToast('\u2713 Field note logged', true); }
-  else { delete appState.notes[k]; if (existing) showToast('Field note destroyed'); }
+  if (t) { appState.journal[jk] = t; showToast('\u2713 Field note logged', true); }
+  else { delete appState.journal[jk]; if (existing) showToast('Field note destroyed'); }
   safeSave();
-  if (document.getElementById('dayModal').style.display === 'flex') openModal(r);
-  else renderView();
+  renderView();
 }
 
 function updateModalStats(done, total) {
@@ -1864,14 +1878,6 @@ function removeTask(i) {
     else if (row > i) newData[key(m, row - 1, d)] = v;
   });
   appState.data = newData;
-  const newNotes = {};
-  Object.entries(appState.notes || {}).forEach(([k, v]) => {
-    if (!v) return;
-    const [m, row, d] = k.split('_').map(Number);
-    if (row < i) newNotes[k] = v;
-    else if (row > i) newNotes[key(m, row - 1, d)] = v;
-  });
-  appState.notes = newNotes;
   safeSave();
   renderView();
   showToast('Objective decommissioned');
@@ -1894,15 +1900,6 @@ function moveTask(index, direction) {
     else newData[k] = v;
   });
   appState.data = newData;
-  const newNotes = {};
-  Object.entries(appState.notes || {}).forEach(([k, v]) => {
-    if (!v) return;
-    const [m, row, d] = k.split('_').map(Number);
-    if (row === index) newNotes[key(m, newIndex, d)] = v;
-    else if (row === newIndex) newNotes[key(m, index, d)] = v;
-    else newNotes[k] = v;
-  });
-  appState.notes = newNotes;
   safeSave();
   renderView();
 }
@@ -2442,17 +2439,22 @@ function buildDossier() {
       }
       const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
       const safe = name.replace(/</g, '&lt;');
-      let dzNotes = '';
-      for (let d = 0; d < info.days; d++) {
-        const t = appState.notes && appState.notes[key(currentView, r, d)];
-        if (t) dzNotes += '<div class="dz-note">' + String(d + 1).padStart(2, '0') + ' \u2014 ' + t.replace(/</g, '&lt;') + '</div>';
-      }
       html += '<div class="dz-obj"><div class="dz-obj-head">'
         + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
         + '<span>' + pct + '% — ' + statusWord(pct) + '</span></div>'
         + '<div class="dz-grid">' + grid + '</div>'
-        + '<div class="dz-obj-meta">' + done + '/' + schedDays + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED · – REST</div>' + dzNotes + '</div>';
+        + '<div class="dz-obj-meta">' + done + '/' + schedDays + ' DAYS · BEST STREAK ' + bestStreakIn(r, currentView, info.days) + ' · ■ COMPLETE · · MISSED · – REST</div></div>';
     });
+  }
+
+  if (!isYear) {
+    const mDays = monthsInfo[currentView].days;
+    let jz = '';
+    for (let d = 0; d < mDays; d++) {
+      const t = appState.journal && appState.journal[currentView + '_' + d];
+      if (t) jz += '<div class="dz-note">' + String(d + 1).padStart(2, '0') + ' \u2014 ' + t.replace(/</g, '&lt;') + '</div>';
+    }
+    if (jz) html += '<div class="dz-notes-head">FIELD NOTES</div>' + jz;
   }
 
   html += '<div class="dz-sign"><div>'

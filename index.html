@@ -498,9 +498,8 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
 /* modal entrances */
 .modal-content{animation:modalIn .3s cubic-bezier(.2,.9,.3,1.15)}
 
-/* check-in micro-feedback */
-.check-cell input:checked{animation:popIn .25s ease}
-.today-habit-btn.done .today-habit-icon{animation:popIn .3s ease}
+/* check-in micro-feedback — interaction-scoped only (state-based replays on re-render) */
+.day-btn.pop{animation:popIn .25s ease}
 
 /* control feedback */
 .btn:active,.today-habit-btn:active,.jr-add:active,.st-join:active,.gate-btn:active,.mob-nav-btn:active{transform:scale(.96)}
@@ -513,7 +512,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .boot-in .table-wrapper,.boot-in #mobileTaskList,.boot-in #todayPanel,.boot-in #desktopSidebar,
   .boot-in #journalPanel,.boot-in .footer-stats,.boot-in #mobileBottomNav,
   .view-swap,.view-swap .mobile-card,.modal-content,
-  .check-cell input:checked,.today-habit-btn.done .today-habit-icon{animation:none!important;opacity:1}
+  .day-btn.pop{animation:none!important;opacity:1}
 }
 
 /* ── STATION RANKINGS ── */
@@ -1824,6 +1823,7 @@ function openModal(r) {
         haptic(10);
         appState.data[k] = !appState.data[k];
         btn.classList.toggle('checked');
+        btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
         done += appState.data[k] ? 1 : -1;
         updateModalStats(done, schedDays);
         safeSave();

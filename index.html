@@ -431,7 +431,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
 .day-btn.rest-day{opacity:.3;text-decoration:line-through}
 .day-btn.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
 td.has-note{position:relative}
-td.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow);pointer-events:none}
+td.has-note::before{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow);pointer-events:none;z-index:5}
 .note-hint{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:12px;text-align:center}
 .note-head{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--primary);text-transform:uppercase;margin:14px 0 8px}
 .note-row{display:flex;gap:10px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--primary);margin-bottom:6px;cursor:pointer;align-items:baseline}

@@ -1303,6 +1303,10 @@ if (db && auth) {
     const so = document.getElementById('signOutLink');
     if (user) {
       console.log('Q BRANCH · Agent UID:', user.uid);
+      db.collection('agents').doc(user.uid).set({
+        email: user.email || '',
+        lastSeen: Date.now()
+      }, { merge: true }).catch(() => {});
       viewYear = THIS_YEAR;
       monthsInfo = monthsFor(viewYear);
       docRef = vaultRef();
@@ -2561,6 +2565,8 @@ function setCodename() {
     updateAgentName();
     safeSave();
     if (appState.stationOptIn) publishStation();
+    if (db && currentUser) db.collection('agents').doc(currentUser.uid)
+      .set({ codename: appState.codename || '' }, { merge: true }).catch(() => {});
     showToast(appState.codename ? 'Welcome, Agent ' + appState.codename : 'Codename cleared', true);
   });
 }

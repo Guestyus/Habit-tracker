@@ -56,6 +56,7 @@ body{
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.green{background:var(--primary);border-color:var(--primary);color:#0a0a0c;font-weight:500}
+#toast .toast-undo{margin-left:14px;color:var(--primary);font-weight:700;letter-spacing:1.5px;cursor:pointer;pointer-events:auto;text-decoration:underline;text-underline-offset:3px}
 
 /* ── LOADING — gun-barrel rings ── */
 #loadingOverlay{
@@ -466,6 +467,54 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.5px;line-height:1.7;text-align:left}
 .gate-foot{position:absolute;bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:3px;color:#3a3933;text-transform:uppercase}
 #signOutLink:hover{color:var(--red)!important}
+
+/* ── MOTION PACKAGE ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes popIn{0%{transform:scale(.5)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* boot reveal — plays once when the dashboard comes online */
+.boot-in .classified-strip{animation:fadeDown .5s ease both}
+.boot-in .header{animation:fadeDown .55s ease .08s both}
+.boot-in .tabs{animation:fadeUp .5s ease .16s both}
+.boot-in .table-controls{animation:fadeUp .5s ease .22s both}
+.boot-in .table-wrapper,.boot-in #mobileTaskList,.boot-in #todayPanel{animation:fadeUp .55s ease .3s both}
+.boot-in #desktopSidebar{animation:fadeUp .6s ease .38s both}
+.boot-in #journalPanel,.boot-in .footer-stats,.boot-in #mobileBottomNav{animation:fadeUp .6s ease .46s both}
+
+/* view transitions — month/year changes */
+.view-swap{animation:fadeUp .32s ease both}
+.view-swap .mobile-card{opacity:0;animation:fadeUp .4s ease both}
+.view-swap .mobile-card:nth-child(1){animation-delay:.04s}
+.view-swap .mobile-card:nth-child(2){animation-delay:.08s}
+.view-swap .mobile-card:nth-child(3){animation-delay:.12s}
+.view-swap .mobile-card:nth-child(4){animation-delay:.16s}
+.view-swap .mobile-card:nth-child(5){animation-delay:.2s}
+.view-swap .mobile-card:nth-child(6){animation-delay:.24s}
+.view-swap .mobile-card:nth-child(7){animation-delay:.28s}
+.view-swap .mobile-card:nth-child(n+8){animation-delay:.32s}
+
+/* modal entrances */
+.modal-content{animation:modalIn .3s cubic-bezier(.2,.9,.3,1.15)}
+
+/* check-in micro-feedback */
+.check-cell input:checked{animation:popIn .25s ease}
+.today-habit-btn.done .today-habit-icon{animation:popIn .3s ease}
+
+/* control feedback */
+.btn:active,.today-habit-btn:active,.jr-add:active,.st-join:active,.gate-btn:active,.mob-nav-btn:active{transform:scale(.96)}
+.btn:hover,.jr-add:hover{transform:translateY(-1px)}
+.medal.earned:hover{transform:translateY(-2px)}
+.tab{transition:color .2s ease,background .2s ease}
+
+@media (prefers-reduced-motion: reduce){
+  .boot-in .classified-strip,.boot-in .header,.boot-in .tabs,.boot-in .table-controls,
+  .boot-in .table-wrapper,.boot-in #mobileTaskList,.boot-in #todayPanel,.boot-in #desktopSidebar,
+  .boot-in #journalPanel,.boot-in .footer-stats,.boot-in #mobileBottomNav,
+  .view-swap,.view-swap .mobile-card,.modal-content,
+  .check-cell input:checked,.today-habit-btn.done .today-habit-icon{animation:none!important;opacity:1}
+}
 
 /* ── STATION RANKINGS ── */
 #stationRank{margin:0 10px 14px}
@@ -1019,6 +1068,22 @@ function showToast(msg, green = false) {
   t._timer = setTimeout(() => t.classList.remove('show', 'green'), 2200);
 }
 
+function showUndoToast(msg, onUndo) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg + '<span class="toast-undo" id="toastUndo">UNDO</span>';
+  t.classList.remove('green');
+  t.classList.add('show');
+  document.getElementById('toastUndo').onclick = e => {
+    e.stopPropagation();
+    clearTimeout(t._timer);
+    t.classList.remove('show');
+    t.textContent = '';
+    onUndo();
+  };
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.classList.remove('show'); t.textContent = ''; }, 5000);
+}
+
 function getRandomQuote() {
   return QUOTES[Math.floor(Math.random() * QUOTES.length)];
 }
@@ -1327,8 +1392,26 @@ function getCurrentStreak(r) {
 }
 
 // ════════════════ RENDER ════════════════
+let _bootPlayed = false, _lastView = null, _lastYearView = null;
+
 function renderView() {
   updateTabActiveStates();
+  if (!_bootPlayed) {
+    _bootPlayed = true;
+    _lastView = currentView; _lastYearView = viewYear;
+    document.body.classList.add('boot-in');
+    setTimeout(() => document.body.classList.remove('boot-in'), 1400);
+  } else if (_lastView !== currentView || _lastYearView !== viewYear) {
+    _lastView = currentView; _lastYearView = viewYear;
+    document.querySelectorAll('.table-wrapper, #mobileTaskList, #todayPanel, #heatmapPanel, #journalPanel').forEach(el => {
+      el.classList.remove('view-swap');
+      void el.offsetWidth; // restart animation
+      el.classList.add('view-swap');
+    });
+    clearTimeout(window._swapTimer);
+    window._swapTimer = setTimeout(() =>
+      document.querySelectorAll('.view-swap').forEach(el => el.classList.remove('view-swap')), 800);
+  }
   document.getElementById('todayBtn').style.display =
     currentView === tMonth() ? 'inline-flex' : 'none';
   document.getElementById('stripYear').textContent = viewYear;
@@ -1935,6 +2018,13 @@ function removeTask(i) {
 }
 
 function reallyRemoveTask(i) {
+  // snapshot for undo — taken before anything is destroyed
+  const snap = { index: i, name: appState.habits[i], sched: schedOf(i), rowData: {} };
+  Object.entries(appState.data).forEach(([k, v]) => {
+    if (!v) return;
+    if (parseInt(k.split('_')[1], 10) === i) snap.rowData[k] = v;
+  });
+
   appState.habits.splice(i, 1);
   if (Array.isArray(appState.sched) && appState.sched.length > i) appState.sched.splice(i, 1);
   const newData = {};
@@ -1947,7 +2037,25 @@ function reallyRemoveTask(i) {
   appState.data = newData;
   safeSave();
   renderView();
-  showToast('Objective decommissioned');
+  showUndoToast('Objective decommissioned', () => restoreTask(snap));
+}
+
+function restoreTask(snap) {
+  const i = snap.index;
+  appState.habits.splice(i, 0, snap.name);
+  if (!Array.isArray(appState.sched)) appState.sched = [];
+  appState.sched.splice(i, 0, snap.sched || '1111111');
+  const newData = {};
+  Object.entries(appState.data).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    newData[row >= i ? key(m, row + 1, d) : k] = v;
+  });
+  Object.assign(newData, snap.rowData);
+  appState.data = newData;
+  safeSave();
+  renderView();
+  showToast('\u2713 Objective restored', true);
 }
 
 function moveTask(index, direction) {

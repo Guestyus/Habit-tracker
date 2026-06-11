@@ -430,6 +430,8 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
 .day-btn{position:relative;-webkit-touch-callout:none}
 .day-btn.rest-day{opacity:.3;text-decoration:line-through}
 .day-btn.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
+td.has-note{position:relative}
+td.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow);pointer-events:none}
 .note-hint{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-top:12px;text-align:center}
 .note-head{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--primary);text-transform:uppercase;margin:14px 0 8px}
 .note-row{display:flex;gap:10px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--primary);margin-bottom:6px;cursor:pointer;align-items:baseline}
@@ -1324,16 +1326,29 @@ function renderMonth() {
       + '<button class="btn-sched" onclick="openSchedule(' + r + ')" title="Training schedule">🗓</button>'
       + '<div class="row-dot" style="background:' + dotColor + '"></div>'
       + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '★ ' + streak : '') + '</span>'
-      + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly') + '>'
+      + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly onclick="openModal(' + r + ')" style="cursor:pointer" title="Open field log · right-click any day cell to add a note"') + '>'
       + '</div></td>';
 
     for (let c = 0; c < info.days; c++) {
       const isToday = isCurrentMonth && c === todayDay;
       if (!isSchedDow(r, dows[c])) {
-        rows += '<td class="rest-cell' + (isToday ? ' today-col' : '') + '" title="REST DAY">–</td>';
+        rows += (function () {
+          const t = appState.notes && appState.notes[key(currentView, r, c)];
+          const esc = t ? t.replace(/"/g, '&quot;').replace(/</g, '&lt;') : '';
+          return '<td class="rest-cell' + (isToday ? ' today-col' : '') + (t ? ' has-note' : '') + '"'
+            + ' title="' + (t ? esc : 'REST DAY') + '"'
+            + ' oncontextmenu="event.preventDefault();editDayNote(' + r + ',' + c + ')">–</td>';
+        })();
       } else {
         const checked = appState.data[key(currentView, r, c)] ? ' checked' : '';
-        rows += '<td class="check-cell' + (isToday ? ' today-col' : '') + '" onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
+        rows += (function () {
+          const t = appState.notes && appState.notes[key(currentView, r, c)];
+          const esc = t ? t.replace(/"/g, '&quot;').replace(/</g, '&lt;') : '';
+          return '<td class="check-cell' + (isToday ? ' today-col' : '') + (t ? ' has-note' : '') + '"'
+            + (t ? ' title="' + esc + '"' : '')
+            + ' oncontextmenu="event.preventDefault();editDayNote(' + r + ',' + c + ')"'
+            + ' onclick="toggleCheckbox(' + currentView + ',' + r + ',' + c + ')"><input type="checkbox"' + checked + '></td>';
+        })();
       }
     }
 
@@ -1717,7 +1732,8 @@ function editDayNote(r, d) {
   if (t) { appState.notes[k] = t; showToast('\u2713 Field note logged', true); }
   else { delete appState.notes[k]; if (existing) showToast('Field note destroyed'); }
   safeSave();
-  openModal(r);
+  if (document.getElementById('dayModal').style.display === 'flex') openModal(r);
+  else renderView();
 }
 
 function updateModalStats(done, total) {

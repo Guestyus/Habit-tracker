@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#070708">
+<title>M Console · Station Chief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Oswald:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#c9a437;--primary-bright:#e8c454;--primary-glow:rgba(201,164,55,.45);
+  --red:#a8132c;--bg:#070708;--surface:#0d0d10;--surface-2:#121216;--surface-3:#17171c;
+  --border:#23232a;--text:#e9e7df;--muted:#76746a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Oswald',sans-serif;min-height:100vh}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 60px}
+
+.strip{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  background:#0a0a0d;border-bottom:1px solid var(--border);padding:12px 14px;
+  font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:2px;text-transform:uppercase;color:#9a978c}
+.strip b{color:var(--red)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.4}}
+#chiefOut{cursor:pointer;color:var(--muted)}
+#chiefOut:hover{color:var(--red)}
+
+h1{font-family:'Cinzel',serif;font-size:1.7rem;letter-spacing:6px;color:var(--primary);margin:30px 0 4px;text-align:center}
+.sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:30px}
+
+#gate,#denied{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:24px;text-align:center}
+.g-title{font-family:'Cinzel',serif;font-size:1.5rem;letter-spacing:5px;color:var(--primary);margin-bottom:8px}
+.g-sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:26px;line-height:2}
+.g-btn{padding:14px 30px;background:transparent;border:1px solid var(--primary);color:var(--primary);
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.g-btn:hover{background:var(--primary);color:#0a0a0c}
+#denied .g-title{color:var(--red)}
+.g-err{display:none;margin-top:18px;max-width:440px;padding:10px 14px;border:1px solid var(--red);color:#e08a99;
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;line-height:1.7;text-align:left}
+
+.banner{display:none;margin:0 0 20px;padding:12px 16px;border:1px solid var(--red);color:#e08a99;
+  font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.5px;line-height:1.8}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.agent{padding:16px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.agent:hover{border-color:var(--primary);transform:translateY(-2px)}
+.a-name{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--primary);text-transform:uppercase;margin-bottom:4px}
+.a-mail{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);margin-bottom:10px;word-break:break-all}
+.a-stats{display:flex;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--text)}
+.a-stats span b{color:var(--primary);font-weight:500}
+.a-seen{font-family:'IBM Plex Mono',monospace;font-size:.52rem;color:var(--muted);letter-spacing:1px;margin-top:8px;text-transform:uppercase}
+
+#detail{display:none}
+.back{display:inline-block;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:2px;
+  color:var(--muted);cursor:pointer;text-transform:uppercase;border:1px solid var(--border);padding:7px 14px}
+.back:hover{color:var(--primary);border-color:var(--primary)}
+.d-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.d-name{font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:4px;color:var(--primary)}
+.yr-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 20px}
+.yr-tab{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:2px;color:var(--muted);
+  border:1px solid var(--border);padding:6px 14px;cursor:pointer;transition:all .15s}
+.yr-tab:hover{color:var(--primary)}
+.yr-tab.on{color:#0a0a0c;background:var(--primary);border-color:var(--primary)}
+
+.sec{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;
+  margin:24px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.obj{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);margin-bottom:7px}
+.o-name{flex:1;min-width:140px;font-family:'Oswald',sans-serif;letter-spacing:1.5px;text-transform:uppercase;font-size:.82rem}
+.o-sched{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:2px;color:var(--muted)}
+.o-sched b{color:var(--primary);font-weight:500}
+.o-num{font-family:'IBM Plex Mono',monospace;font-size:.68rem;min-width:70px;text-align:right}
+.o-num b{color:var(--primary);font-weight:500}
+.bar{height:5px;background:#15161b;width:100%;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--primary)}
+.months{display:grid;grid-template-columns:repeat(12,1fr);gap:5px}
+.m-col{text-align:center}
+.m-track{height:54px;background:#15161b;display:flex;align-items:flex-end}
+.m-fill{width:100%;background:rgba(201,164,55,.55)}
+.m-lbl{font-family:'IBM Plex Mono',monospace;font-size:.5rem;color:var(--muted);margin-top:4px}
+.m-pct{font-family:'IBM Plex Mono',monospace;font-size:.52rem;color:var(--text)}
+.jr{display:flex;gap:12px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-left:2px solid var(--primary);margin-bottom:6px;align-items:baseline}
+.jr b{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--primary);font-weight:500;flex-shrink:0;min-width:58px}
+.jr span{font-size:.8rem;line-height:1.5;word-break:break-word}
+.empty{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:8px 0}
+.loading{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;text-align:center;padding:40px 0}
+@media(max-width:700px){.months{grid-template-columns:repeat(6,1fr);row-gap:14px}}
+</style>
+</head>
+<body>
+
+<div class="strip"><span class="dot"></span><b>RESTRICTED</b>&nbsp;· STATION CHIEF ONLY · M CONSOLE · <span id="chiefOut" onclick="signOut()" style="display:none">SIGN OUT</span></div>
+
+<div class="wrap">
+  <h1>M CONSOLE</h1>
+  <div class="sub">Agent oversight · read-only vault access</div>
+  <div class="banner" id="banner"></div>
+  <div id="roster"><div class="loading">Awaiting identification…</div></div>
+
+  <div id="detail">
+    <span class="back" onclick="closeAgent()">‹ All Agents</span>
+    <div class="d-head"><div class="d-name" id="dName">AGENT</div>
+      <div class="o-sched" id="dMail"></div></div>
+    <div class="yr-tabs" id="yrTabs"></div>
+    <div id="dBody"><div class="loading">Opening vault…</div></div>
+  </div>
+</div>
+
+<div id="gate">
+  <div class="g-title">IDENTIFICATION REQUIRED</div>
+  <div class="g-sub">This console is restricted to the Station Chief.<br>All access attempts are governed by vault rules.</div>
+  <button class="g-btn" onclick="signIn()">◉ Verify with Google</button>
+  <div class="g-err" id="gateErr"></div>
+</div>
+
+<div id="denied">
+  <div class="g-title">ACCESS DENIED</div>
+  <div class="g-sub" id="deniedSub">This identity does not hold Station Chief clearance.</div>
+  <button class="g-btn" onclick="signOut()">Sign Out</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+// ════════ STATION CHIEF CLEARANCE ════════
+// Paste YOUR uid (Firebase Console → Authentication → Users, or the
+// "Q BRANCH · Agent UID" line in the main app's browser console).
+// NOTE: this client check is for UX only — the real lock is the
+// isAdmin() function in your published Firestore Rules.
+const ADMIN_UID = "JyrNhVI1cqOoQS09kRSELJTHyH43";
+
+firebase.initializeApp({
+  apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4",
+  authDomain: "habit-tracker-48336.firebaseapp.com",
+  projectId: "habit-tracker-48336",
+  storageBucket: "habit-tracker-48336.firebasestorage.app",
+  messagingSenderId: "197128681235",
+  appId: "1:197128681235:web:7afcfb89fcec875256cce6"
+});
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/</g, '&lt;');
+const REAL_YEAR = new Date().getFullYear();
+const tMonth = new Date().getMonth();
+const tDay = new Date().getDate() - 1;
+let leaderboard = {};
+let curUid = null, curName = '';
+
+function show(id, on) { $(id).style.display = on ? 'flex' : 'none'; }
+
+function signIn() {
+  $('gateErr').style.display = 'none';
+  const p = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(p).catch(err => {
+    if (err.code === 'auth/popup-blocked') { auth.signInWithRedirect(p); return; }
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    const e = $('gateErr'); e.textContent = 'Verification failed: ' + (err.message || err.code); e.style.display = 'block';
+  });
+}
+function signOut() { auth.signOut(); }
+
+auth.onAuthStateChanged(u => {
+  $('chiefOut').style.display = u ? 'inline' : 'none';
+  if (!u) { show('denied', false); show('gate', true); return; }
+  if (ADMIN_UID === 'PASTE_YOUR_ADMIN_UID_HERE') {
+    show('gate', false); show('denied', true);
+    $('deniedSub').innerHTML = 'ADMIN_UID has not been set in admin.html yet.<br>Edit the file and paste your UID.';
+    return;
+  }
+  if (u.uid !== ADMIN_UID) {
+    show('gate', false); show('denied', true);
+    $('deniedSub').textContent = (u.email || 'This identity') + ' does not hold Station Chief clearance.';
+    return;
+  }
+  show('gate', false); show('denied', false);
+  loadRoster();
+});
+
+function rulesBanner(err) {
+  if (err && err.code === 'permission-denied') {
+    const b = $('banner');
+    b.style.display = 'block';
+    b.textContent = 'PERMISSION DENIED — the Station Chief rules (isAdmin clause) are not published in Firestore → Rules, or the UID in the rules does not match this account.';
+    return true;
+  }
+  return false;
+}
+
+// ════════ ROSTER ════════
+async function loadRoster() {
+  $('roster').innerHTML = '<div class="loading">Pulling agent roster…</div>';
+  try {
+    const [ag, lb] = await Promise.all([
+      db.collection('agents').get(),
+      db.collection('stations').doc('leaderboard').get().catch(() => null)
+    ]);
+    leaderboard = lb && lb.exists ? lb.data() : {};
+    const rows = [];
+    ag.forEach(doc => rows.push({ uid: doc.id, ...doc.data() }));
+    rows.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+    if (!rows.length) {
+      $('roster').innerHTML = '<div class="empty">No agents registered yet — agents appear after their next sign-in to the updated dashboard.</div>';
+      return;
+    }
+    $('roster').innerHTML = '<div class="cards">' + rows.map(a => {
+      const s = leaderboard[a.uid];
+      const name = a.codename || (s && s.codename) || 'UNNAMED AGENT';
+      const seen = a.lastSeen ? new Date(a.lastSeen).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }).toUpperCase()
+        + ' ' + new Date(a.lastSeen).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : '—';
+      return '<div class="agent" onclick="openAgent(\'' + a.uid + '\',\'' + esc(name).replace(/'/g, '') + '\',\'' + esc(a.email || '').replace(/'/g, '') + '\')">'
+        + '<div class="a-name">' + esc(name) + (a.uid === ADMIN_UID ? ' · YOU' : '') + '</div>'
+        + '<div class="a-mail">' + esc(a.email || '') + '</div>'
+        + '<div class="a-stats">'
+        + (s ? '<span>YTD <b>' + (s.pct || 0) + '%</b></span><span>STREAK <b>★' + (s.streak || 0) + '</b></span><span>OPS <b>' + (s.ops || 0) + '</b></span>'
+             : '<span style="color:var(--muted)">NOT ON RANKINGS BOARD</span>')
+        + '</div><div class="a-seen">LAST CONTACT · ' + seen + '</div></div>';
+    }).join('') + '</div>';
+  } catch (err) {
+    if (!rulesBanner(err)) $('roster').innerHTML = '<div class="empty">Roster unavailable: ' + esc(err.code || err.message) + '</div>';
+    else $('roster').innerHTML = '';
+  }
+}
+
+// ════════ AGENT DETAIL ════════
+async function openAgent(uid, name, mail) {
+  curUid = uid; curName = name;
+  $('roster').style.display = 'none';
+  $('detail').style.display = 'block';
+  $('dName').textContent = name;
+  $('dMail').textContent = mail;
+  $('yrTabs').innerHTML = '';
+  $('dBody').innerHTML = '<div class="loading">Opening vault…</div>';
+  try {
+    const snap = await db.collection('dashboards').doc(uid).collection('years').get();
+    const years = [];
+    snap.forEach(d => { if (/^\d{4}$/.test(d.id)) years.push(d.id); });
+    years.sort((a, b) => b - a);
+    if (!years.length) { $('dBody').innerHTML = '<div class="empty">No year vaults found for this agent.</div>'; return; }
+    $('yrTabs').innerHTML = years.map(y =>
+      '<span class="yr-tab" id="yt' + y + '" onclick="loadYear(\'' + y + '\')">' + y + '</span>').join('');
+    loadYear(years[0]);
+  } catch (err) {
+    if (!rulesBanner(err)) $('dBody').innerHTML = '<div class="empty">Vault sealed: ' + esc(err.code || err.message) + '</div>';
+    else $('dBody').innerHTML = '';
+  }
+}
+
+function closeAgent() {
+  $('detail').style.display = 'none';
+  $('roster').style.display = 'block';
+}
+
+async function loadYear(year) {
+  document.querySelectorAll('.yr-tab').forEach(t => t.classList.toggle('on', t.id === 'yt' + year));
+  $('dBody').innerHTML = '<div class="loading">Decrypting ' + year + ' archive…</div>';
+  try {
+    const doc = await db.collection('dashboards').doc(curUid).collection('years').doc(year).get();
+    if (!doc.exists) { $('dBody').innerHTML = '<div class="empty">Empty archive.</div>'; return; }
+    renderYear(doc.data(), parseInt(year, 10));
+  } catch (err) {
+    if (!rulesBanner(err)) $('dBody').innerHTML = '<div class="empty">Vault sealed: ' + esc(err.code || err.message) + '</div>';
+    else $('dBody').innerHTML = '';
+  }
+}
+
+function renderYear(s, year) {
+  const habits = s.habits || [];
+  const sched = Array.isArray(s.sched) ? s.sched : [];
+  const data = s.data || {};
+  const journal = s.journal || {};
+  const live = year === REAL_YEAR;
+  const DAYS_WK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const mDays = mi => new Date(year, mi + 1, 0).getDate();
+  const capM = live ? tMonth : 11;
+  const capD = mi => (live && mi === tMonth) ? tDay + 1 : mDays(mi);
+  const onDuty = (r, dow) => { const sc = sched[r]; return !sc || sc.charAt(dow) === '1'; };
+
+  // per-objective + monthly + totals (year-to-date if live)
+  let totS = 0, totD = 0;
+  const mAgg = Array.from({ length: 12 }, () => ({ s: 0, d: 0 }));
+  const objHtml = habits.map((name, r) => {
+    let oS = 0, oD = 0, run = 0, best = 0;
+    for (let mi = 0; mi <= capM; mi++) {
+      for (let d = 0; d < capD(mi); d++) {
+        const dow = new Date(year, mi, d + 1).getDay();
+        if (!onDuty(r, dow)) continue;
+        oS++; mAgg[mi].s++;
+        if (data[mi + '_' + r + '_' + d]) { oD++; mAgg[mi].d++; run++; if (run > best) best = run; }
+        else run = 0;
+      }
+    }
+    totS += oS; totD += oD;
+    const pct = oS ? Math.round(oD / oS * 100) : 0;
+    const dutyDows = sched[r]
+      ? DAYS_WK.map((c, i) => sched[r].charAt(i) === '1' ? '<b>' + c + '</b>' : c).join(' ')
+      : DAYS_WK.map(c => '<b>' + c + '</b>').join(' ');
+    return '<div class="obj"><span class="o-name">' + esc(name) + '</span>'
+      + '<span class="o-sched">' + dutyDows + '</span>'
+      + '<span class="o-num"><b>' + pct + '%</b> ' + oD + '/' + oS + '</span>'
+      + '<span class="o-num">★' + best + '</span>'
+      + '<div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+  }).join('');
+
+  const yPct = totS ? Math.round(totD / totS * 100) : 0;
+  const MN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const monthsHtml = mAgg.map((m, mi) => {
+    const p = m.s ? Math.round(m.d / m.s * 100) : 0;
+    return '<div class="m-col"><div class="m-track"><div class="m-fill" style="height:' + p + '%"></div></div>'
+      + '<div class="m-pct">' + (m.s ? p + '%' : '—') + '</div><div class="m-lbl">' + MN[mi] + '</div></div>';
+  }).join('');
+
+  const jKeys = Object.keys(journal).map(k => k.split('_').map(Number)).filter(p => p.length === 2)
+    .sort((a, b) => (b[0] - a[0]) || (b[1] - a[1]));
+  const jHtml = jKeys.map(([mi, d]) =>
+    '<div class="jr"><b>' + (d + 1) + ' ' + MN[mi] + '</b><span>' + esc(journal[mi + '_' + d]) + '</span></div>').join('');
+
+  const medals = s.medals ? Object.values(s.medals).filter(Boolean).length : 0;
+
+  $('dBody').innerHTML =
+    '<div class="sec">Summary · ' + (live ? 'year to date' : year) + '</div>'
+    + '<div class="obj"><span class="o-name">OVERALL</span>'
+    + '<span class="o-num"><b>' + yPct + '%</b> ' + totD + '/' + totS + ' OPS</span>'
+    + '<span class="o-num">✪ ' + medals + ' MEDALS</span>'
+    + '<div class="bar"><i style="width:' + yPct + '%"></i></div></div>'
+    + '<div class="sec">Objectives (' + habits.length + ')</div>'
+    + (objHtml || '<div class="empty">No objectives.</div>')
+    + '<div class="sec">Monthly performance</div><div class="months">' + monthsHtml + '</div>'
+    + '<div class="sec">Field notes (' + jKeys.length + ')</div>'
+    + (jHtml || '<div class="empty">No field notes this year.</div>');
+}
+</script>
+</body>
+</html>

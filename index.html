@@ -333,6 +333,7 @@ input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-rad
 .modal-days-info{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);text-align:right;line-height:1.7;letter-spacing:.5px}
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
 .day-btn{
+  position:relative;-webkit-touch-callout:none;
   aspect-ratio:1;border-radius:50%;border:1px solid #3a3a42;
   background:var(--surface-2);color:#c4c1b5;
   font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.8rem;
@@ -427,7 +428,6 @@ td.rest-cell{background:#0a0a0d;color:#33333a;font-size:.75rem;cursor:default;te
 tbody tr:hover td.rest-cell{background:#0a0a0d}
 .sb-habit.rest{opacity:.4;cursor:default;border-style:dashed}
 .today-habit-btn.rest{opacity:.4;cursor:default;border-style:dashed}
-.day-btn{position:relative;-webkit-touch-callout:none}
 .day-btn.rest-day{opacity:.3;text-decoration:line-through}
 .day-btn.has-note::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--primary);box-shadow:0 0 4px var(--primary-glow)}
 
@@ -466,6 +466,36 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.5px;line-height:1.7;text-align:left}
 .gate-foot{position:absolute;bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:3px;color:#3a3933;text-transform:uppercase}
 #signOutLink:hover{color:var(--red)!important}
+
+/* ── STATION RANKINGS ── */
+#stationRank{margin:0 10px 14px}
+#stationRankMobile{display:none;margin:12px 12px 0}
+.st-box{padding:12px;background:var(--surface-2);border:1px solid var(--border)}
+.st-head{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.st-row{display:flex;align-items:baseline;gap:8px;padding:7px 8px;border:1px solid var(--border);margin-bottom:5px;background:var(--surface)}
+.st-row.me{border-color:var(--primary);box-shadow:inset 0 0 10px rgba(201,164,55,.06)}
+.st-rank{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted)}
+.st-name{flex:1;font-family:'Oswald',sans-serif;font-size:.74rem;letter-spacing:1.5px;color:var(--text);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-row.me .st-name{color:var(--primary)}
+.st-num{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--text);min-width:34px;text-align:right}
+.st-pitch{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1px;color:var(--muted);line-height:1.8;margin-bottom:10px}
+.st-join{width:100%;padding:11px;background:transparent;border:1px solid var(--primary);color:var(--primary);
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.74rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.st-join:hover{background:var(--primary);color:#0a0a0c}
+.st-actions{margin-top:8px;text-align:right}
+.st-actions span{font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:1.5px;color:var(--muted);cursor:pointer;text-transform:uppercase}
+.st-actions span:hover{color:var(--red)}
+
+/* ── Q BRANCH INPUT CONSOLE ── */
+#inputModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3300;display:none;flex-direction:column;backdrop-filter:blur(6px)}
+.im-field{width:100%;margin-top:18px;padding:14px;background:var(--surface-2);border:1px solid var(--primary);color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:1rem;letter-spacing:.5px;outline:none;border-radius:0}
+.im-field:focus{box-shadow:0 0 14px rgba(201,164,55,.25)}
+.im-btns{display:flex;gap:10px;align-items:stretch}
+.im-cancel{flex:1;margin-top:16px;padding:13px;background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.im-cancel:hover{border-color:var(--red);color:var(--red)}
+.im-confirm{flex:2}
 
 /* ── WEEKLY DEBRIEF ── */
 #debriefModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3200;display:none;flex-direction:column;backdrop-filter:blur(6px)}
@@ -615,11 +645,10 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .subtitle{display:none}
   .charts-row{display:none}
   .quote-container{padding:8px 12px;min-width:0}
-  .quote-input{font-size:.8rem}
   .tabs{display:none}
   .table-wrapper{display:none}
   .table-controls{padding:10px 12px}
-  .controls-left{width:100%;display:flex;gap:6px}
+  .controls-left{width:100%;display:flex;gap:6px;flex-wrap:wrap}
   .btn{flex:1;font-size:.66rem;padding:0 8px;height:40px;letter-spacing:1px}
   .stats-pill{display:none}
   #todayPanel{display:block}
@@ -628,6 +657,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   #heatmapPanel{padding:12px;--hm:8px}
   #weekdayIntelMobile{display:block}
   #medalRackMobile{display:block}
+  #stationRankMobile{display:block}
   .bm-text{font-size:1rem;letter-spacing:4px}
   .modal-content{padding:20px}
   .day-grid{gap:6px}
@@ -635,7 +665,6 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .footer-stats{padding:10px 12px}
   /* ── mobile polish: bigger type, bigger targets ── */
   .btn{height:46px;font-size:.72rem;flex:1 1 40%;letter-spacing:1.2px}
-  .controls-left{flex-wrap:wrap}
   .classified-strip{white-space:normal;flex-wrap:wrap;line-height:1.9;font-size:.72rem;letter-spacing:1.2px;padding:11px 12px}
   .strip-extra{display:none}
   #agentName,#signOutLink{padding:4px 3px;display:inline-block}
@@ -703,6 +732,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div class="sidebar-stats" id="sidebarStats"></div>
     <div id="weekdayIntel"></div>
     <div id="medalRack"></div>
+    <div id="stationRank"></div>
     <button class="sidebar-mark-btn" id="sidebarMarkBtn" onclick="markAllToday()">Mission Complete</button>
     <div class="sidebar-hint">
       <span class="key-badge">1</span>–<span class="key-badge">9</span> toggle objectives<br>
@@ -736,12 +766,12 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
           <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#c9a437" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="#c9a437" stop-opacity="0.02"/>
+                <stop offset="0%" stop-color="rgba(201,164,55,.35)"/>
+                <stop offset="100%" stop-color="rgba(201,164,55,0)"/>
               </linearGradient>
             </defs>
             <path id="areaPathFill" fill="url(#areaGrad)"></path>
-            <path id="areaPathLine" fill="none" stroke="#c9a437" stroke-width="1.5" stroke-linejoin="round"></path>
+            <path id="areaPathLine" fill="none" stroke="#c9a437" stroke-width="1.5"></path>
           </svg>
           <div class="chart-label">Operational trend</div>
         </div>
@@ -791,6 +821,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div id="mobileTaskList"></div>
     <div id="weekdayIntelMobile"></div>
     <div id="medalRackMobile"></div>
+    <div id="stationRankMobile"></div>
 
     <div id="journalPanel"></div>
 
@@ -805,6 +836,23 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
     <div class="mob-nav-year" id="mobNavYear"></div>
   </div>
   <button class="mob-nav-btn" onclick="mobileNavMonth(1)">&#8594;</button>
+</div>
+
+<div id="inputModal">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="imTitle">INPUT</div>
+        <div class="modal-month" id="imSub"></div>
+      </div>
+      <button class="modal-close" onclick="cancelInput()">✕</button>
+    </div>
+    <input type="text" id="imField" class="im-field" autocomplete="off" spellcheck="false">
+    <div class="im-btns">
+      <button class="im-cancel" onclick="cancelInput()">Abort</button>
+      <button class="modal-btn-done im-confirm" onclick="submitInput()">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <div id="debriefModal">
@@ -984,7 +1032,8 @@ function buildDefault() {
     sched: [],
     journal: {},
     medals: {},
-    lastDebrief: ''
+    lastDebrief: '',
+    stationOptIn: false
   };
 }
 
@@ -1017,7 +1066,6 @@ function schedOf(r) {
 }
 function isSchedDow(r, dow) { return schedOf(r)[dow] === '1'; }
 function isSchedToday(r) { return isSchedDow(r, todayDow); }
-function schedCount(r) { return schedOf(r).split('').filter(c => c === '1').length; }
 function dowsForMonth(mi) {
   const days = monthsInfo[mi].days, out = new Array(days);
   for (let d = 0; d < days; d++) out[d] = new Date(viewYear, mi, d + 1).getDay();
@@ -1292,6 +1340,7 @@ function renderView() {
   renderHeatmap();
   renderWeekdayIntel();
   renderMedals();
+  renderStation();
   renderJournal();
   maybeWeeklyDebrief();
   updateMobileNav();
@@ -1729,25 +1778,27 @@ function renderJournal() {
 function addJournalEntry() {
   if (!appState || currentView === 12) return;
   if (currentView === tMonth()) { editJournal(todayDay); return; }
-  const v = prompt('Day of ' + monthsInfo[currentView].name + ' (1\u2013' + monthsInfo[currentView].days + '):');
-  if (v === null) return;
-  const d = parseInt(v, 10) - 1;
-  if (isNaN(d) || d < 0 || d >= monthsInfo[currentView].days) { showToast('Invalid day, agent'); return; }
-  editJournal(d);
+  askInput('LOG ENTRY', 'Day of ' + monthsInfo[currentView].name + ' (1\u2013' + monthsInfo[currentView].days + ')', '', v => {
+    if (v === null) return;
+    const d = parseInt(v, 10) - 1;
+    if (isNaN(d) || d < 0 || d >= monthsInfo[currentView].days) { showToast('Invalid day, agent'); return; }
+    editJournal(d);
+  }, { numeric: true });
 }
 
 function editJournal(d) {
   haptic(12);
   const jk = currentView + '_' + d;
   const existing = (appState.journal && appState.journal[jk]) || '';
-  const v = prompt('Field note \u2014 ' + monthsInfo[currentView].name + ' ' + (d + 1) + ', ' + viewYear + ':', existing);
-  if (v === null) return;
-  if (!appState.journal) appState.journal = {};
-  const t = v.trim();
-  if (t) { appState.journal[jk] = t; showToast('\u2713 Field note logged', true); }
-  else { delete appState.journal[jk]; if (existing) showToast('Field note destroyed'); }
-  safeSave();
-  renderView();
+  askInput('FIELD NOTE', monthsInfo[currentView].name + ' ' + (d + 1) + ', ' + viewYear, existing, v => {
+    if (v === null) return;
+    if (!appState.journal) appState.journal = {};
+    const t = v.trim();
+    if (t) { appState.journal[jk] = t; showToast('\u2713 Field note logged', true); }
+    else { delete appState.journal[jk]; if (existing) showToast('Field note destroyed'); }
+    safeSave();
+    renderView();
+  });
 }
 
 function updateModalStats(done, total) {
@@ -1770,6 +1821,16 @@ document.getElementById('schedModal').addEventListener('click', e => {
 
 document.getElementById('debriefModal').addEventListener('click', e => {
   if (e.target.id === 'debriefModal') closeDebrief();
+});
+
+document.getElementById('inputModal').addEventListener('click', e => {
+  if (e.target.id === 'inputModal') cancelInput();
+});
+
+document.getElementById('imField').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); submitInput(); }
+  if (e.key === 'Escape') { e.preventDefault(); cancelInput(); }
+  e.stopPropagation();
 });
 
 // ── Schedule editor ──
@@ -1851,10 +1912,11 @@ function updateTaskName(i, v) {
 }
 
 function renameTask(i) {
-  const v = prompt('Rename objective:', appState.habits[i]);
-  if (v === null) return;
-  updateTaskName(i, v);
-  showToast('✓ Objective renamed', true);
+  askInput('RENAME OBJECTIVE', 'Current: ' + appState.habits[i], appState.habits[i], v => {
+    if (v === null) return;
+    updateTaskName(i, v);
+    showToast('✓ Objective renamed', true);
+  });
 }
 
 function addTask() {
@@ -1867,7 +1929,12 @@ function addTask() {
 }
 
 function removeTask(i) {
-  if (!confirm('Decommission "' + appState.habits[i] + '"? All field data for this objective will be destroyed.')) return;
+  askInput('DECOMMISSION OBJECTIVE',
+    '"' + appState.habits[i] + '" \u2014 all field data for this objective will be destroyed',
+    '', v => { if (v !== null) reallyRemoveTask(i); }, { confirm: true });
+}
+
+function reallyRemoveTask(i) {
   appState.habits.splice(i, 1);
   if (Array.isArray(appState.sched) && appState.sched.length > i) appState.sched.splice(i, 1);
   const newData = {};
@@ -1976,6 +2043,139 @@ function updateCharts(view) {
 }
 
 // ════════════════ WEEKDAY INTEL ════════════════
+// ════════════════ STATION RANKINGS ════════════════
+let stationData = null, unsubStation = null, stationPublished = false;
+
+function computeStationStats() {
+  const n = appState.habits.length;
+  let sched = 0, done = 0, best = 0;
+  for (let r = 0; r < n; r++) {
+    let s = 0;
+    for (let mi = 0; mi <= _todayMonth; mi++) {
+      const days = mi === _todayMonth ? todayDay + 1 : monthsInfo[mi].days;
+      for (let d = 0; d < days; d++) {
+        if (!isSchedDow(r, new Date(THIS_YEAR, mi, d + 1).getDay())) continue;
+        sched++;
+        if (appState.data[key(mi, r, d)]) { done++; s++; if (s > best) best = s; }
+        else s = 0;
+      }
+    }
+  }
+  return {
+    codename: appState.codename || 'UNNAMED AGENT',
+    pct: sched ? Math.round((done / sched) * 100) : 0,
+    streak: best,
+    ops: done,
+    medals: computeMedals().filter(m => m.earned).length,
+    updated: Date.now()
+  };
+}
+
+function publishStation() {
+  if (!db || !currentUser || viewYear !== THIS_YEAR) return;
+  const payload = {};
+  payload[currentUser.uid] = computeStationStats();
+  db.collection('stations').doc('leaderboard').set(payload, { merge: true })
+    .catch(e => console.warn('Station uplink failed:', e.code || e));
+}
+
+function subscribeStation() {
+  if (!db || !currentUser || unsubStation) return;
+  unsubStation = db.collection('stations').doc('leaderboard').onSnapshot(doc => {
+    stationData = doc.exists ? doc.data() : {};
+    renderStation();
+  }, () => { stationData = null; });
+}
+
+function joinStation() {
+  if (!appState || !currentUser) return;
+  haptic(12);
+  appState.stationOptIn = true;
+  stationPublished = true;
+  publishStation();
+  safeSave();
+  renderStation();
+  showToast('\u25C8 Station registered \u2014 good luck, agent', true);
+}
+
+function withdrawStation() {
+  askInput('WITHDRAW FROM RANKINGS',
+    'Your codename and stats will be removed from the shared board',
+    '', v => {
+      if (v === null) return;
+      appState.stationOptIn = false;
+      const payload = {};
+      payload[currentUser.uid] = firebase.firestore.FieldValue.delete();
+      db.collection('stations').doc('leaderboard').set(payload, { merge: true }).catch(() => {});
+      safeSave();
+      renderStation();
+      showToast('Withdrawn from rankings');
+    }, { confirm: true });
+}
+
+function renderStation() {
+  const a = document.getElementById('stationRank');
+  const b = document.getElementById('stationRankMobile');
+  if (!a && !b) return;
+  const set = h => { if (a) a.innerHTML = h; if (b) b.innerHTML = h; };
+  if (!appState || viewYear !== THIS_YEAR || !currentUser || !db) { set(''); return; }
+  if (!unsubStation) subscribeStation();
+  const optIn = appState.stationOptIn === true;
+  if (optIn && !stationPublished) { stationPublished = true; publishStation(); }
+
+  let inner;
+  if (!optIn) {
+    inner = '<div class="st-pitch">Compare success rates and streaks with fellow agents. Opting in makes your codename and stats visible to all signed-in agents.</div>'
+      + '<button class="st-join" onclick="joinStation()">\u25C8 Join the Rankings</button>';
+  } else if (!stationData) {
+    inner = '<div class="st-pitch">Establishing uplink\u2026</div>';
+  } else {
+    const rows = Object.entries(stationData)
+      .map(([uid, s]) => ({ uid, s }))
+      .filter(e => e.s && typeof e.s === 'object')
+      .sort((x, y) => (y.s.pct || 0) - (x.s.pct || 0) || (y.s.streak || 0) - (x.s.streak || 0));
+    inner = rows.map((e, i) =>
+      '<div class="st-row' + (e.uid === currentUser.uid ? ' me' : '') + '">'
+      + '<span class="st-rank">' + String(i + 1).padStart(2, '0') + '</span>'
+      + '<span class="st-name">' + String(e.s.codename || 'AGENT').replace(/</g, '&lt;').substring(0, 16) + '</span>'
+      + '<span class="st-num">' + (e.s.pct || 0) + '%</span>'
+      + '<span class="st-num" title="Best streak">\u2605' + (e.s.streak || 0) + '</span>'
+      + '</div>').join('');
+    if (rows.length < 2) inner += '<div class="st-pitch" style="margin-top:6px">Awaiting other agents\u2026</div>';
+    inner += '<div class="st-actions"><span onclick="withdrawStation()">Withdraw from rankings</span></div>';
+  }
+  set('<div class="st-box"><div class="st-head">\u25C8 STATION RANKINGS \u00B7 ' + THIS_YEAR + '</div>' + inner + '</div>');
+}
+
+// ════════════════ Q BRANCH INPUT CONSOLE ════════════════
+let imCallback = null;
+
+function askInput(title, sub, initial, cb, opts) {
+  opts = opts || {};
+  imCallback = cb;
+  document.getElementById('imTitle').textContent = title;
+  document.getElementById('imSub').textContent = sub || '';
+  const f = document.getElementById('imField');
+  f.style.display = opts.confirm ? 'none' : 'block';
+  f.value = initial || '';
+  f.inputMode = opts.numeric ? 'numeric' : 'text';
+  document.getElementById('inputModal').style.display = 'flex';
+  if (!opts.confirm) setTimeout(() => { f.focus(); f.select(); }, 60);
+}
+
+function submitInput() {
+  const v = document.getElementById('imField').value;
+  document.getElementById('inputModal').style.display = 'none';
+  if (imCallback) { const cb = imCallback; imCallback = null; cb(v); }
+}
+
+function cancelInput() {
+  const el = document.getElementById('inputModal');
+  if (!el || el.style.display !== 'flex') return;
+  el.style.display = 'none';
+  if (imCallback) { const cb = imCallback; imCallback = null; cb(null); }
+}
+
 // ════════════════ WEEKLY DEBRIEF ════════════════
 let debriefShownSession = false;
 let pendingDebriefISO = null;
@@ -2247,12 +2447,14 @@ function updateAgentName() {
 
 function setCodename() {
   if (!appState) return;
-  const v = prompt('Enter your codename, agent:', appState.codename || '');
-  if (v === null) return;
-  appState.codename = v.toUpperCase().trim();
-  updateAgentName();
-  safeSave();
-  showToast(appState.codename ? 'Welcome, Agent ' + appState.codename : 'Codename cleared', true);
+  askInput('AGENT CODENAME', 'Shown on the classified strip and all dossiers', appState.codename || '', v => {
+    if (v === null) return;
+    appState.codename = v.toUpperCase().trim();
+    updateAgentName();
+    safeSave();
+    if (appState.stationOptIn) publishStation();
+    showToast(appState.codename ? 'Welcome, Agent ' + appState.codename : 'Codename cleared', true);
+  });
 }
 
 // ════════════════ OPERATIONS HEATMAP ════════════════
@@ -2470,7 +2672,7 @@ function buildDossier() {
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   if (!appState) return;
-  if (e.key === 'Escape') { closeModal(); closeSchedule(); closeDebrief(); return; }
+  if (e.key === 'Escape') { closeModal(); closeSchedule(); closeDebrief(); cancelInput(); return; }
   if (e.key === 'ArrowRight') { mobileNavMonth(1); return; }
   if (e.key === 'ArrowLeft')  { mobileNavMonth(-1); return; }
   const num = parseInt(e.key, 10);

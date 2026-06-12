@@ -198,9 +198,14 @@ body{
   padding:10px 14px;
 }
 .quote-container:focus-within{background:rgba(201,164,55,.05)}
-.quote-input{width:100%;background:transparent;border:none;color:var(--muted);font-style:italic;font-size:.85rem;outline:none;font-family:Georgia,serif}
-.quote-input::placeholder{color:#34322c}
-#shuffleBtn{background:none;border:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:0 0 0 8px;flex-shrink:0;transition:transform .4s}
+.quote-wrap{position:relative;width:100%;text-align:center;padding:6px 42px 2px}
+.quote-mark{position:absolute;left:8px;top:-6px;font-family:'Cinzel',serif;font-size:2.4rem;color:var(--primary);opacity:.45;pointer-events:none;line-height:1}
+.quote-text{font-family:'Cinzel',serif;font-size:.98rem;letter-spacing:1.2px;color:#d6d3c6;line-height:1.75;cursor:pointer;min-height:1.2em;transition:color .2s}
+.quote-text:hover{color:var(--primary-bright)}
+.quote-actions{position:absolute;right:6px;top:0;display:flex;gap:10px;font-size:1rem}
+.quote-actions span{cursor:pointer;opacity:.5;transition:opacity .15s,transform .4s;display:inline-block}
+.quote-actions span:hover{opacity:1}
+.boot-in .quote-wrap{animation:fadeUp .6s ease .5s both}
 .charts-row{display:flex;align-items:center;gap:14px}
 .chart-label{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;text-align:center;margin-top:5px}
 .area-chart{width:160px;height:62px;background:rgba(0,0,0,.35);border:1px solid var(--border);overflow:hidden}
@@ -269,7 +274,6 @@ input[type="checkbox"]{
   vertical-align:middle;transition:all .13s;pointer-events:none;
 }
 input[type="checkbox"]:checked{background:var(--primary);border-color:var(--primary);box-shadow:0 0 7px var(--primary-glow)}
-input[type="checkbox"]:checked::after{content:'';width:6px;height:6px;border-radius:50%;background:#0a0a0c}
 
 /* ── HABIT CELL ── */
 .habit-cell{display:flex;align-items:center;height:100%;padding:0 8px;gap:4px}
@@ -660,6 +664,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .dz-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#555;margin-bottom:12px}
   .dz-meta{font-size:9.5px;letter-spacing:1px;color:#333;line-height:1.9}
   .dz-rule{border-top:2.5px solid #111;margin:12px 0}
+  .dz-quote{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:11px;text-align:center;color:#222;margin:2px 0 14px;letter-spacing:.5px}
   .dz-rule.thin{border-top:1px solid #999;margin:9px 0}
   .dz-commend{font-size:9px;letter-spacing:2px;color:#111;border:1.5px solid #111;padding:6px 10px;margin-bottom:12px;text-transform:uppercase}
   .dz-summary{display:flex;gap:0;border:1.5px solid #111;margin-bottom:14px}
@@ -729,7 +734,8 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   .wi-head{font-size:.6rem}
   .wi-verdict{font-size:.62rem}
   .wi-day{font-size:.56rem}
-  .quote-input{font-size:.85rem}
+  .quote-text{font-size:.86rem;letter-spacing:.8px}
+  .quote-wrap{padding:4px 36px 0}
   .gate-title{font-size:1.25rem;letter-spacing:3px}
   .modal-title{font-size:1.25rem}
   .btn-mobile-sm{height:42px;width:50px;font-size:1rem}
@@ -807,7 +813,7 @@ th{font-size:.7rem;color:#bcb9ac}
 .db-lbl{font-size:.6rem}
 .db-row-lbl{font-size:.66rem}
 .db-row-val{font-size:.74rem}
-.quote-input{font-size:.92rem}
+.quote-text{font-size:1rem}
 #toast{font-size:.82rem}
 
 /* comfort: gentle radii — friendlier without losing the edge */
@@ -881,8 +887,14 @@ th{font-size:.7rem;color:#bcb9ac}
         </div>
       </div>
       <div class="quote-container">
-        <input type="text" id="quoteInput" class="quote-input" placeholder="Field notes...">
-        <button id="shuffleBtn" onclick="shuffleQuote()" title="New briefing">🎲</button>
+        <div class="quote-wrap">
+          <span class="quote-mark">“</span>
+          <div id="quoteText" class="quote-text" onclick="editQuote()" title="Click to set a personal motto"></div>
+          <div class="quote-actions">
+            <span id="quotePin" onclick="unpinQuote()" title="Motto pinned · tap to resume daily rotation" style="display:none">📌</span>
+            <span id="shuffleBtn" onclick="shuffleQuote()" title="Different line for today">🎲</span>
+          </div>
+        </div>
       </div>
       <div class="charts-row">
         <div>
@@ -1158,8 +1170,111 @@ function showUndoToast(msg, onUndo) {
   t._timer = setTimeout(() => { t.classList.remove('show'); t.textContent = ''; }, 5000);
 }
 
-function getRandomQuote() {
-  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+// ── Quote engine: deterministic daily rotation + context-aware moods ──
+const Q_TRIUMPH = [
+  "All objectives neutralised. The bar drinks are on M tonight.",
+  "A perfect day's work, agent. Tomorrow, do it again.",
+  "Flawless execution. Q Branch takes partial credit, naturally.",
+  "Mission complete. Discipline: shaken, never stirred.",
+  "Every target down. Somewhere, M is almost smiling.",
+  "100%. The committee will pretend not to be impressed."
+];
+const Q_REST = [
+  "Rest is an operational requirement, not a luxury.",
+  "Even the Service stands down between missions. Recover well.",
+  "Sharpening the blade counts as using it. Rest day, agent.",
+  "No objectives scheduled. Enjoy the silence \u2014 it never lasts."
+];
+const Q_WARNING = [
+  "Statistically, {DAY} is where your streaks go to die. Prove the data wrong.",
+  "{DAY}s have been your weakest front. Hold the line today.",
+  "Intel flags {DAY} as a vulnerability. Close it.",
+  "Your file says {DAY}s break you. Files can be rewritten.",
+  "The opposition loves your {DAY}s. Disappoint them."
+];
+
+let quoteShuffleOverride = null; // session-only — never saved
+
+function dailyIndex(len, salt) {
+  return (today.getFullYear() * 372 + today.getMonth() * 31 + today.getDate() + (salt || 0)) % len;
+}
+
+function pickContextQuote() {
+  if (!appState || !appState.habits.length || viewYear !== THIS_YEAR) {
+    return QUOTES[dailyIndex(QUOTES.length, 0)];
+  }
+  const duty = [];
+  appState.habits.forEach((_, r) => { if (isSchedDow(r, today.getDay())) duty.push(r); });
+  if (duty.length && duty.every(r => appState.data[key(_todayMonth, r, todayDay)])) {
+    return Q_TRIUMPH[dailyIndex(Q_TRIUMPH.length, 1)];
+  }
+  if (!duty.length) {
+    return Q_REST[dailyIndex(Q_REST.length, 2)];
+  }
+  // weak-day warning — YTD weekday rates, only with enough field data
+  const done = [0,0,0,0,0,0,0], poss = [0,0,0,0,0,0,0];
+  const dt = new Date(THIS_YEAR, 0, 1);
+  while (dt <= today) {
+    const mi = dt.getMonth(), dd = dt.getDate() - 1, dow = dt.getDay();
+    for (let r = 0; r < appState.habits.length; r++) {
+      if (!isSchedDow(r, dow)) continue;
+      poss[dow]++;
+      if (appState.data[key(mi, r, dd)]) done[dow]++;
+    }
+    dt.setDate(dt.getDate() + 1);
+  }
+  const totP = poss.reduce((x, y) => x + y, 0);
+  if (totP >= 28) {
+    let worst = -1;
+    for (let d = 0; d < 7; d++) {
+      if (poss[d] < 4) continue;
+      if (worst < 0 || done[d] / poss[d] < done[worst] / poss[worst]) worst = d;
+    }
+    const avg = Math.round((done.reduce((x, y) => x + y, 0) / totP) * 100);
+    if (worst === today.getDay()) {
+      const worstR = Math.round((done[worst] / poss[worst]) * 100);
+      if (avg - worstR >= 15) {
+        const NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        return Q_WARNING[dailyIndex(Q_WARNING.length, 3)].replace(/\{DAY\}/g, NAMES[worst]);
+      }
+    }
+  }
+  return QUOTES[dailyIndex(QUOTES.length, 0)];
+}
+
+function activeQuoteText() {
+  if (appState && appState.quote) return appState.quote;       // pinned motto wins
+  if (quoteShuffleOverride) return quoteShuffleOverride;       // session shuffle
+  return pickContextQuote();                                   // daily rotation
+}
+
+function renderQuote() {
+  const el = document.getElementById('quoteText');
+  if (!el) return;
+  el.textContent = activeQuoteText();
+  const pinned = !!(appState && appState.quote);
+  document.getElementById('quotePin').style.display = pinned ? 'inline-block' : 'none';
+  document.getElementById('shuffleBtn').style.display = pinned ? 'none' : 'inline-block';
+}
+
+function editQuote() {
+  if (!appState) return;
+  askInput('PERSONAL MOTTO', 'Pins this line \u00B7 leave empty to resume daily rotation', appState.quote || '', v => {
+    if (v === null) return;
+    appState.quote = v.trim();
+    quoteShuffleOverride = null;
+    safeSave();
+    renderQuote();
+    showToast(appState.quote ? '📌 Motto pinned' : 'Daily rotation resumed', true);
+  });
+}
+
+function unpinQuote() {
+  if (!appState) return;
+  appState.quote = '';
+  safeSave();
+  renderQuote();
+  showToast('Daily rotation resumed', true);
 }
 
 function buildDefault() {
@@ -1195,6 +1310,7 @@ function normalizeState(s) {
     delete s.notes;
   }
   if (!s.medals || typeof s.medals !== 'object' || Array.isArray(s.medals)) s.medals = {};
+  if (s.quote && QUOTES.indexOf(s.quote) !== -1) s.quote = ''; // legacy shuffle artifact \u2192 resume rotation
   return s;
 }
 
@@ -1415,7 +1531,6 @@ function bootUI() {
   appState = normalizeState(appState);
   document.getElementById('loadingOverlay').style.display = 'none';
   if (!tabsInitialized) {
-    document.getElementById('quoteInput').value = appState.quote || getRandomQuote();
     initTabs();
     tabsInitialized = true;
   }
@@ -1424,17 +1539,18 @@ function bootUI() {
   renderView();
 }
 
-document.getElementById('quoteInput').addEventListener('input', e => {
-  if (appState) { appState.quote = e.target.value; safeSave(); }
-});
-
 function shuffleQuote() {
-  const q = getRandomQuote();
-  document.getElementById('quoteInput').value = q;
+  if (appState && appState.quote) { showToast('Motto pinned \u2014 tap 📌 to resume rotation'); return; }
+  let q = quoteShuffleOverride || '';
+  const cur = activeQuoteText();
+  for (let i = 0; i < 8 && (!q || q === cur); i++) {
+    q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  }
+  quoteShuffleOverride = q;
   const btn = document.getElementById('shuffleBtn');
   btn.style.transform = 'rotate(360deg)';
-  setTimeout(() => { btn.style.transform = 'rotate(0deg)'; }, 400);
-  if (appState) { appState.quote = q; safeSave(); }
+  setTimeout(() => { btn.style.transform = ''; }, 420);
+  renderQuote();
 }
 
 // ════════════════ TABS ════════════════
@@ -1508,6 +1624,7 @@ function renderView() {
   renderWeekdayIntel();
   renderMedals();
   renderStation();
+  renderQuote();
   renderJournal();
   maybeWeeklyDebrief();
   updateMobileNav();
@@ -2753,6 +2870,7 @@ function buildDossier() {
     + '<br>GENERATED: ' + now.toLocaleString('en-AU').toUpperCase()
     + '<br>OBJECTIVES UNDER REVIEW: ' + appState.habits.length + '</div>'
     + '<div class="dz-rule"></div>';
+  html += '<div class="dz-quote">\u201C' + activeQuoteText().replace(/</g, '&lt;') + '\u201D</div>';
 
   if (isYear) {
     let grandDone = 0, grandTotal = 0, grandBest = 0;
@@ -2832,7 +2950,7 @@ function buildDossier() {
         if (!off) schedDays++;
         if (hit) done++;
         grid += off ? '–' : (hit ? '■' : '·');
-        if (d % 7 === 6 && d !== info.days - 1) grid += ' ';
+        if (d % 7 === 6 && d !== info.days - 1) grid += ' ';
       }
       const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
       const safe = name.replace(/</g, '&lt;');

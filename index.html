@@ -744,6 +744,81 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   #mobileBottomNav{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
   .main-panel{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 }
+
+/* ════════ READABILITY & COMFORT PASS ════════
+   Final layer — overrides earlier sizes app-wide (incl. mobile MQ). */
+
+/* global lift + brighter ink */
+html{font-size:16.5px}
+:root{--muted:#92907f;--text:#eeece4}
+.classified-strip{white-space:normal;flex-wrap:wrap;line-height:1.9}
+
+/* header & navigation */
+.subtitle{font-size:.8rem}
+.year-nav{font-size:.78rem}
+.yn-btn{font-size:.92rem;padding:3px 12px}
+.tab{font-size:.8rem}
+.btn{font-size:.78rem}
+.mob-nav-month{font-size:.78rem}
+
+/* table & cards */
+th{font-size:.7rem;color:#bcb9ac}
+.progress-count{font-size:.7rem}
+.streak-badge{font-size:.66rem}
+.mobile-card-name{font-size:1.02rem}
+.mobile-card-meta{font-size:.72rem;color:#bcb9ac}
+.mobile-streak{font-size:.72rem}
+
+/* today panel & sidebar */
+.today-panel-date{font-size:.72rem;line-height:1.8}
+.today-habit-name{font-size:.72rem}
+.sidebar-title{font-size:.72rem}
+.sb-name{font-size:.84rem}
+.sb-sub{font-size:.7rem}
+.stat-value{font-size:1.25rem}
+.stat-label{font-size:.62rem;letter-spacing:1.5px}
+.chart-label{font-size:.7rem}
+
+/* intel / medals / rankings / journal panels */
+.wi-head,.md-head,.st-head,.jr-head,.hm-title{font-size:.72rem;letter-spacing:1.8px}
+.wi-verdict{font-size:.72rem;line-height:2}
+.wi-day{font-size:.62rem}
+.wi-none{font-size:.68rem}
+.hm-months{font-size:.62rem}
+.md-name{font-size:.56rem;letter-spacing:.8px}
+.md-ico{font-size:1.3rem}
+.st-name{font-size:.84rem}
+.st-num{font-size:.76rem}
+.st-rank{font-size:.66rem}
+.st-pitch{font-size:.7rem;line-height:1.95}
+.st-join{font-size:.8rem}
+.st-actions span{font-size:.62rem}
+.jr-date{font-size:.72rem}
+.jr-text{font-size:.94rem;line-height:1.65}
+.jr-add{font-size:.68rem;padding:9px 16px}
+.jr-empty{font-size:.68rem}
+
+/* modals & gate */
+.modal-month{font-size:.74rem}
+.day-btn{font-size:.88rem}
+.gate-sub{font-size:.74rem;line-height:2}
+.modal-btn-done{font-size:.86rem}
+.db-grade{font-size:.78rem}
+.db-lbl{font-size:.6rem}
+.db-row-lbl{font-size:.66rem}
+.db-row-val{font-size:.74rem}
+.quote-input{font-size:.92rem}
+#toast{font-size:.82rem}
+
+/* comfort: gentle radii — friendlier without losing the edge */
+.btn,.jr-add,.st-join,.gate-btn,.im-cancel,.im-field,.modal-btn-done,.yn-btn,.mob-nav-btn{border-radius:4px}
+.mobile-card,.today-habit-btn,.wi-box,.md-box,.st-box,.jr-row,.st-row,.db-stat,.db-row,.medal,.agent-card{border-radius:5px}
+.modal-content{border-radius:9px}
+#toast{border-radius:5px}
+
+/* keyboard focus visibility */
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.im-field:focus-visible{outline:none}
 </style>
 </head>
 <body>

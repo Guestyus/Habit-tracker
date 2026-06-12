@@ -43,6 +43,14 @@ h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:7px;color:var(--pr
 .banner{display:none;margin:0 0 22px;padding:14px 18px;border:1px solid var(--red);color:#e08a99;
   font-family:'IBM Plex Mono',monospace;font-size:.76rem;letter-spacing:.5px;line-height:1.9}
 
+.exp-bar{display:none;margin:0 0 26px;padding:16px 18px;background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--primary);
+  justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;border-radius:5px}
+.exp-info{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:1px;color:var(--muted);line-height:1.9;text-transform:uppercase}
+.exp-info b{color:var(--primary);letter-spacing:2px;font-weight:500}
+.exp-right{text-align:right}
+.exp-btn{padding:12px 22px;font-size:.8rem}
+.exp-status{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:1px;color:var(--muted);margin-top:8px;min-height:1em;text-transform:uppercase}
+
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .agent{padding:20px 22px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;transition:all .15s}
 .agent:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.45)}
@@ -102,6 +110,14 @@ h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:7px;color:var(--pr
   <h1>M CONSOLE</h1>
   <div class="sub">Agent oversight · read-only vault access</div>
   <div class="banner" id="banner"></div>
+
+  <div class="exp-bar" id="expBar">
+    <div class="exp-info"><b>MASTER VAULT EXPORT</b><br>Every agent · every year · leaderboard · legacy vaults — one classified JSON file. Handle accordingly.</div>
+    <div class="exp-right">
+      <button class="g-btn exp-btn" id="expBtn" onclick="masterExport()">⬇ Export All Vaults</button>
+      <div class="exp-status" id="expStatus"></div>
+    </div>
+  </div>
   <div id="roster"><div class="loading">Awaiting identification…</div></div>
 
   <div id="detail">
@@ -184,6 +200,7 @@ auth.onAuthStateChanged(u => {
     return;
   }
   show('gate', false); show('denied', false);
+  $('expBar').style.display = 'flex';
   loadRoster();
 });
 
@@ -339,6 +356,71 @@ function renderYear(s, year) {
     + '<div class="sec">Monthly performance</div><div class="months">' + monthsHtml + '</div>'
     + '<div class="sec">Field notes (' + jKeys.length + ')</div>'
     + (jHtml || '<div class="empty">No field notes this year.</div>');
+}
+
+// ════════ MASTER VAULT EXPORT ════════
+let exporting = false;
+function expStatus(msg) { $('expStatus').textContent = msg; }
+
+async function masterExport() {
+  if (exporting) return;
+  exporting = true;
+  const btn = $('expBtn');
+  btn.disabled = true; btn.style.opacity = .5;
+  try {
+    const out = {
+      format: 'mission-consistency-master',
+      version: 1,
+      exported: new Date().toISOString(),
+      project: 'habit-tracker-48336',
+      agents: {},
+      leaderboard: {},
+      legacyShared: null
+    };
+    expStatus('Pulling roster\u2026');
+    const [ag, lb] = await Promise.all([
+      db.collection('agents').get(),
+      db.collection('stations').doc('leaderboard').get().catch(() => null)
+    ]);
+    out.leaderboard = lb && lb.exists ? lb.data() : {};
+    const list = [];
+    ag.forEach(d => list.push({ uid: d.id, ...d.data() }));
+    let vaults = 0;
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i];
+      const label = a.codename || a.email || a.uid.slice(0, 8);
+      expStatus('Sweeping ' + (i + 1) + '/' + list.length + ' \u00B7 ' + label + '\u2026');
+      const entry = { email: a.email || '', codename: a.codename || '', lastSeen: a.lastSeen || null, years: {} };
+      const yrs = await db.collection('dashboards').doc(a.uid).collection('years').get();
+      yrs.forEach(d => { entry.years[d.id] = d.data(); vaults++; });
+      const flat = await db.collection('dashboards').doc(a.uid).get().catch(() => null);
+      if (flat && flat.exists) { entry.legacyFlat = flat.data(); vaults++; }
+      out.agents[a.uid] = entry;
+    }
+    try {
+      const ls = await db.collection('dashboards').doc('final_v8_custom_habits').get();
+      if (ls.exists) { out.legacyShared = ls.data(); vaults++; }
+    } catch (e) { /* no legacy shared vault */ }
+
+    const json = JSON.stringify(out, null, 1);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const aEl = document.createElement('a');
+    aEl.href = url;
+    aEl.download = 'mission-consistency-master-' + stamp + '.json';
+    document.body.appendChild(aEl);
+    aEl.click();
+    aEl.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    expStatus('\u2713 Secured \u00B7 ' + list.length + ' agents \u00B7 ' + vaults + ' vaults \u00B7 ' + Math.max(1, Math.round(json.length / 1024)) + ' KB');
+  } catch (err) {
+    if (rulesBanner(err)) expStatus('Export blocked by vault rules');
+    else expStatus('Export failed: ' + (err.code || err.message));
+  } finally {
+    exporting = false;
+    btn.disabled = false; btn.style.opacity = '';
+  }
 }
 </script>
 </body>

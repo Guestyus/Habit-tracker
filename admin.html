@@ -245,11 +245,12 @@ async function openAgent(uid, name, mail) {
     const snap = await db.collection('dashboards').doc(uid).collection('years').get();
     const years = [];
     snap.forEach(d => { if (/^\d{4}$/.test(d.id)) years.push(d.id); });
-    years.sort((a, b) => b - a);
+    years.sort((a, b) => a - b);
     if (!years.length) { $('dBody').innerHTML = '<div class="empty">No year vaults found for this agent.</div>'; return; }
     $('yrTabs').innerHTML = years.map(y =>
       '<span class="yr-tab" id="yt' + y + '" onclick="loadYear(\'' + y + '\')">' + y + '</span>').join('');
-    loadYear(years[0]);
+    const defYear = years.includes(String(REAL_YEAR)) ? String(REAL_YEAR) : years[years.length - 1];
+    loadYear(defYear);
   } catch (err) {
     if (!rulesBanner(err)) $('dBody').innerHTML = '<div class="empty">Vault sealed: ' + esc(err.code || err.message) + '</div>';
     else $('dBody').innerHTML = '';

@@ -791,7 +791,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   <div class="main-panel" id="mainDashboard">
     <div class="classified-strip">
       <span class="dot-live"></span>
-      <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span>
+      <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span><span id="mConsoleLink" style="display:none"> · <a href="./admin.html" style="color:var(--red);text-decoration:none" title="Station Chief console">M CONSOLE</a></span>
     </div>
     <div class="tabs" id="tabsContainer"></div>
 
@@ -1307,6 +1307,10 @@ if (db && auth) {
         email: user.email || '',
         lastSeen: Date.now()
       }, { merge: true }).catch(() => {});
+      // Listing the registry is chief-only under the rules — success reveals the M Console link
+      db.collection('agents').limit(1).get()
+        .then(() => { const l = document.getElementById('mConsoleLink'); if (l) l.style.display = 'inline'; })
+        .catch(() => {});
       viewYear = THIS_YEAR;
       monthsInfo = monthsFor(viewYear);
       docRef = vaultRef();
@@ -1320,6 +1324,8 @@ if (db && auth) {
       docRef = null;
       tabsInitialized = false;
       if (so) so.style.display = 'none';
+      const ml = document.getElementById('mConsoleLink');
+      if (ml) ml.style.display = 'none';
       showGate(true);
     }
   });

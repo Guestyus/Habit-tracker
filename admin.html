@@ -50,6 +50,15 @@ h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:7px;color:var(--pr
 .exp-right{text-align:right}
 .exp-btn{padding:12px 22px;font-size:.8rem}
 .exp-status{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:1px;color:var(--muted);margin-top:8px;min-height:1em;text-transform:uppercase}
+#restorePanel{display:none;margin:0 0 26px;padding:18px;background:var(--surface-2);border:1px solid var(--red);border-radius:5px}
+.rs-warn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.5px;color:#e08a99;line-height:1.9;border:1px solid var(--red);padding:11px 14px;margin-bottom:14px;text-transform:uppercase}
+.rs-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:11px 14px;background:var(--surface);border:1px solid var(--border);margin-bottom:7px;cursor:pointer;border-radius:4px}
+.rs-row:hover{border-color:var(--primary)}
+.rs-pick{accent-color:var(--primary);width:16px;height:16px;flex-shrink:0;position:relative;top:2px}
+.rs-name{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--primary);min-width:130px}
+.rs-meta{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);letter-spacing:.5px}
+.rs-btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.rs-go.armed{background:var(--red);border-color:var(--red);color:#fff}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .agent{padding:20px 22px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;transition:all .15s}
@@ -115,9 +124,13 @@ h1{font-family:'Cinzel',serif;font-size:2.1rem;letter-spacing:7px;color:var(--pr
     <div class="exp-info"><b>MASTER VAULT EXPORT</b><br>Every agent · every year · leaderboard · legacy vaults — one classified JSON file. Handle accordingly.</div>
     <div class="exp-right">
       <button class="g-btn exp-btn" id="expBtn" onclick="masterExport()">⬇ Export All Vaults</button>
+      <button class="g-btn exp-btn" id="rsPickBtn" onclick="pickRestoreFile()">⬆ Restore from Master File</button>
       <div class="exp-status" id="expStatus"></div>
+      <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="onRestoreFile(event)">
     </div>
   </div>
+
+  <div id="restorePanel"></div>
   <div id="roster"><div class="loading">Awaiting identification…</div></div>
 
   <div id="detail">
@@ -421,6 +434,171 @@ async function masterExport() {
     exporting = false;
     btn.disabled = false; btn.style.opacity = '';
   }
+}
+
+// ════════ MASTER VAULT RESTORE ════════
+// Validation-gated: nothing is written until the file passes structural
+// checks, a manifest is shown, agents are selected, and the trigger is
+// armed twice. Leaderboard is never restored — it is derived data that
+// each agent republishes on their next session.
+let restoreData = null;
+let restoreArmed = false, armTimer = null, restoring = false;
+
+function rsStatus(msg) { const el = $('rsStatus'); if (el) el.textContent = msg; }
+function pickRestoreFile() { $('restoreFile').click(); }
+
+function onRestoreFile(ev) {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      restoreData = validateMaster(JSON.parse(r.result));
+      renderRestorePreview(f.name);
+      expStatus('');
+    } catch (err) {
+      restoreData = null;
+      $('restorePanel').style.display = 'none';
+      expStatus('File rejected: ' + err.message);
+    }
+  };
+  r.onerror = () => expStatus('File unreadable');
+  r.readAsText(f);
+}
+
+function cleanVault(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('vault is not an object');
+  const out = {};
+  out.habits = Array.isArray(v.habits) ? v.habits.map(h => String(h)) : [];
+  out.sched = Array.isArray(v.sched) ? v.sched.map(x =>
+    (typeof x === 'string' && /^[01]{7}$/.test(x)) ? x : '1111111') : [];
+  while (out.sched.length < out.habits.length) out.sched.push('1111111');
+  out.sched.length = out.habits.length;
+  out.data = {};
+  if (v.data && typeof v.data === 'object' && !Array.isArray(v.data)) {
+    Object.entries(v.data).forEach(([k, val]) => {
+      if (val === true && /^\d+_\d+_\d+$/.test(k)) out.data[k] = true;
+    });
+  }
+  out.journal = {};
+  if (v.journal && typeof v.journal === 'object' && !Array.isArray(v.journal)) {
+    Object.entries(v.journal).forEach(([k, val]) => {
+      if (typeof val === 'string' && val && /^\d+_\d+$/.test(k)) out.journal[k] = val;
+    });
+  }
+  out.quote = typeof v.quote === 'string' ? v.quote : '';
+  out.codename = typeof v.codename === 'string' ? v.codename : '';
+  out.medals = (v.medals && typeof v.medals === 'object' && !Array.isArray(v.medals)) ? v.medals : {};
+  out.lastDebrief = typeof v.lastDebrief === 'string' ? v.lastDebrief : '';
+  out.stationOptIn = v.stationOptIn === true;
+  return out;
+}
+
+function validateMaster(raw) {
+  if (!raw || typeof raw !== 'object') throw new Error('not JSON object');
+  if (raw.format !== 'mission-consistency-master') throw new Error('not a master vault file');
+  if (raw.version !== 1) throw new Error('unknown file version: ' + raw.version);
+  if (!raw.agents || typeof raw.agents !== 'object') throw new Error('no agents block');
+  const agents = {};
+  let vaults = 0, ops = 0;
+  Object.entries(raw.agents).forEach(([uid, a]) => {
+    if (!a || typeof a !== 'object') return;
+    const years = {};
+    if (a.years && typeof a.years === 'object') {
+      Object.entries(a.years).forEach(([y, v]) => {
+        if (!/^\d{4}$/.test(y)) return;
+        const cv = cleanVault(v);
+        years[y] = cv;
+        vaults++;
+        ops += Object.keys(cv.data).length;
+      });
+    }
+    if (Object.keys(years).length) {
+      agents[uid] = { email: String(a.email || ''), codename: String(a.codename || ''), years };
+    }
+  });
+  if (!vaults) throw new Error('file contains no valid year vaults');
+  return { exported: String(raw.exported || 'unknown date'), agents, vaults, ops };
+}
+
+function renderRestorePreview(fname) {
+  restoreArmed = false; clearTimeout(armTimer);
+  const rows = Object.entries(restoreData.agents).map(([uid, a]) => {
+    const yrs = Object.keys(a.years).sort();
+    const ops = yrs.reduce((t, y) => t + Object.keys(a.years[y].data).length, 0);
+    return '<label class="rs-row"><input type="checkbox" class="rs-pick" checked data-uid="' + esc(uid) + '">'
+      + '<span class="rs-name">' + esc(a.codename || 'UNNAMED') + '</span>'
+      + '<span class="rs-meta">' + esc(a.email) + '</span>'
+      + '<span class="rs-meta">' + yrs.join(' \u00B7 ') + ' \u00B7 ' + ops + ' ops</span></label>';
+  }).join('');
+  $('restorePanel').innerHTML =
+    '<div class="sec" style="margin-top:0">Restore preview \u00B7 ' + esc(fname) + '</div>'
+    + '<div class="rs-warn">\u26A0 Restoring OVERWRITES the selected agents\u2019 current vaults with this file (exported ' + esc(restoreData.exported) + '). There is no undo \u2014 consider running a fresh export first.</div>'
+    + rows
+    + '<div class="rs-btns">'
+    + '<button class="g-btn exp-btn" onclick="cancelRestore()">Abort</button>'
+    + '<button class="g-btn exp-btn rs-go" id="rsGo" onclick="armOrRun()">Restore Selected</button>'
+    + '</div><div class="exp-status" id="rsStatus"></div>';
+  $('restorePanel').style.display = 'block';
+  $('restorePanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cancelRestore() {
+  restoreData = null; restoreArmed = false; clearTimeout(armTimer);
+  $('restorePanel').style.display = 'none';
+  $('restorePanel').innerHTML = '';
+}
+
+function armOrRun() {
+  if (restoring) return;
+  const btn = $('rsGo');
+  if (!restoreArmed) {
+    restoreArmed = true;
+    btn.textContent = '\u26A0 CONFIRM OVERWRITE';
+    btn.classList.add('armed');
+    rsStatus('Armed \u2014 click again within 6 seconds to execute');
+    clearTimeout(armTimer);
+    armTimer = setTimeout(() => {
+      restoreArmed = false;
+      btn.textContent = 'Restore Selected';
+      btn.classList.remove('armed');
+      rsStatus('Disarmed');
+    }, 6000);
+    return;
+  }
+  clearTimeout(armTimer);
+  executeRestore();
+}
+
+async function executeRestore() {
+  const picks = Array.from(document.querySelectorAll('.rs-pick:checked')).map(c => c.dataset.uid);
+  if (!picks.length) { rsStatus('No agents selected'); restoreArmed = false; return; }
+  restoring = true;
+  const btn = $('rsGo');
+  btn.disabled = true; btn.style.opacity = .5;
+  let ok = 0, denied = 0, failed = 0, total = 0;
+  for (const uid of picks) {
+    const a = restoreData.agents[uid];
+    for (const y of Object.keys(a.years).sort()) {
+      total++;
+      rsStatus('Restoring ' + (a.codename || uid.slice(0, 8)) + ' \u00B7 ' + y + '\u2026');
+      try {
+        await db.collection('dashboards').doc(uid).collection('years').doc(y).set(a.years[y]);
+        ok++;
+      } catch (err) {
+        if (err && err.code === 'permission-denied') denied++; else failed++;
+      }
+    }
+  }
+  rsStatus('\u2713 ' + ok + '/' + total + ' vaults restored'
+    + (denied ? ' \u00B7 ' + denied + ' blocked by rules \u2014 publish the isAdmin write amendment' : '')
+    + (failed ? ' \u00B7 ' + failed + ' failed' : '')
+    + ' \u00B7 agents see restored data on next refresh');
+  restoring = false; restoreArmed = false;
+  btn.disabled = false; btn.style.opacity = '';
+  btn.textContent = 'Restore Selected';
+  btn.classList.remove('armed');
 }
 </script>
 </body>

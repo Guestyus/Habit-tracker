@@ -14,23 +14,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --primary:#c9a437;          /* 00-gold */
-  --primary-bright:#e8c96a;
-  --primary-light:rgba(201,164,55,.12);
-  --primary-glow:rgba(201,164,55,.25);
-  --today-col:rgba(201,164,55,.07);
-  --today-border:rgba(201,164,55,.45);
+  /* SPECTRE reskin: cyan is the system, gold is the reward */
+  --primary:#6fa3aa;          /* steel-teal — active/selected/links/charts (restrained) */
+  --primary-bright:#9cc4ca;
+  --primary-light:rgba(111,163,170,.10);
+  --primary-glow:rgba(111,163,170,.22);
+  --today-col:rgba(111,163,170,.06);
+  --today-border:rgba(111,163,170,.40);
+  --gold:#c9a437;             /* 00-gold — prestige only: streaks, medals, victory */
+  --gold-bright:#e8c96a;
+  --gold-glow:rgba(201,164,55,.3);
   --red:#a8132c;              /* poster red */
   --red-glow:rgba(168,19,44,.4);
-  --bg:#070708;
-  --surface:#0d0e11;
-  --surface-2:#13141a;
-  --surface-3:#1a1c24;
-  --border:#23242c;
+  --bg:#060607;
+  --surface:#0a0a0c;
+  --surface-2:#0e0f12;
+  --surface-3:#141519;
+  --border:#1c1d23;
   --text:#e9e7df;             /* platinum */
   --muted:#76746a;            /* smoke */
   --danger:#a8132c;
-  --streak:#c9a437;
+  --streak:#c9a437;           /* prestige gold (kept) */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -150,7 +154,7 @@ body{
   transition:all .15s;
 }
 .sidebar-mark-btn:hover{background:var(--primary);color:#0a0a0c}
-.sidebar-mark-btn.all-done{background:var(--primary);color:#0a0a0c}
+.sidebar-mark-btn.all-done{background:var(--gold);border-color:var(--gold);color:#0a0a0c}
 .sidebar-hint{
   margin:0 10px 14px;padding:10px 12px;
   background:rgba(255,255,255,.015);border:1px solid var(--border);
@@ -199,7 +203,7 @@ body{
 }
 .quote-container:focus-within{background:rgba(201,164,55,.05)}
 .quote-wrap{position:relative;width:100%;text-align:center;padding:6px 42px 2px}
-.quote-mark{position:absolute;left:8px;top:-6px;font-family:'Cinzel',serif;font-size:2.4rem;color:var(--primary);opacity:.45;pointer-events:none;line-height:1}
+.quote-mark{position:absolute;left:8px;top:-6px;font-family:'Cinzel',serif;font-size:2.4rem;color:var(--gold);opacity:.45;pointer-events:none;line-height:1}
 .quote-text{font-family:'Cinzel',serif;font-size:.98rem;letter-spacing:1.2px;color:#d6d3c6;line-height:1.75;cursor:pointer;min-height:1.2em;transition:color .2s}
 .quote-text:hover{color:var(--primary-bright)}
 .quote-actions{position:absolute;right:6px;top:0;display:flex;gap:10px;font-size:1rem}
@@ -284,7 +288,7 @@ input[type="checkbox"]:checked{background:var(--primary);border-color:var(--prim
   font-family:'Oswald',sans-serif;letter-spacing:1px;min-width:0;text-transform:uppercase;
 }
 .habit-input:focus{color:var(--primary-bright)}
-.streak-badge{font-size:.62rem;white-space:nowrap;color:var(--streak);font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .2s}
+.streak-badge{font-size:.62rem;white-space:nowrap;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transition:opacity .2s}
 .streak-badge.visible{opacity:1}
 
 /* ── PROGRESS ── */
@@ -413,7 +417,7 @@ input[type="checkbox"]:checked{background:var(--primary);border-color:var(--prim
 .mobile-card-left{flex:1;min-width:0}
 .mobile-card-name{font-weight:600;font-size:.9rem;letter-spacing:1px;display:block;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
 .mobile-card-meta{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#b3b0a4;letter-spacing:.5px}
-.mobile-streak{font-size:.64rem;color:var(--streak);font-family:'IBM Plex Mono',monospace;margin-top:5px;letter-spacing:.5px}
+.mobile-streak{font-size:.64rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;margin-top:5px;letter-spacing:.5px}
 .mobile-ring{flex-shrink:0;width:48px;height:48px;position:relative}
 .mobile-ring svg{width:48px;height:48px;transform:rotate(-90deg)}
 .mobile-ring-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.78rem;color:var(--text)}
@@ -573,9 +577,9 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   border:1px solid var(--border);background:var(--surface);opacity:.32;filter:grayscale(1);transition:all .3s}
 .md-ico{font-size:1.15rem;line-height:1;color:var(--muted)}
 .md-name{font-family:'IBM Plex Mono',monospace;font-size:.46rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;text-align:center;line-height:1.4}
-.medal.earned{opacity:1;filter:none;border-color:var(--primary);
+.medal.earned{opacity:1;filter:none;border-color:var(--gold);
   box-shadow:0 0 8px rgba(201,164,55,.18),inset 0 0 12px rgba(201,164,55,.06)}
-.medal.earned .md-ico{color:var(--primary);text-shadow:0 0 8px var(--primary-glow)}
+.medal.earned .md-ico{color:var(--gold);text-shadow:0 0 8px var(--gold-glow)}
 .medal.earned .md-name{color:var(--text)}
 
 /* ── WEEKDAY INTEL ── */
@@ -591,7 +595,7 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
 .wi-bar.worst{background:var(--red)}
 .wi-day{font-family:'IBM Plex Mono',monospace;font-size:.5rem;color:var(--muted)}
 .wi-verdict{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:1px;color:var(--text);line-height:1.9;text-transform:uppercase;margin-top:6px}
-.wi-verdict .gold{color:var(--primary)}
+.wi-verdict .gold{color:var(--gold)}
 .wi-verdict .red{color:var(--red)}
 .wi-none{font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
@@ -603,15 +607,15 @@ tbody tr:hover td.rest-cell{background:#0a0a0d}
   position:absolute;top:50%;left:-15%;width:170px;height:170px;border-radius:50%;
   transform:translate(-50%,-50%);
   background:radial-gradient(circle,#241c08 0%,#0a0903 45%,#000 70%);
-  box-shadow:0 0 0 5px var(--primary),0 0 0 9px #050505,0 0 0 13px #6b5a1e,
+  box-shadow:0 0 0 5px var(--gold),0 0 0 9px #050505,0 0 0 13px #6b5a1e,
              0 0 0 17px #050505,0 0 0 21px #463a13,0 0 0 26px #000,0 0 30px 30px #000;
   animation:bmSweep 2.4s cubic-bezier(.6,.05,.3,1) forwards;
 }
 .bm-text{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  font-family:'Cinzel',serif;font-size:1.4rem;letter-spacing:6px;color:var(--primary);
+  font-family:'Cinzel',serif;font-size:1.4rem;letter-spacing:6px;color:var(--gold);
   text-align:center;line-height:1.6;opacity:0;
-  animation:bmText 2.4s ease forwards;text-shadow:0 0 18px var(--primary-glow);
+  animation:bmText 2.4s ease forwards;text-shadow:0 0 18px var(--gold-glow);
 }
 @keyframes bmFade{0%{opacity:0}8%,82%{opacity:1}100%{opacity:0}}
 @keyframes bmSweep{
@@ -825,6 +829,20 @@ th{font-size:.7rem;color:#bcb9ac}
 /* keyboard focus visibility */
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .im-field:focus-visible{outline:none}
+
+/* ════════ SPECTRE FILM FURNITURE ════════ */
+.coord-read{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:3px;
+  color:var(--muted);opacity:.5;text-transform:uppercase;margin-top:6px}
+.reg-ticks{display:flex;align-items:center;gap:0;height:13px;padding:0 14px;background:transparent;
+  border-bottom:1px solid var(--border);overflow:hidden;opacity:.4}
+.reg-ticks .rt{font-family:'IBM Plex Mono',monospace;font-size:.46rem;letter-spacing:1.5px;color:var(--muted);
+  white-space:nowrap;display:flex;align-items:center;gap:6px}
+.reg-ticks .rt i{display:block;height:1px;background:var(--border)}
+.reg-ticks .rt.live{color:var(--primary)}
+.reg-ticks .rt.live i{background:var(--primary);opacity:.5}
+.reg-ticks .rt-sp{flex:1}
+@media(max-width:900px){ .coord-read{font-size:.58rem;letter-spacing:1.8px} .reg-ticks{display:none} }
+@media print{ .reg-ticks,.coord-read{display:none!important} }
 </style>
 </head>
 <body>
@@ -870,6 +888,7 @@ th{font-size:.7rem;color:#bcb9ac}
   </div>
 
   <div class="main-panel" id="mainDashboard">
+    <div class="reg-ticks" id="regTicks"></div>
     <div class="classified-strip">
       <span class="dot-live"></span>
       <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span><span id="mConsoleLink" style="display:none"> · <a href="./admin.html" style="color:var(--red);text-decoration:none" title="Station Chief console">M CONSOLE</a></span>
@@ -880,6 +899,7 @@ th{font-size:.7rem;color:#bcb9ac}
       <div class="title-section">
         <h2 id="viewTitle">DASHBOARD</h2>
         <div class="subtitle" id="viewSubtitle"></div>
+        <div class="coord-read" id="coordRead">27.4705&deg; S, 153.0260&deg; E &middot; STATION BNE</div>
         <div class="year-nav">
           <span class="yn-btn" onclick="changeYear(-1)" title="Previous year">&#8249;</span>
           <span id="yearLabel">----</span>
@@ -901,12 +921,12 @@ th{font-size:.7rem;color:#bcb9ac}
           <svg class="area-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(201,164,55,.35)"/>
-                <stop offset="100%" stop-color="rgba(201,164,55,0)"/>
+                <stop offset="0%" stop-color="rgba(111,163,170,.30)"/>
+                <stop offset="100%" stop-color="rgba(111,163,170,0)"/>
               </linearGradient>
             </defs>
             <path id="areaPathFill" fill="url(#areaGrad)"></path>
-            <path id="areaPathLine" fill="none" stroke="#c9a437" stroke-width="1.5"></path>
+            <path id="areaPathLine" fill="none" stroke="#6fa3aa" stroke-width="1.5"></path>
           </svg>
           <div class="chart-label">Operational trend</div>
         </div>
@@ -918,7 +938,7 @@ th{font-size:.7rem;color:#bcb9ac}
               <circle cx="18" cy="18" r="6.5" fill="none" stroke="#17171c" stroke-width="1"/>
               <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#1c1c22" stroke-width="3.5"/>
               <circle id="doughnutFill" cx="18" cy="18" r="15.9155" fill="none"
-                stroke="#c9a437" stroke-width="3.5"
+                stroke="#6fa3aa" stroke-width="3.5"
                 stroke-dasharray="0,100" stroke-linecap="round"
                 style="transition:stroke-dasharray .6s ease;"/>
             </svg>
@@ -1621,9 +1641,24 @@ if (db && auth) {
   setTimeout(() => { bootUI(); showToast('Demo mode — connect online to save'); }, 600);
 }
 
+function buildRegTicks() {
+  const el = document.getElementById('regTicks');
+  if (!el || el.dataset.built) return;
+  el.dataset.built = '1';
+  const widths = [60, 34, 80, 30, 52, 44];
+  let h = '';
+  for (let i = 1; i <= 6; i++) {
+    h += '<span class="rt' + (i === 2 ? ' live' : '') + '">R' + i
+       + '<i style="width:' + widths[i - 1] + 'px"></i></span>';
+    if (i < 6) h += '<span class="rt-sp"></span>';
+  }
+  el.innerHTML = h;
+}
+
 function bootUI() {
   appState = normalizeState(appState);
   document.getElementById('loadingOverlay').style.display = 'none';
+  buildRegTicks();
   if (!tabsInitialized) {
     initTabs();
     tabsInitialized = true;
@@ -1804,7 +1839,7 @@ function renderMonth() {
       + (streak >= 2 ? '<div class="mobile-streak">★ ' + streak + '-DAY STREAK</div>' : '')
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#c9a437" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#6fa3aa" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
       + '</svg><div class="mobile-ring-text">' + pct + '%</div></div></div>'
       + '<div class="mobile-edit-footer"><div style="display:flex;gap:8px;">'
       + '<button class="btn-mobile-sm" onclick="event.stopPropagation();moveTask(' + r + ',-1)">▲</button>'
@@ -1881,7 +1916,7 @@ function renderYear() {
       + '<span class="mobile-card-meta">' + yrDone + ' OF ' + yrSched + ' SCHEDULED DAYS</span>'
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
-      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#c9a437" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
+      + '<circle cx="22" cy="22" r="18" fill="none" stroke="#6fa3aa" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
       + '</svg><div class="mobile-ring-text">' + yrPct + '%</div></div></div></div>';
   });
 
@@ -1947,7 +1982,7 @@ function renderDesktopSidebar() {
     const ico = document.createElement('span');
     ico.className = 'sb-icon';
     ico.textContent = done ? '✓' : ICONS[r % ICONS.length];
-    if (done) { ico.style.color = '#c9a437'; ico.style.fontWeight = '700'; }
+    if (done) { ico.style.color = 'var(--gold)'; ico.style.fontWeight = '700'; }
 
     const nm = document.createElement('span');
     nm.className = 'sb-name';

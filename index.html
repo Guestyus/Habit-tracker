@@ -1161,6 +1161,19 @@ let offlineMode     = false;
 // ════════════════ HELPERS ════════════════
 const key = (m, r, d) => m + "_" + r + "_" + d;
 
+// ── Security: single source of truth for HTML escaping. Every user-controlled
+// string (habit names, codename, journal text, and anything from the shared
+// leaderboard, which other agents can write) MUST pass through this before
+// reaching innerHTML. Escapes all five HTML-significant characters.
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function haptic(pattern = 10) {
   if (navigator.vibrate) navigator.vibrate(pattern);
 }
@@ -1856,7 +1869,7 @@ function renderMonth() {
     totalDone += done; totalSched += schedDays;
 
     const dotColor = pct >= 80 ? 'var(--primary)' : pct >= 40 ? '#8a7430' : pct > 0 ? 'var(--red)' : '#2c2c32';
-    const safeName = name.replace(/"/g, '&quot;');
+    const safeName = esc(name);
 
     rows += '<tr><td class="col-habit"><div class="habit-cell">'
       + '<button class="btn-delete" onclick="removeTask(' + r + ')" title="Remove objective">&times;</button>'
@@ -1944,7 +1957,7 @@ function renderYear() {
   const circ = (2 * Math.PI * 18).toFixed(1);
 
   appState.habits.forEach((name, r) => {
-    const safeName = name.replace(/"/g, '&quot;');
+    const safeName = esc(name);
     rows += '<tr><td class="col-habit"><div class="habit-cell">'
       + '<button class="btn-delete" onclick="removeTask(' + r + ')">&times;</button>'
       + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly') + '>'
@@ -2111,7 +2124,7 @@ function renderTodayPanel() {
     html += '<div class="today-habit-btn' + (done ? ' done' : '') + (rest ? ' rest' : '') + '"'
       + (rest ? '' : ' onclick="toggleTodayHabit(' + r + ')"') + '>'
       + '<span class="today-habit-icon">' + (rest ? '–' : (done ? '✓' : ICONS[r % ICONS.length])) + '</span>'
-      + '<span class="today-habit-name">' + shortName.replace(/</g, '&lt;') + (rest ? '<br>REST' : '') + '</span></div>';
+      + '<span class="today-habit-name">' + esc(shortName) + (rest ? '<br>REST' : '') + '</span></div>';
   });
   html += '</div>';
   panel.innerHTML = html;
@@ -2245,7 +2258,7 @@ function renderJournal() {
     const lbl = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric' }).toUpperCase();
     rowsH += '<div class="jr-row' + (isLiveMonth && d === todayDay ? ' today' : '') + '" onclick="editJournal(' + d + ')" title="Tap to edit">'
       + '<span class="jr-date">' + lbl + '</span>'
-      + '<span class="jr-text">' + t.replace(/</g, '&lt;') + '</span></div>';
+      + '<span class="jr-text">' + esc(t) + '</span></div>';
   }
   panel.innerHTML = '<div class="jr-head"><span>\u25A4 FIELD NOTES \u00B7 ' + info.name.toUpperCase() + ' ' + viewYear + '</span>'
     + '<button class="jr-add" onclick="addJournalEntry()">+ Log Entry</button></div>'
@@ -2639,7 +2652,7 @@ function renderStation() {
     inner = rows.map((e, i) =>
       '<div class="st-row' + (e.uid === currentUser.uid ? ' me' : '') + '">'
       + '<span class="st-rank">' + String(i + 1).padStart(2, '0') + '</span>'
-      + '<span class="st-name">' + String(e.s.codename || 'AGENT').replace(/</g, '&lt;').substring(0, 16) + '</span>'
+      + '<span class="st-name">' + esc(String(e.s.codename || 'AGENT').substring(0, 16)) + '</span>'
       + '<span class="st-num">' + (e.s.pct || 0) + '%</span>'
       + '<span class="st-num" title="Best streak">\u2605' + (e.s.streak || 0) + '</span>'
       + '</div>').join('');
@@ -2743,7 +2756,7 @@ function maybeWeeklyDebrief(force) {
   const dEl = document.getElementById('dbDelta');
   dEl.textContent = delta === null ? '\u2014' : (delta >= 0 ? '\u25B2 +' + delta : '\u25BC ' + delta) + '%';
   dEl.style.color = delta === null ? 'var(--muted)' : (delta >= 0 ? 'var(--primary)' : 'var(--red)');
-  const safe = r => appState.habits[r].replace(/</g, '&lt;');
+  const safe = r => esc(appState.habits[r]);
   document.getElementById('dbBest').innerHTML = bestI >= 0
     ? safe(bestI) + ' \u00B7 ' + Math.round((stats.perObj[bestI].d / stats.perObj[bestI].s) * 100) + '%' : '\u2014';
   document.getElementById('dbWorst').innerHTML = worstI >= 0
@@ -3057,12 +3070,12 @@ function buildDossier() {
     + '<div class="dz-title">FIELD DOSSIER</div>'
     + '<div class="dz-sub">Mission: Consistency · Eyes Only</div>'
     + '<div class="dz-meta">FILE NO. ' + fileNo
-    + (appState.codename ? '<br>AGENT: ' + appState.codename.replace(/</g, '&lt;') : '')
+    + (appState.codename ? '<br>AGENT: ' + esc(appState.codename) : '')
     + '<br>REPORTING PERIOD: ' + periodLabel
     + '<br>GENERATED: ' + now.toLocaleString('en-AU').toUpperCase()
     + '<br>OBJECTIVES UNDER REVIEW: ' + appState.habits.length + '</div>'
     + '<div class="dz-rule"></div>';
-  html += '<div class="dz-quote">\u201C' + activeQuoteText().replace(/</g, '&lt;') + '\u201D</div>';
+  html += '<div class="dz-quote">\u201C' + esc(activeQuoteText()) + '\u201D</div>';
 
   if (isYear) {
     let grandDone = 0, grandTotal = 0, grandBest = 0;
@@ -3106,7 +3119,7 @@ function buildDossier() {
           + (mPct > 0 ? mPct + '%' : '—') + '</span></div>';
       });
       const yrPct = Math.round((yrDone / Math.max(yrDays, 1)) * 100);
-      const safe = name.replace(/</g, '&lt;');
+      const safe = esc(name);
       html += '<div class="dz-obj"><div class="dz-obj-head">'
         + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
         + '<span>' + yrPct + '% — ' + statusWord(yrPct) + '</span></div>'
@@ -3145,7 +3158,7 @@ function buildDossier() {
         if (d % 7 === 6 && d !== info.days - 1) grid += ' ';
       }
       const pct = schedDays ? Math.round((done / schedDays) * 100) : 0;
-      const safe = name.replace(/</g, '&lt;');
+      const safe = esc(name);
       html += '<div class="dz-obj"><div class="dz-obj-head">'
         + '<span>' + String(r + 1).padStart(2, '0') + ' · ' + safe + '</span>'
         + '<span>' + pct + '% — ' + statusWord(pct) + '</span></div>'
@@ -3159,13 +3172,13 @@ function buildDossier() {
     let jz = '';
     for (let d = 0; d < mDays; d++) {
       const t = appState.journal && appState.journal[currentView + '_' + d];
-      if (t) jz += '<div class="dz-note">' + String(d + 1).padStart(2, '0') + ' \u2014 ' + t.replace(/</g, '&lt;') + '</div>';
+      if (t) jz += '<div class="dz-note">' + String(d + 1).padStart(2, '0') + ' \u2014 ' + esc(t) + '</div>';
     }
     if (jz) html += '<div class="dz-notes-head">FIELD NOTES</div>' + jz;
   }
 
   html += '<div class="dz-sign"><div>'
-    + (appState.codename ? 'AGENT ' + appState.codename.replace(/</g, '&lt;') : 'AGENT SIGNATURE')
+    + (appState.codename ? 'AGENT ' + esc(appState.codename) : 'AGENT SIGNATURE')
     + '</div><div>STATION CHIEF</div></div>'
     + '<div class="dz-foot"><span>ISSUED BY Q BRANCH</span>'
     + '<span>FOR YOUR EYES ONLY · UNAUTHORISED DISCLOSURE PROHIBITED</span></div>';

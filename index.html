@@ -1327,12 +1327,95 @@ function dowsForMonth(mi) {
   return out;
 }
 
+// ════════════════ LOCAL SNAPSHOT (IndexedDB seatbelt) ════════════════
+// Every successful in-memory state is mirrored to the browser's own
+// database, keyed by uid+year. This is the everyday fallback: if a sync
+// glitch or a server-side wipe ever returns an empty vault, the local
+// copy is offered back. The master export remains the off-site backup;
+// this is the seatbelt that needs no thought.
+let _idb = null, _idbTried = false;
+
+function idbReady() {
+  if (_idb) return Promise.resolve(_idb);
+  if (_idbTried && !_idb) return Promise.reject('idb-unavailable');
+  return new Promise((resolve, reject) => {
+    _idbTried = true;
+    try {
+      if (!('indexedDB' in window)) return reject('idb-unavailable');
+      const req = indexedDB.open('mission-consistency', 1);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('vaults')) d.createObjectStore('vaults');
+      };
+      req.onsuccess = e => { _idb = e.target.result; resolve(_idb); };
+      req.onerror = () => reject('idb-open-failed');
+    } catch (e) { reject('idb-exception'); }
+  });
+}
+
+function snapKey() {
+  return (currentUser ? currentUser.uid : 'demo') + ':' + viewYear;
+}
+
+function localSnapshotSave(state) {
+  idbReady().then(d => {
+    try {
+      const tx = d.transaction('vaults', 'readwrite');
+      tx.objectStore('vaults').put({ saved: Date.now(), year: viewYear, state }, snapKey());
+    } catch (e) { /* snapshot is best-effort — never blocks the app */ }
+  }).catch(() => {});
+}
+
+function localSnapshotLoad() {
+  return idbReady().then(d => new Promise(resolve => {
+    try {
+      const tx = d.transaction('vaults', 'readonly');
+      const rq = tx.objectStore('vaults').get(snapKey());
+      rq.onsuccess = () => resolve(rq.result || null);
+      rq.onerror = () => resolve(null);
+    } catch (e) { resolve(null); }
+  })).catch(() => null);
+}
+
+function vaultOpsCount(st) {
+  if (!st || !st.data || typeof st.data !== 'object') return 0;
+  let n = 0;
+  for (const k in st.data) if (st.data[k]) n++;
+  return n;
+}
+
+// If the server hands back an empty vault but a local snapshot for this
+// uid+year holds real data, offer recovery rather than silently adopting
+// the blank. Only fires when the gap is real (server empty, local non-empty).
+function maybeOfferRecovery(serverState) {
+  return localSnapshotLoad().then(snap => {
+    if (!snap || !snap.state) return false;
+    const localOps = vaultOpsCount(snap.state);
+    const serverOps = vaultOpsCount(serverState);
+    if (localOps > 0 && serverOps === 0) {
+      const when = new Date(snap.saved).toLocaleString('en-AU');
+      askInput('LOCAL BACKUP FOUND',
+        'The server vault for ' + viewYear + ' is empty, but this device holds a local snapshot from '
+        + when + ' with ' + localOps + ' logged operations. Restore it?',
+        '', v => {
+          if (v === null) { showToast('Kept the server vault'); return; }
+          appState = normalizeState(snap.state);
+          safeSave();           // push the recovered state back up
+          renderView();
+          showToast('\u2713 Recovered ' + localOps + ' operations from local backup', true);
+        }, { confirm: true });
+      return true;
+    }
+    return false;
+  });
+}
+
 function safeSave() {
   if (offlineMode || !docRef) { showToast('⚠ Offline — intel not saved'); return; }
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     docRef.set(appState)
-      .then(() => showToast('✓ Intel secured'))
+      .then(() => { showToast('✓ Intel secured'); localSnapshotSave(appState); })
       .catch(err => {
         console.warn('Save failed:', err);
         showToast('⚠ Transmission failed');
@@ -1369,8 +1452,19 @@ function subscribeToVault() {
     clearTimeout(loadTimeout);
     offlineMode = false;
     if (doc.exists) {
-      appState = normalizeState(doc.data());
-      bootUI();
+      const incoming = normalizeState(doc.data());
+      // Server vault empty but a local snapshot has data → offer recovery.
+      if (vaultOpsCount(incoming) === 0) {
+        maybeOfferRecovery(incoming).then(offered => {
+          appState = incoming;
+          bootUI();
+          // (recovery prompt, if shown, overwrites appState on confirm)
+        });
+      } else {
+        appState = incoming;
+        localSnapshotSave(appState); // refresh the seatbelt with known-good server data
+        bootUI();
+      }
     } else {
       migrateOrCreate();
     }

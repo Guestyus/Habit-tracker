@@ -179,11 +179,14 @@ const db = firebase.firestore();
 db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
 
 const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? '' : s).replace(/</g, '&lt;');
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const REAL_YEAR = new Date().getFullYear();
 const tMonth = new Date().getMonth();
 const tDay = new Date().getDate() - 1;
 let leaderboard = {};
+let rosterMap = {};            // uid -> { name, email }; detail view reads from here
 let curUid = null, curName = '';
 
 function show(id, on) { $(id).style.display = on ? 'flex' : 'none'; }
@@ -246,9 +249,10 @@ async function loadRoster() {
     $('roster').innerHTML = '<div class="cards">' + rows.map(a => {
       const s = leaderboard[a.uid];
       const name = a.codename || (s && s.codename) || 'UNNAMED AGENT';
+      rosterMap[a.uid] = { name, email: a.email || '' };
       const seen = a.lastSeen ? new Date(a.lastSeen).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }).toUpperCase()
         + ' ' + new Date(a.lastSeen).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : '—';
-      return '<div class="agent" onclick="openAgent(\'' + a.uid + '\',\'' + esc(name).replace(/'/g, '') + '\',\'' + esc(a.email || '').replace(/'/g, '') + '\')">'
+      return '<div class="agent" onclick="openAgent(\'' + encodeURIComponent(a.uid) + '\')">'
         + '<div class="a-name">' + esc(name) + (a.uid === ADMIN_UID ? ' · YOU' : '') + '</div>'
         + '<div class="a-mail">' + esc(a.email || '') + '</div>'
         + '<div class="a-stats">'
@@ -263,12 +267,14 @@ async function loadRoster() {
 }
 
 // ════════ AGENT DETAIL ════════
-async function openAgent(uid, name, mail) {
-  curUid = uid; curName = name;
+async function openAgent(uidRaw) {
+  const uid = decodeURIComponent(uidRaw);
+  const info = rosterMap[uid] || { name: 'AGENT', email: '' };
+  curUid = uid; curName = info.name;
   $('roster').style.display = 'none';
   $('detail').style.display = 'block';
-  $('dName').textContent = name;
-  $('dMail').textContent = mail;
+  $('dName').textContent = info.name;     // textContent — never parsed as HTML
+  $('dMail').textContent = info.email;
   $('yrTabs').innerHTML = '';
   $('dBody').innerHTML = '<div class="loading">Opening vault…</div>';
   try {

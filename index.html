@@ -1720,6 +1720,65 @@ function getCurrentStreak(r) {
   return streak;
 }
 
+// Personal best — longest run on any single objective across the whole
+// viewed year (rest days never break it, matching the live-streak rule).
+// Computed from the vault each render, so it always reflects current data.
+// Returns { len, habit, endLabel } or null if nothing logged.
+function personalBest() {
+  if (!appState || !appState.habits.length) return null;
+  let best = 0, bestHabit = '', bestEnd = null;
+  appState.habits.forEach((name, r) => {
+    let run = 0, runEnd = null;
+    monthsInfo.forEach((m, mi) => {
+      for (let d = 0; d < m.days; d++) {
+        if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue;
+        if (appState.data[key(mi, r, d)]) {
+          run++; runEnd = { mi, d };
+          if (run > best) { best = run; bestHabit = name; bestEnd = runEnd; }
+        } else { run = 0; }
+      }
+    });
+  });
+  if (!best) return null;
+  const MN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return { len: best, habit: bestHabit,
+           endLabel: bestEnd ? (bestEnd.d + 1) + ' ' + MN[bestEnd.mi] : '' };
+}
+
+// Success rate for a given month index in the viewed year, schedule-aware.
+// For the live month it counts only days up to today (fair month-to-date).
+// Returns null when nothing was scheduled (so trend can skip empty months).
+function monthRate(mi) {
+  if (mi < 0 || mi > 11 || !appState || !appState.habits.length) return null;
+  if (viewYear > THIS_YEAR) return null;                 // future year — no data
+  if (viewYear === THIS_YEAR && mi > _todayMonth) return null; // future month
+  const days = monthsInfo[mi].days;
+  const isLive = viewYear === THIS_YEAR && mi === _todayMonth;
+  const lastD = isLive ? todayDay : days - 1;
+  let sched = 0, done = 0;
+  appState.habits.forEach((_, r) => {
+    for (let d = 0; d <= lastD; d++) {
+      if (!isSchedDow(r, new Date(viewYear, mi, d + 1).getDay())) continue;
+      sched++;
+      if (appState.data[key(mi, r, d)]) done++;
+    }
+  });
+  return sched ? Math.round((done / sched) * 100) : null;
+}
+
+// Builds a "▲ +N% vs MON" trend fragment comparing a month to the prior one.
+function trendFragment(mi) {
+  const cur = monthRate(mi);
+  let pmi = mi - 1, prev = null;
+  while (pmi >= 0 && (prev = monthRate(pmi)) === null) pmi--;
+  if (cur === null || prev === null) return '';
+  const MN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const d = cur - prev;
+  const arrow = d > 0 ? '\u25B2 +' + d : d < 0 ? '\u25BC ' + d : '\u2014 ';
+  const col = d > 0 ? 'var(--primary)' : d < 0 ? 'var(--red)' : 'var(--muted)';
+  return ' \u00B7 <span style="color:' + col + '">' + arrow + '% vs ' + MN[pmi] + '</span>';
+}
+
 // ════════════════ RENDER ════════════════
 let _bootPlayed = false, _lastView = null, _lastYearView = null;
 
@@ -1858,11 +1917,12 @@ function renderMonth() {
   if (isCurrentMonth) {
     const schedToday = appState.habits.filter((_, r) => isSchedToday(r)).length;
     const doneToday = appState.habits.filter((_, r) => isSchedToday(r) && appState.data[key(currentView, r, todayDay)]).length;
-    pill.innerHTML = schedToday
+    const trend = trendFragment(currentView);
+    pill.innerHTML = (schedToday
       ? 'Today: <span>' + doneToday + '/' + schedToday + '</span> · Month: <span>' + monthPct + '%</span>'
-      : 'Rest day · Month: <span>' + monthPct + '%</span>';
+      : 'Rest day · Month: <span>' + monthPct + '%</span>') + trend;
   } else {
-    pill.innerHTML = 'Month: <span>' + monthPct + '%</span>';
+    pill.innerHTML = 'Month: <span>' + monthPct + '%</span>' + trendFragment(currentView);
   }
 
   updateCharts(currentView);
@@ -2015,8 +2075,9 @@ function renderDesktopSidebar() {
   });
   const pct = Math.round((monthDone / Math.max(monthSched, 1)) * 100);
   statsEl.innerHTML = '';
-  [[pct + '%', 'Success'], [longest + '★', 'Best Streak'],
-   [monthDone, 'Ops Done'], [appState.habits.length, 'Objectives']].forEach(([val, lbl]) => {
+  const _pb = personalBest();
+  [[pct + '%', 'Success'], [longest + '★', 'Month Streak'],
+   [_pb && _pb.len ? _pb.len + '★' : '0', 'Best ' + viewYear], [monthDone, 'Ops Done']].forEach(([val, lbl]) => {
     const item = document.createElement('div');
     item.className = 'ss-item';
     const v = document.createElement('div'); v.className = 'ss-val'; v.textContent = val;
@@ -2116,7 +2177,9 @@ function renderFooterStats(view) {
       }
     });
     addStat(totalDone, 'Ops This Month');
-    addStat(longest + '★', 'Best Streak');
+    addStat(longest + '★', 'Month Streak');
+    const pb = personalBest();
+    addStat(pb ? pb.len + '★' : '0', pb && pb.len ? 'Best ' + viewYear : 'Best Streak');
     addStat(appState.habits.length, 'Objectives');
   }
 }

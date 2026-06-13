@@ -2964,7 +2964,7 @@ function setCodename() {
   if (!appState) return;
   askInput('AGENT CODENAME', 'Shown on the classified strip and all dossiers', appState.codename || '', v => {
     if (v === null) return;
-    appState.codename = v.toUpperCase().trim();
+    appState.codename = v.toUpperCase().trim().substring(0, 32); // matches leaderboard rule cap
     updateAgentName();
     safeSave();
     if (appState.stationOptIn) publishStation();

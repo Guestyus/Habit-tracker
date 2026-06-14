@@ -502,6 +502,14 @@ function cleanVault(v) {
   out.medals = (v.medals && typeof v.medals === 'object' && !Array.isArray(v.medals)) ? v.medals : {};
   out.lastDebrief = typeof v.lastDebrief === 'string' ? v.lastDebrief : '';
   out.stationOptIn = v.stationOptIn === true;
+  out.subcats = Array.isArray(v.subcats)
+    ? v.subcats.map(sc => Array.isArray(sc) ? sc.map(s => String(s)).filter(Boolean) : []) : [];
+  out.subcatData = {};
+  if (v.subcatData && typeof v.subcatData === 'object' && !Array.isArray(v.subcatData)) {
+    Object.entries(v.subcatData).forEach(([k, val]) => {
+      if (typeof val === 'string' && val && /^\d+_\d+_\d+$/.test(k)) out.subcatData[k] = val;
+    });
+  }
   return out;
 }
 

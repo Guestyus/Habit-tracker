@@ -830,6 +830,17 @@ th{font-size:.7rem;color:#bcb9ac}
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .im-field:focus-visible{outline:none}
 
+/* ── SUB-CATEGORIES ── */
+.day-btn{flex-direction:column;gap:2px}
+.db-sc-lbl{font-size:.44rem;letter-spacing:.5px;color:var(--gold);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%;pointer-events:none}
+.day-btn.checked .db-sc-lbl{color:#0a0a0c}
+.day-btn.rest-day .db-sc-lbl{display:none}
+.subcat-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:4px}
+.subcat-row-name{flex:1;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1.5px;font-size:.84rem;text-transform:uppercase}
+.mobile-subcat{font-size:.68rem;color:var(--primary);font-family:'IBM Plex Mono',monospace;margin-top:4px;letter-spacing:.5px}
+.btn-subcat{display:none}
+.is-editing .btn-subcat{display:flex!important}
+
 /* ════════ SPECTRE FILM FURNITURE ════════ */
 .coord-read{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:3px;
   color:var(--muted);opacity:.5;text-transform:uppercase;margin-top:6px}
@@ -1065,6 +1076,35 @@ th{font-size:.7rem;color:#bcb9ac}
     </div>
     <div class="day-grid" id="dayGrid"></div>
     <button class="modal-btn-done" onclick="closeModal()">Close File</button>
+  </div>
+</div>
+
+<div id="subcatModal" style="position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3150;display:none;flex-direction:column;backdrop-filter:blur(6px)">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="subcatPickTitle">SELECT VARIANT</div>
+        <div class="modal-month">WHICH SUB-CATEGORY? · OR SKIP TO LOG WITHOUT DETAIL</div>
+      </div>
+      <button class="modal-close" onclick="skipSubcat()">✕</button>
+    </div>
+    <div id="subcatPickGrid" style="margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;"></div>
+    <button class="modal-btn-done" style="margin-top:18px;background:var(--surface-3);border:1px solid var(--border);color:var(--muted);" onclick="skipSubcat()">Skip · Log Without Detail</button>
+  </div>
+</div>
+
+<div id="subcatEditModal" style="position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:3150;display:none;flex-direction:column;backdrop-filter:blur(6px)">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="subcatEditTitle">SUB-CATEGORIES</div>
+        <div class="modal-month" id="subcatEditSub">ADD VARIANTS TO LOG UNDER THIS OBJECTIVE</div>
+      </div>
+      <button class="modal-close" onclick="closeSubcatEditor()">✕</button>
+    </div>
+    <div id="subcatEditList" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;min-height:40px;"></div>
+    <button class="modal-btn-done" onclick="addSubcatItem()" style="margin-top:16px;">+ Add Sub-Category</button>
+    <button class="modal-btn-done" onclick="closeSubcatEditor()" style="margin-top:8px;background:var(--surface-3);border:1px solid var(--border);color:var(--muted);">Done</button>
   </div>
 </div>
 
@@ -1317,6 +1357,8 @@ function buildDefault() {
     quote: "",
     codename: "",
     sched: [],
+    subcats: [],
+    subcatData: {},
     journal: {},
     medals: {},
     lastDebrief: '',
@@ -1344,6 +1386,11 @@ function normalizeState(s) {
   }
   if (!s.medals || typeof s.medals !== 'object' || Array.isArray(s.medals)) s.medals = {};
   if (s.quote && QUOTES.indexOf(s.quote) !== -1) s.quote = ''; // legacy shuffle artifact \u2192 resume rotation
+  if (!Array.isArray(s.subcats)) s.subcats = [];
+  while (s.subcats.length < s.habits.length) s.subcats.push([]);
+  s.subcats.length = s.habits.length;
+  s.subcats = s.subcats.map(sc => Array.isArray(sc) ? sc.map(v => String(v)).filter(Boolean) : []);
+  if (!s.subcatData || typeof s.subcatData !== 'object' || Array.isArray(s.subcatData)) s.subcatData = {};
   return s;
 }
 
@@ -1359,6 +1406,10 @@ function dowsForMonth(mi) {
   for (let d = 0; d < days; d++) out[d] = new Date(viewYear, mi, d + 1).getDay();
   return out;
 }
+
+// ── Sub-category helpers ──
+function hasSubs(r) { return !!(appState.subcats && Array.isArray(appState.subcats[r]) && appState.subcats[r].length); }
+function subcatsOf(r) { return (appState.subcats && Array.isArray(appState.subcats[r])) ? appState.subcats[r] : []; }
 
 // ════════════════ LOCAL SNAPSHOT (IndexedDB seatbelt) ════════════════
 // Every successful in-memory state is mirrored to the browser's own
@@ -1878,6 +1929,7 @@ function renderMonth() {
       + '<button class="btn-move" onclick="moveTask(' + r + ',1)" title="Move down">▼</button>'
       + '</div>'
       + '<button class="btn-sched" onclick="openSchedule(' + r + ')" title="Training schedule">🗓</button>'
+      + '<button class="btn-sched btn-subcat" onclick="openSubcatEditor(' + r + ')" title="Sub-categories">🏷</button>'
       + '<div class="row-dot" style="background:' + dotColor + '"></div>'
       + '<span class="streak-badge' + (streak >= 2 ? ' visible' : '') + '">' + (streak >= 2 ? '★ ' + streak : '') + '</span>'
       + '<input class="habit-input" value="' + safeName + '" onchange="updateTaskName(' + r + ',this.value)"' + (isEditing ? '' : ' readonly onclick="openModal(' + r + ')" style="cursor:pointer" title="Open field log"') + '>'
@@ -1903,12 +1955,25 @@ function renderMonth() {
     const todayLabel = isCurrentMonth
       ? (restToday ? ' · REST DAY' : (isDoneToday ? ' · ✓ COMPLETE TODAY' : ' · PENDING TODAY'))
       : '';
+    // Sub-cat month summary for mobile card
+    let scLine = '';
+    if (hasSubs(r) && appState.subcatData) {
+      const scCounts = {};
+      for (let d = 0; d < info.days; d++) {
+        const sc = appState.subcatData[key(currentView, r, d)];
+        if (sc) scCounts[sc] = (scCounts[sc] || 0) + 1;
+      }
+      const scParts = Object.entries(scCounts).sort((a, b) => b[1] - a[1]).slice(0, 4)
+        .map(([sc, cnt]) => esc(sc) + ' ×' + cnt);
+      if (scParts.length) scLine = '<div class="mobile-subcat">' + scParts.join(' · ') + '</div>';
+    }
     cards += '<div class="mobile-card' + (isEditing ? ' edit-mode' : '') + (isDoneToday ? ' done-today' : '') + '" '
       + 'onclick="' + (isEditing ? 'event.stopPropagation()' : 'openModal(' + r + ')') + '">'
       + '<div class="mobile-card-header"><div class="mobile-card-left">'
       + '<span class="mobile-card-name">' + safeName + '</span>'
       + '<span class="mobile-card-meta">' + done + '/' + schedDays + ' DAYS' + todayLabel + '</span>'
       + (streak >= 2 ? '<div class="mobile-streak">★ ' + streak + '-DAY STREAK</div>' : '')
+      + scLine
       + '</div><div class="mobile-ring"><svg viewBox="0 0 44 44">'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#23242c" stroke-width="4"/>'
       + '<circle cx="22" cy="22" r="18" fill="none" stroke="#6fa3aa" stroke-width="4" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round"/>'
@@ -2216,6 +2281,7 @@ function openModal(r) {
     const isToday  = currentView === tMonth() && d === todayDay;
     const isFuture = currentView === tMonth() && d > todayDay;
     const jNote = (appState.journal && appState.journal[currentView + '_' + d]) || '';
+    const scLabel = (!rest && appState.subcatData && appState.subcatData[k]) || '';
     const btn = document.createElement('div');
     btn.className = 'day-btn'
       + (rest ? ' rest-day' : '')
@@ -2223,11 +2289,36 @@ function openModal(r) {
       + (isToday ? ' today-day' : '')
       + (isFuture ? ' future-day' : '')
       + (jNote ? ' has-note' : '');
-    btn.textContent = d + 1;
+    btn.innerHTML = '<span>' + (d + 1) + '</span>'
+      + (scLabel ? '<span class="db-sc-lbl">' + esc(scLabel) + '</span>' : '');
     if (jNote) btn.title = jNote;
     if (!rest && !isFuture) {
       btn.onclick = () => {
         haptic(10);
+        const turning_on = !appState.data[k];
+        if (turning_on && hasSubs(r)) {
+          openSubcatPicker(r, currentView, d, () => {
+            appState.data[k] = true;
+            btn.classList.add('checked');
+            const picked = appState.subcatData && appState.subcatData[k] ? appState.subcatData[k] : '';
+            if (picked) {
+              let sc = btn.querySelector('.db-sc-lbl');
+              if (!sc) { sc = document.createElement('span'); sc.className = 'db-sc-lbl'; btn.appendChild(sc); }
+              sc.textContent = picked;
+            }
+            btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+            done++;
+            updateModalStats(done, schedDays);
+            safeSave();
+            renderView();
+          });
+          return;
+        }
+        if (!turning_on && appState.subcatData) {
+          delete appState.subcatData[k];
+          const sc = btn.querySelector('.db-sc-lbl');
+          if (sc) sc.remove();
+        }
         appState.data[k] = !appState.data[k];
         btn.classList.toggle('checked');
         btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
@@ -2361,6 +2452,11 @@ function closeSchedule() {
 function toggleCheckbox(m, r, c) {
   haptic(10);
   const k = key(m, r, c);
+  if (!appState.data[k] && hasSubs(r)) {
+    openSubcatPicker(r, m, c, () => { appState.data[k] = true; safeSave(); renderView(); });
+    return;
+  }
+  if (appState.data[k] && appState.subcatData) delete appState.subcatData[k];
   appState.data[k] = !appState.data[k];
   safeSave();
   renderView();
@@ -2371,11 +2467,24 @@ function toggleTodayHabit(r) {
   if (!isSchedToday(r)) { showToast('Rest day for this objective'); return; }
   haptic(12);
   const k = key(currentView, r, todayDay);
+  const checkAllDone = () => {
+    const sched = appState.habits.map((_, i) => isSchedToday(i));
+    const allDone = sched.some(Boolean)
+      && appState.habits.every((_, i) => !sched[i] || appState.data[key(currentView, i, todayDay)]);
+    if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); gunBarrel(); }
+  };
+  if (!appState.data[k] && hasSubs(r)) {
+    openSubcatPicker(r, currentView, todayDay, () => {
+      appState.data[k] = true;
+      checkAllDone();
+      safeSave();
+      renderView();
+    });
+    return;
+  }
+  if (appState.data[k] && appState.subcatData) delete appState.subcatData[k];
   appState.data[k] = !appState.data[k];
-  const sched = appState.habits.map((_, i) => isSchedToday(i));
-  const allDone = sched.some(Boolean)
-    && appState.habits.every((_, i) => !sched[i] || appState.data[key(currentView, i, todayDay)]);
-  if (allDone) { showToast('★ Mission accomplished, agent', true); haptic([30, 20, 30]); gunBarrel(); }
+  checkAllDone();
   safeSave();
   renderView();
 }
@@ -2413,6 +2522,8 @@ function addTask() {
   appState.habits.push('NEW OBJECTIVE');
   appState.sched = appState.habits.map((_, i) =>
     i < appState.habits.length - 1 ? schedOf(i) : '1111111');
+  if (!Array.isArray(appState.subcats)) appState.subcats = [];
+  while (appState.subcats.length < appState.habits.length) appState.subcats.push([]);
   safeSave();
   renderView();
   showToast('✓ Objective added', true);
@@ -2426,22 +2537,34 @@ function removeTask(i) {
 
 function reallyRemoveTask(i) {
   // snapshot for undo — taken before anything is destroyed
-  const snap = { index: i, name: appState.habits[i], sched: schedOf(i), rowData: {} };
+  const snap = { index: i, name: appState.habits[i], sched: schedOf(i), subcatList: subcatsOf(i).slice(), rowData: {}, rowSubcatData: {} };
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     if (parseInt(k.split('_')[1], 10) === i) snap.rowData[k] = v;
   });
+  if (appState.subcatData) Object.entries(appState.subcatData).forEach(([k, v]) => {
+    if (!v) return;
+    if (parseInt(k.split('_')[1], 10) === i) snap.rowSubcatData[k] = v;
+  });
 
   appState.habits.splice(i, 1);
   if (Array.isArray(appState.sched) && appState.sched.length > i) appState.sched.splice(i, 1);
-  const newData = {};
+  if (Array.isArray(appState.subcats) && appState.subcats.length > i) appState.subcats.splice(i, 1);
+  const newData = {}, newSubcatData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     const [m, row, d] = k.split('_').map(Number);
     if (row < i) newData[k] = v;
     else if (row > i) newData[key(m, row - 1, d)] = v;
   });
+  if (appState.subcatData) Object.entries(appState.subcatData).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    if (row < i) newSubcatData[k] = v;
+    else if (row > i) newSubcatData[key(m, row - 1, d)] = v;
+  });
   appState.data = newData;
+  appState.subcatData = newSubcatData;
   safeSave();
   renderView();
   showUndoToast('Objective decommissioned', () => restoreTask(snap));
@@ -2452,14 +2575,23 @@ function restoreTask(snap) {
   appState.habits.splice(i, 0, snap.name);
   if (!Array.isArray(appState.sched)) appState.sched = [];
   appState.sched.splice(i, 0, snap.sched || '1111111');
-  const newData = {};
+  if (!Array.isArray(appState.subcats)) appState.subcats = [];
+  appState.subcats.splice(i, 0, snap.subcatList || []);
+  const newData = {}, newSubcatData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     const [m, row, d] = k.split('_').map(Number);
     newData[row >= i ? key(m, row + 1, d) : k] = v;
   });
   Object.assign(newData, snap.rowData);
+  if (appState.subcatData) Object.entries(appState.subcatData).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    newSubcatData[row >= i ? key(m, row + 1, d) : k] = v;
+  });
+  Object.assign(newSubcatData, snap.rowSubcatData || {});
   appState.data = newData;
+  appState.subcatData = newSubcatData;
   safeSave();
   renderView();
   showToast('\u2713 Objective restored', true);
@@ -2473,7 +2605,11 @@ function moveTask(index, direction) {
   appState.sched = appState.habits.map((_, i) => schedOf(i));
   [appState.sched[index], appState.sched[newIndex]] =
     [appState.sched[newIndex], appState.sched[index]];
-  const newData = {};
+  if (!Array.isArray(appState.subcats)) appState.subcats = [];
+  while (appState.subcats.length <= Math.max(index, newIndex)) appState.subcats.push([]);
+  [appState.subcats[index], appState.subcats[newIndex]] =
+    [appState.subcats[newIndex], appState.subcats[index]];
+  const newData = {}, newSubcatData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     const [m, row, d] = k.split('_').map(Number);
@@ -2481,7 +2617,15 @@ function moveTask(index, direction) {
     else if (row === newIndex) newData[key(m, index, d)] = v;
     else newData[k] = v;
   });
+  if (appState.subcatData) Object.entries(appState.subcatData).forEach(([k, v]) => {
+    if (!v) return;
+    const [m, row, d] = k.split('_').map(Number);
+    if (row === index) newSubcatData[key(m, newIndex, d)] = v;
+    else if (row === newIndex) newSubcatData[key(m, index, d)] = v;
+    else newSubcatData[k] = v;
+  });
   appState.data = newData;
+  appState.subcatData = newSubcatData;
   safeSave();
   renderView();
 }
@@ -3185,6 +3329,103 @@ function buildDossier() {
 
   el.innerHTML = html;
 }
+
+// ════════════════ SUB-CATEGORIES ════════════════
+let subcatPendingR = null, subcatPendingM = null, subcatPendingC = null, subcatPendingCb = null;
+let subcatEditR = null;
+
+function openSubcatPicker(r, m, c, cb) {
+  subcatPendingR = r; subcatPendingM = m; subcatPendingC = c; subcatPendingCb = cb;
+  document.getElementById('subcatPickTitle').textContent = appState.habits[r];
+  const grid = document.getElementById('subcatPickGrid');
+  grid.innerHTML = subcatsOf(r).map(sc =>
+    '<div style="padding:14px 10px;text-align:center;background:var(--surface-2);border:1px solid var(--border);'
+    + 'color:var(--text);font-family:\'Oswald\',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:1.5px;'
+    + 'text-transform:uppercase;cursor:pointer;transition:all .14s;border-radius:4px;"'
+    + ' onmouseover="this.style.background=\'var(--primary-light)\';this.style.borderColor=\'var(--primary)\'"'
+    + ' onmouseout="this.style.background=\'var(--surface-2)\';this.style.borderColor=\'var(--border)\'"'
+    + ' onclick="pickSubcat(' + JSON.stringify(sc) + ')">' + esc(sc) + '</div>'
+  ).join('');
+  document.getElementById('subcatModal').style.display = 'flex';
+}
+
+function pickSubcat(name) {
+  if (!appState.subcatData) appState.subcatData = {};
+  appState.subcatData[key(subcatPendingM, subcatPendingR, subcatPendingC)] = name;
+  document.getElementById('subcatModal').style.display = 'none';
+  if (subcatPendingCb) { const cb = subcatPendingCb; subcatPendingCb = null; cb(); }
+}
+
+function skipSubcat() {
+  document.getElementById('subcatModal').style.display = 'none';
+  if (subcatPendingCb) { const cb = subcatPendingCb; subcatPendingCb = null; cb(); }
+}
+
+function openSubcatEditor(r) {
+  if (event) event.stopPropagation();
+  subcatEditR = r;
+  document.getElementById('subcatEditTitle').textContent = appState.habits[r];
+  document.getElementById('subcatEditSub').textContent =
+    subcatsOf(r).length ? 'SUB-CATEGORIES · SHOWN AS PICKER WHEN LOGGING' : 'ADD VARIANTS TO LOG UNDER THIS OBJECTIVE';
+  renderSubcatEditList();
+  document.getElementById('subcatEditModal').style.display = 'flex';
+}
+
+function renderSubcatEditList() {
+  const list = document.getElementById('subcatEditList');
+  const scs = subcatsOf(subcatEditR);
+  if (!scs.length) {
+    list.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:.62rem;color:var(--muted);'
+      + 'letter-spacing:1px;text-transform:uppercase;padding:10px 0;">'
+      + 'No sub-categories yet — add some below</div>';
+    return;
+  }
+  list.innerHTML = scs.map((sc, i) =>
+    '<div class="subcat-row">'
+    + '<span class="subcat-row-name">' + esc(sc) + '</span>'
+    + '<button onclick="removeSubcatItem(' + i + ')" style="background:none;border:1px solid var(--red);'
+    + 'color:var(--red);padding:5px 12px;font-size:.68rem;cursor:pointer;font-family:\'Oswald\',sans-serif;'
+    + 'letter-spacing:1px;text-transform:uppercase;border-radius:3px;">Remove</button>'
+    + '</div>'
+  ).join('');
+}
+
+function addSubcatItem() {
+  askInput('NEW SUB-CATEGORY', 'E.g. LEGS · CHEST · BACK', '', v => {
+    if (v === null || !v.trim()) return;
+    const name = v.trim().toUpperCase().substring(0, 20);
+    if (!Array.isArray(appState.subcats)) appState.subcats = [];
+    while (appState.subcats.length <= subcatEditR) appState.subcats.push([]);
+    if (!Array.isArray(appState.subcats[subcatEditR])) appState.subcats[subcatEditR] = [];
+    if (appState.subcats[subcatEditR].includes(name)) { showToast('Already exists'); return; }
+    appState.subcats[subcatEditR].push(name);
+    safeSave();
+    renderSubcatEditList();
+    showToast('✓ ' + name + ' added', true);
+  });
+}
+
+function removeSubcatItem(i) {
+  if (!appState.subcats || !Array.isArray(appState.subcats[subcatEditR])) return;
+  const name = appState.subcats[subcatEditR][i];
+  appState.subcats[subcatEditR].splice(i, 1);
+  safeSave();
+  renderSubcatEditList();
+  showToast(name + ' removed');
+}
+
+function closeSubcatEditor() {
+  document.getElementById('subcatEditModal').style.display = 'none';
+  subcatEditR = null;
+  renderView();
+}
+
+document.getElementById('subcatModal').addEventListener('click', e => {
+  if (e.target.id === 'subcatModal') skipSubcat();
+});
+document.getElementById('subcatEditModal').addEventListener('click', e => {
+  if (e.target.id === 'subcatEditModal') closeSubcatEditor();
+});
 
 // ════════════════ KEYBOARD ════════════════
 document.addEventListener('keydown', e => {

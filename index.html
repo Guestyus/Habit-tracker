@@ -1387,9 +1387,13 @@ function normalizeState(s) {
   if (!s.medals || typeof s.medals !== 'object' || Array.isArray(s.medals)) s.medals = {};
   if (s.quote && QUOTES.indexOf(s.quote) !== -1) s.quote = ''; // legacy shuffle artifact \u2192 resume rotation
   if (!Array.isArray(s.subcats)) s.subcats = [];
-  while (s.subcats.length < s.habits.length) s.subcats.push([]);
+  while (s.subcats.length < s.habits.length) s.subcats.push('');
   s.subcats.length = s.habits.length;
-  s.subcats = s.subcats.map(sc => Array.isArray(sc) ? sc.map(v => String(v)).filter(Boolean) : []);
+  // Firestore forbids nested arrays — each habit's sub-cats are stored as a
+  // single pipe-joined string. Tolerate any legacy array form on read.
+  s.subcats = s.subcats.map(sc =>
+    Array.isArray(sc) ? sc.map(v => String(v)).filter(Boolean).join('|')
+    : (typeof sc === 'string' ? sc : ''));
   if (!s.subcatData || typeof s.subcatData !== 'object' || Array.isArray(s.subcatData)) s.subcatData = {};
   return s;
 }
@@ -1408,8 +1412,18 @@ function dowsForMonth(mi) {
 }
 
 // ── Sub-category helpers ──
-function hasSubs(r) { return !!(appState.subcats && Array.isArray(appState.subcats[r]) && appState.subcats[r].length); }
-function subcatsOf(r) { return (appState.subcats && Array.isArray(appState.subcats[r])) ? appState.subcats[r] : []; }
+function hasSubs(r) { return subcatsOf(r).length > 0; }
+function subcatsOf(r) {
+  const v = appState.subcats && appState.subcats[r];
+  if (Array.isArray(v)) return v.filter(Boolean);            // tolerate legacy array form
+  return (typeof v === 'string' && v) ? v.split('|').filter(Boolean) : [];
+}
+// Writes a habit's sub-cats back as a pipe-joined string (Firestore-safe — no nested arrays).
+function setSubcats(r, list) {
+  if (!Array.isArray(appState.subcats)) appState.subcats = [];
+  while (appState.subcats.length <= r) appState.subcats.push('');
+  appState.subcats[r] = list.filter(Boolean).join('|');
+}
 
 // ════════════════ LOCAL SNAPSHOT (IndexedDB seatbelt) ════════════════
 // Every successful in-memory state is mirrored to the browser's own
@@ -2524,7 +2538,7 @@ function addTask() {
   appState.sched = appState.habits.map((_, i) =>
     i < appState.habits.length - 1 ? schedOf(i) : '1111111');
   if (!Array.isArray(appState.subcats)) appState.subcats = [];
-  while (appState.subcats.length < appState.habits.length) appState.subcats.push([]);
+  while (appState.subcats.length < appState.habits.length) appState.subcats.push('');
   safeSave();
   renderView();
   showToast('✓ Objective added', true);
@@ -2538,7 +2552,7 @@ function removeTask(i) {
 
 function reallyRemoveTask(i) {
   // snapshot for undo — taken before anything is destroyed
-  const snap = { index: i, name: appState.habits[i], sched: schedOf(i), subcatList: subcatsOf(i).slice(), rowData: {}, rowSubcatData: {} };
+  const snap = { index: i, name: appState.habits[i], sched: schedOf(i), subcatStr: (appState.subcats && appState.subcats[i]) || '', rowData: {}, rowSubcatData: {} };
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
     if (parseInt(k.split('_')[1], 10) === i) snap.rowData[k] = v;
@@ -2577,7 +2591,7 @@ function restoreTask(snap) {
   if (!Array.isArray(appState.sched)) appState.sched = [];
   appState.sched.splice(i, 0, snap.sched || '1111111');
   if (!Array.isArray(appState.subcats)) appState.subcats = [];
-  appState.subcats.splice(i, 0, snap.subcatList || []);
+  appState.subcats.splice(i, 0, snap.subcatStr || '');
   const newData = {}, newSubcatData = {};
   Object.entries(appState.data).forEach(([k, v]) => {
     if (!v) return;
@@ -2607,7 +2621,7 @@ function moveTask(index, direction) {
   [appState.sched[index], appState.sched[newIndex]] =
     [appState.sched[newIndex], appState.sched[index]];
   if (!Array.isArray(appState.subcats)) appState.subcats = [];
-  while (appState.subcats.length <= Math.max(index, newIndex)) appState.subcats.push([]);
+  while (appState.subcats.length <= Math.max(index, newIndex)) appState.subcats.push('');
   [appState.subcats[index], appState.subcats[newIndex]] =
     [appState.subcats[newIndex], appState.subcats[index]];
   const newData = {}, newSubcatData = {};
@@ -3394,12 +3408,12 @@ function renderSubcatEditList() {
 function addSubcatItem() {
   askInput('NEW SUB-CATEGORY', 'E.g. LEGS · CHEST · BACK', '', v => {
     if (v === null || !v.trim()) return;
-    const name = v.trim().toUpperCase().substring(0, 20);
-    if (!Array.isArray(appState.subcats)) appState.subcats = [];
-    while (appState.subcats.length <= subcatEditR) appState.subcats.push([]);
-    if (!Array.isArray(appState.subcats[subcatEditR])) appState.subcats[subcatEditR] = [];
-    if (appState.subcats[subcatEditR].includes(name)) { showToast('Already exists'); return; }
-    appState.subcats[subcatEditR].push(name);
+    const name = v.trim().toUpperCase().substring(0, 20).replace(/\|/g, ''); // '|' is the delimiter
+    if (!name) return;
+    const list = subcatsOf(subcatEditR);
+    if (list.includes(name)) { showToast('Already exists'); return; }
+    list.push(name);
+    setSubcats(subcatEditR, list);
     safeSave();
     renderSubcatEditList();
     showToast('✓ ' + name + ' added', true);
@@ -3407,9 +3421,11 @@ function addSubcatItem() {
 }
 
 function removeSubcatItem(i) {
-  if (!appState.subcats || !Array.isArray(appState.subcats[subcatEditR])) return;
-  const name = appState.subcats[subcatEditR][i];
-  appState.subcats[subcatEditR].splice(i, 1);
+  const list = subcatsOf(subcatEditR);
+  if (i < 0 || i >= list.length) return;
+  const name = list[i];
+  list.splice(i, 1);
+  setSubcats(subcatEditR, list);
   safeSave();
   renderSubcatEditList();
   showToast(name + ' removed');

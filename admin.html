@@ -503,7 +503,8 @@ function cleanVault(v) {
   out.lastDebrief = typeof v.lastDebrief === 'string' ? v.lastDebrief : '';
   out.stationOptIn = v.stationOptIn === true;
   out.subcats = Array.isArray(v.subcats)
-    ? v.subcats.map(sc => Array.isArray(sc) ? sc.map(s => String(s)).filter(Boolean) : []) : [];
+    ? v.subcats.map(sc => Array.isArray(sc) ? sc.map(s => String(s)).filter(Boolean).join('|')
+        : (typeof sc === 'string' ? sc : '')) : [];
   out.subcatData = {};
   if (v.subcatData && typeof v.subcatData === 'object' && !Array.isArray(v.subcatData)) {
     Object.entries(v.subcatData).forEach(([k, val]) => {

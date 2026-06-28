@@ -511,6 +511,37 @@ function cleanVault(v) {
       if (typeof val === 'string' && val && /^\d+_\d+_\d+$/.test(k)) out.subcatData[k] = val;
     });
   }
+  // Workout program (day/exercise template) — sanitised, never with nested arrays.
+  out.program = { dayOrder: [], days: {} };
+  if (v.program && typeof v.program === 'object' && !Array.isArray(v.program)) {
+    const order = Array.isArray(v.program.dayOrder) ? v.program.dayOrder.map(String).filter(Boolean) : [];
+    const days = (v.program.days && typeof v.program.days === 'object' && !Array.isArray(v.program.days)) ? v.program.days : {};
+    out.program.dayOrder = order;
+    order.forEach(dn => {
+      const d = days[dn] || {};
+      const exOrder = Array.isArray(d.exOrder) ? d.exOrder.map(String).filter(Boolean) : [];
+      const exIn = (d.ex && typeof d.ex === 'object' && !Array.isArray(d.ex)) ? d.ex : {};
+      const ex = {};
+      exOrder.forEach(en => {
+        const e = exIn[en] || {};
+        ex[en] = { sets: parseInt(e.sets, 10) || 3, reps: typeof e.reps === 'string' ? e.reps : String(e.reps || '8-12') };
+      });
+      out.program.days[dn] = { exOrder, ex };
+    });
+  }
+  // Workout session log — setList stays an array of "weightxreps" strings (Firestore-safe).
+  out.workoutLog = {};
+  if (v.workoutLog && typeof v.workoutLog === 'object' && !Array.isArray(v.workoutLog)) {
+    Object.entries(v.workoutLog).forEach(([dk, s]) => {
+      if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+      const exIn = (s.ex && typeof s.ex === 'object' && !Array.isArray(s.ex)) ? s.ex : {};
+      const ex = {};
+      Object.entries(exIn).forEach(([en, e]) => {
+        if (e && Array.isArray(e.setList)) ex[en] = { setList: e.setList.map(String) };
+      });
+      out.workoutLog[dk] = { day: String(s.day || ''), ts: typeof s.ts === 'number' ? s.ts : 0, ex };
+    });
+  }
   return out;
 }
 

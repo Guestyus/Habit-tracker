@@ -1,6 +1,6 @@
 /* Q BRANCH SERVICE WORKER — offline courier for Mission: Consistency */
-const CACHE = 'mission-cache-v7';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png'];
+const CACHE = 'mission-cache-v8';
+const SHELL = ['./', './index.html', './admin.html', './workout.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(

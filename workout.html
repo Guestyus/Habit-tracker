@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#070708">
+<title>Q Branch · Training Program</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#6fa3aa;--primary-bright:#9cc4ca;--primary-light:rgba(111,163,170,.10);--primary-glow:rgba(111,163,170,.30);
+  --gold:#c9a437;--gold-bright:#e8c96a;--gold-glow:rgba(201,164,55,.35);
+  --red:#a8132c;--bg:#060607;--surface:#0a0a0c;--surface-2:#0e0f12;--surface-3:#141519;
+  --border:#1c1d23;--text:#eeece4;--muted:#92907f;--dim:#76746a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Oswald',sans-serif;min-height:100vh;font-size:16px;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1000px;margin:0 auto;padding:0 18px 90px}
+
+.strip{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  background:#0a0a0d;border-bottom:1px solid var(--border);padding:13px 14px;
+  font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.strip b{color:var(--red)}
+.strip a{color:var(--primary);text-decoration:none;letter-spacing:2px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{50%{opacity:.4}}
+#chiefOut{cursor:pointer;color:var(--muted);padding:4px}
+#chiefOut:hover{color:var(--red)}
+
+h1{font-family:'Cinzel',serif;font-size:2rem;letter-spacing:6px;color:var(--primary);margin:32px 0 6px;text-align:center;text-shadow:0 0 24px var(--primary-glow)}
+.sub{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:6px}
+.coord-read{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:3px;color:var(--muted);opacity:.5;text-transform:uppercase;text-align:center;margin-bottom:28px}
+
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+  border:1px solid var(--border);padding:10px 22px;cursor:pointer;transition:all .15s;border-radius:4px;background:var(--surface-2)}
+.tab:hover{color:var(--primary);border-color:var(--primary)}
+.tab.on{color:#0a0a0c;background:var(--primary);border-color:var(--primary);font-weight:600}
+
+.bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.btn{height:42px;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--primary);background:transparent;color:var(--primary);font-weight:600;cursor:pointer;font-size:.78rem;
+  font-family:'Oswald',sans-serif;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;transition:all .15s;border-radius:4px}
+.btn:hover{background:var(--primary);color:#0a0a0c}
+.btn.solid{background:var(--primary);color:#0a0a0c}
+.btn.solid:hover{background:var(--primary-bright)}
+.btn.ghost{border-color:var(--border);color:var(--muted)}
+.btn.ghost:hover{border-color:var(--primary);color:var(--primary);background:transparent}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.danger:hover{background:var(--red);color:#fff}
+.btn.sm{height:34px;padding:0 12px;font-size:.7rem}
+
+/* day cards */
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.day{background:var(--surface-2);border:1px solid var(--border);border-top:2px solid var(--primary);border-radius:6px;overflow:hidden}
+.day-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(111,163,170,.06),transparent)}
+.day-name{font-family:'Cinzel',serif;font-size:1.2rem;letter-spacing:2px;color:var(--primary)}
+.day-meta{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.ex-list{padding:8px 12px}
+.ex-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--border)}
+.ex-item:last-child{border-bottom:none}
+.ex-name{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;font-size:.86rem;text-transform:uppercase;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ex-target{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--gold-bright);letter-spacing:.5px;white-space:nowrap}
+.ex-del{background:none;border:none;color:var(--red);font-size:1.2rem;cursor:pointer;line-height:1;padding:0 4px;flex-shrink:0}
+.ex-empty{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;padding:12px 8px;text-align:center}
+.day-actions{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+.day-actions .btn{flex:1}
+
+/* log / session view */
+.log-ex{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:5px;padding:16px 18px;margin-bottom:14px}
+.log-ex-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.log-ex-name{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1.5px;font-size:1.05rem;text-transform:uppercase}
+.log-ex-target{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--gold-bright);letter-spacing:.5px}
+.log-last{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--dim);letter-spacing:.5px;margin-bottom:12px}
+.log-last b{color:var(--muted)}
+.set-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.set-num{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted);letter-spacing:1px;width:46px;flex-shrink:0;text-transform:uppercase}
+.set-in{width:80px;flex:1;max-width:110px;height:42px;background:var(--surface);border:1px solid var(--border);color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:.95rem;text-align:center;border-radius:4px;outline:none}
+.set-in:focus{border-color:var(--primary);box-shadow:0 0 10px var(--primary-glow)}
+.set-x{font-family:'IBM Plex Mono',monospace;color:var(--dim);font-size:.9rem}
+.set-del{background:none;border:none;color:var(--red);font-size:1.3rem;cursor:pointer;line-height:1;padding:0 6px}
+.add-set{background:none;border:1px dashed var(--border);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.66rem;
+  letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;cursor:pointer;border-radius:4px;margin-top:4px}
+.add-set:hover{border-color:var(--primary);color:var(--primary)}
+.log-foot{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,10,.97);border-top:1px solid var(--primary);
+  padding:14px 18px;backdrop-filter:blur(12px);z-index:50;display:none}
+.log-foot.show{display:block}
+.log-foot-inner{max-width:1000px;margin:0 auto;display:flex;gap:12px;align-items:center}
+.log-foot .btn{flex:1;height:50px}
+
+/* history */
+.hist{background:var(--surface-2);border:1px solid var(--border);border-radius:5px;margin-bottom:10px;overflow:hidden}
+.hist-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;cursor:pointer}
+.hist-head:hover{background:var(--surface-3)}
+.hist-day{font-family:'Cinzel',serif;font-size:1.05rem;letter-spacing:2px;color:var(--primary)}
+.hist-date{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--gold-bright);letter-spacing:1px}
+.hist-meta{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);letter-spacing:.5px}
+.hist-body{display:none;padding:4px 18px 16px;border-top:1px solid var(--border)}
+.hist.open .hist-body{display:block}
+.hist-ex{padding:8px 0;border-bottom:1px dotted var(--border)}
+.hist-ex:last-child{border-bottom:none}
+.hist-ex-name{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;font-size:.82rem;text-transform:uppercase}
+.hist-sets{font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);letter-spacing:.5px;margin-top:3px}
+
+.empty{font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;text-align:center;padding:50px 18px;line-height:2}
+.loading{font-family:'IBM Plex Mono',monospace;font-size:.76rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;text-align:center;padding:60px 0}
+
+/* gate */
+#gate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px;text-align:center}
+.g-title{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:5px;color:var(--primary);margin-bottom:10px}
+.g-sub{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:28px;line-height:2}
+.g-err{display:none;margin-top:18px;max-width:460px;padding:12px 16px;border:1px solid var(--red);color:#e08a99;
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;line-height:1.8;text-align:left}
+
+/* input modal */
+#inputModal{position:fixed;inset:0;background:rgba(5,5,6,.92);z-index:300;display:none;flex-direction:column;backdrop-filter:blur(6px)}
+.modal-content{margin-top:auto;background:var(--surface);border-top:2px solid var(--primary);padding:26px;animation:slideUp .26s ease-out;border-radius:9px 9px 0 0}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal-title{font-family:'Cinzel',serif;font-size:1.35rem;letter-spacing:2px;color:var(--primary)}
+.modal-sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-top:4px}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:1.2rem;width:38px;height:38px;cursor:pointer;border-radius:4px}
+.modal-close:hover{border-color:var(--primary);color:var(--primary)}
+.im-field{width:100%;margin-top:18px;padding:14px;background:var(--surface-2);border:1px solid var(--primary);color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:1rem;outline:none;border-radius:4px}
+.im-btns{display:flex;gap:10px;margin-top:16px}
+.im-cancel{flex:1;padding:13px;background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:4px}
+.im-cancel:hover{border-color:var(--red);color:var(--red)}
+.im-confirm{flex:2;padding:13px;background:var(--primary);border:none;color:#0a0a0c;
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:4px}
+.im-confirm:hover{background:var(--primary-bright)}
+
+/* toast */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface-3);border:1px solid var(--border);
+  color:var(--text);padding:11px 22px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:1.5px;
+  text-transform:uppercase;opacity:0;transition:opacity .25s,transform .25s;z-index:400;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.6);max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.green{background:var(--primary);border-color:var(--primary);color:#0a0a0c;font-weight:500}
+
+@media(max-width:600px){
+  h1{font-size:1.5rem;letter-spacing:4px}
+  .wrap{padding:0 12px 100px}
+  .days{grid-template-columns:1fr}
+  .set-in{max-width:none}
+}
+</style>
+</head>
+<body>
+
+<div class="strip"><span class="dot"></span><b>CLASSIFIED</b> · TRAINING PROGRAM · <a href="./index.html" title="Return to dashboard">‹ DASHBOARD</a> · <span id="chiefOut" onclick="signOut()" style="display:none">SIGN OUT</span></div>
+
+<div class="wrap">
+  <h1>TRAINING PROGRAM</h1>
+  <div class="sub">Q Branch · Strength &amp; Conditioning</div>
+  <div class="coord-read">27.4705&deg; S, 153.0260&deg; E · STATION BNE · PHYSICAL READINESS</div>
+
+  <div class="tabs">
+    <div class="tab on" id="tabProgram" onclick="showTab('program')">▦ Program</div>
+    <div class="tab" id="tabHistory" onclick="showTab('history')">⌚ History</div>
+  </div>
+
+  <div id="programView">
+    <div class="bar">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase" id="programSub"></div>
+      <button class="btn solid" onclick="addDay()">+ Add Workout Day</button>
+    </div>
+    <div id="daysContainer"><div class="loading">Establishing secure link…</div></div>
+  </div>
+
+  <div id="logView" style="display:none">
+    <div class="bar">
+      <button class="btn ghost sm" onclick="showTab('program')">‹ Back to Program</button>
+      <div class="hist-day" id="logDayName" style="font-size:1.3rem"></div>
+    </div>
+    <div id="logBody"></div>
+  </div>
+
+  <div id="historyView" style="display:none">
+    <div id="historyBody"><div class="loading">Loading session log…</div></div>
+  </div>
+</div>
+
+<div class="log-foot" id="logFoot">
+  <div class="log-foot-inner">
+    <button class="btn ghost" onclick="showTab('program')">Cancel</button>
+    <button class="btn solid" onclick="saveSession()">✓ Log Session</button>
+  </div>
+</div>
+
+<div id="gate">
+  <div class="g-title">IDENTIFICATION REQUIRED</div>
+  <div class="g-sub">Verify to access your training program.</div>
+  <button class="im-confirm" style="max-width:280px" onclick="signIn()">◉ Verify with Google</button>
+  <div class="g-err" id="gateErr"></div>
+</div>
+
+<div id="inputModal">
+  <div class="modal-content">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="imTitle">INPUT</div>
+        <div class="modal-sub" id="imSub"></div>
+      </div>
+      <button class="modal-close" onclick="cancelInput()">✕</button>
+    </div>
+    <input type="text" id="imField" class="im-field" autocomplete="off" spellcheck="false">
+    <div class="im-btns">
+      <button class="im-cancel" onclick="cancelInput()">Abort</button>
+      <button class="im-confirm" onclick="submitInput()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+// ════════ FIREBASE ════════
+firebase.initializeApp({
+  apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4",
+  authDomain: "habit-tracker-48336.firebaseapp.com",
+  projectId: "habit-tracker-48336",
+  storageBucket: "habit-tracker-48336.firebasestorage.app",
+  messagingSenderId: "197128681235",
+  appId: "1:197128681235:web:7afcfb89fcec875256cce6"
+});
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+
+// ════════ HELPERS ════════
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const pad2 = x => String(x).padStart(2, '0');
+const today = new Date();
+const Y = today.getFullYear();
+const M = today.getMonth();
+const D = today.getDate() - 1;          // 0-indexed (matches dashboard data keys)
+const isoToday = Y + '-' + pad2(M + 1) + '-' + pad2(today.getDate());
+
+function showToast(msg, green) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('green', !!green);
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show', 'green'), 2600);
+}
+
+// ════════ STATE ════════
+let curUser = null, vaultRef = null, docExists = false;
+let vault = {};                 // full current-year vault doc (for habit auto-tick)
+let prog = { dayOrder: [], days: {} };   // {dayOrder:[names], days:{name:{exOrder:[],ex:{name:{sets,reps}}}}}
+let log = {};                  // {isoDate:{day,ts,ex:{name:{setList:["60x10",...]}}}}
+let curLogDay = null;          // day name being logged
+
+// ════════ AUTH ════════
+function signIn() {
+  $('gateErr').style.display = 'none';
+  const p = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(p).catch(err => {
+    if (err.code === 'auth/popup-blocked') { auth.signInWithRedirect(p); return; }
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    const e = $('gateErr'); e.textContent = 'Verification failed: ' + (err.message || err.code); e.style.display = 'block';
+  });
+}
+function signOut() { auth.signOut(); }
+function gate(on) { $('gate').style.display = on ? 'flex' : 'none'; }
+
+auth.getRedirectResult().catch(() => {});
+auth.onAuthStateChanged(u => {
+  $('chiefOut').style.display = u ? 'inline' : 'none';
+  if (!u) { gate(true); return; }
+  gate(false);
+  curUser = u;
+  vaultRef = db.collection('dashboards').doc(u.uid).collection('years').doc(String(Y));
+  loadVault();
+});
+
+// ════════ LOAD ════════
+async function loadVault() {
+  $('daysContainer').innerHTML = '<div class="loading">Decrypting program…</div>';
+  try {
+    const doc = await vaultRef.get();
+    docExists = doc.exists;
+    vault = doc.exists ? (doc.data() || {}) : {};
+    prog = normalizeProgram(vault.program);
+    log = (vault.workoutLog && typeof vault.workoutLog === 'object' && !Array.isArray(vault.workoutLog)) ? vault.workoutLog : {};
+    renderProgram();
+    renderHistory();
+  } catch (err) {
+    $('daysContainer').innerHTML = '<div class="empty">Vault sealed: ' + esc(err.code || err.message)
+      + '<br><br>Ensure the year-vault rules (dashboards/{uid}/years/{year}) are published.</div>';
+  }
+}
+
+function normalizeProgram(p) {
+  const out = { dayOrder: [], days: {} };
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return out;
+  out.dayOrder = Array.isArray(p.dayOrder) ? p.dayOrder.map(String).filter(Boolean) : [];
+  const days = (p.days && typeof p.days === 'object' && !Array.isArray(p.days)) ? p.days : {};
+  out.dayOrder.forEach(dn => {
+    const d = days[dn] || {};
+    const exOrder = Array.isArray(d.exOrder) ? d.exOrder.map(String).filter(Boolean) : [];
+    const exIn = (d.ex && typeof d.ex === 'object' && !Array.isArray(d.ex)) ? d.ex : {};
+    const ex = {};
+    exOrder.forEach(en => {
+      const e = exIn[en] || {};
+      ex[en] = { sets: parseInt(e.sets, 10) || 3, reps: typeof e.reps === 'string' ? e.reps : String(e.reps || '8-12') };
+    });
+    out.days[dn] = { exOrder, ex };
+  });
+  return out;
+}
+
+// ════════ PERSIST (Firestore-safe: no nested arrays) ════════
+async function ensureDoc() {
+  if (docExists) return;
+  await vaultRef.set({ program: prog, workoutLog: log }, { merge: true });
+  docExists = true;
+}
+async function saveProgram() {
+  try { await ensureDoc(); await vaultRef.update({ program: prog }); }
+  catch (err) { showToast('⚠ Save failed: ' + (err.code || err.message)); }
+}
+async function saveLog() {
+  try { await ensureDoc(); await vaultRef.update({ workoutLog: log }); }
+  catch (err) { showToast('⚠ Save failed: ' + (err.code || err.message)); }
+}
+
+// ════════ TABS / VIEWS ════════
+function showTab(which) {
+  $('programView').style.display = which === 'program' ? 'block' : 'none';
+  $('historyView').style.display = which === 'history' ? 'block' : 'none';
+  $('logView').style.display = which === 'log' ? 'block' : 'none';
+  $('logFoot').classList.toggle('show', which === 'log');
+  $('tabProgram').classList.toggle('on', which === 'program');
+  $('tabHistory').classList.toggle('on', which === 'history');
+  if (which === 'history') renderHistory();
+  if (which !== 'log') curLogDay = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════ PROGRAM VIEW ════════
+function renderProgram() {
+  $('programSub').textContent = prog.dayOrder.length
+    ? prog.dayOrder.length + ' workout day' + (prog.dayOrder.length > 1 ? 's' : '') + ' · ' + Y
+    : '';
+  const c = $('daysContainer');
+  if (!prog.dayOrder.length) {
+    c.innerHTML = '<div class="empty">No workout days yet.<br>Add your first split day (e.g. PUSH, PULL, LEGS) to begin.</div>';
+    return;
+  }
+  c.innerHTML = '<div class="days">' + prog.dayOrder.map(dn => {
+    const d = prog.days[dn];
+    const exHtml = d.exOrder.length
+      ? d.exOrder.map(en => {
+          const e = d.ex[en];
+          return '<div class="ex-item">'
+            + '<span class="ex-name">' + esc(en) + '</span>'
+            + '<span class="ex-target">' + e.sets + ' × ' + esc(e.reps) + '</span>'
+            + '<button class="ex-del" title="Remove exercise" onclick="removeExercise(' + js(dn) + ',' + js(en) + ')">×</button>'
+            + '</div>';
+        }).join('')
+      : '<div class="ex-empty">No exercises — add one below</div>';
+    return '<div class="day">'
+      + '<div class="day-head"><div><div class="day-name">' + esc(dn) + '</div>'
+      + '<div class="day-meta">' + d.exOrder.length + ' exercise' + (d.exOrder.length === 1 ? '' : 's') + '</div></div>'
+      + '<button class="ex-del" title="Delete day" onclick="removeDay(' + js(dn) + ')">×</button></div>'
+      + '<div class="ex-list">' + exHtml + '</div>'
+      + '<div class="day-actions">'
+      + '<button class="btn ghost sm" onclick="addExercise(' + js(dn) + ')">+ Exercise</button>'
+      + '<button class="btn solid sm" ' + (d.exOrder.length ? '' : 'disabled style="opacity:.4;cursor:not-allowed"') + ' onclick="startLog(' + js(dn) + ')">▶ Train</button>'
+      + '</div></div>';
+  }).join('') + '</div>';
+}
+
+// safe single-quoted JS string literal for inline onclick handlers
+function js(s) { return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+
+function addDay() {
+  askInput('NEW WORKOUT DAY', 'E.g. PUSH · PULL · LEGS · UPPER · LOWER', '', v => {
+    if (v === null) return;
+    const name = v.trim().toUpperCase();
+    if (!name) return;
+    if (prog.days[name]) { showToast('Day already exists'); return; }
+    prog.dayOrder.push(name);
+    prog.days[name] = { exOrder: [], ex: {} };
+    saveProgram();
+    renderProgram();
+    showToast('✓ ' + name + ' added', true);
+  });
+}
+
+function removeDay(dn) {
+  askInput('DELETE DAY', '"' + dn + '" and its exercise list will be removed (logged history is kept).', '', v => {
+    if (v === null) return;
+    prog.dayOrder = prog.dayOrder.filter(x => x !== dn);
+    delete prog.days[dn];
+    saveProgram();
+    renderProgram();
+    showToast(dn + ' deleted');
+  }, { confirm: true });
+}
+
+function addExercise(dn) {
+  askInput('NEW EXERCISE', 'Exercise name (e.g. BENCH PRESS)', '', v => {
+    if (v === null) return;
+    const name = v.trim().toUpperCase();
+    if (!name) return;
+    if (prog.days[dn].ex[name]) { showToast('Exercise already exists'); return; }
+    askInput('TARGET SETS', name + ' — how many sets?', '3', sv => {
+      if (sv === null) return;
+      const sets = Math.max(1, Math.min(20, parseInt(sv, 10) || 3));
+      askInput('TARGET REPS', name + ' — rep target (e.g. 8-12 or 5)', '8-12', rv => {
+        if (rv === null) return;
+        const reps = (rv.trim() || '8-12').substring(0, 12);
+        prog.days[dn].exOrder.push(name);
+        prog.days[dn].ex[name] = { sets, reps };
+        saveProgram();
+        renderProgram();
+        showToast('✓ ' + name + ' added', true);
+      });
+    }, { numeric: true });
+  });
+}
+
+function removeExercise(dn, en) {
+  prog.days[dn].exOrder = prog.days[dn].exOrder.filter(x => x !== en);
+  delete prog.days[dn].ex[en];
+  saveProgram();
+  renderProgram();
+  showToast(en + ' removed');
+}
+
+// ════════ LOG SESSION ════════
+function lastSessionFor(en) {
+  let bestKey = null;
+  Object.keys(log).forEach(k => {
+    if (k >= isoToday) return;                       // only prior sessions
+    const e = log[k] && log[k].ex && log[k].ex[en];
+    if (e && Array.isArray(e.setList) && e.setList.length) {
+      if (!bestKey || k > bestKey) bestKey = k;
+    }
+  });
+  return bestKey ? { date: bestKey, setList: log[bestKey].ex[en].setList } : null;
+}
+
+function parseSet(s) {
+  const m = String(s).split('x');
+  return { weight: (m[0] || '').trim(), reps: (m[1] || '').trim() };
+}
+
+function startLog(dn) {
+  curLogDay = dn;
+  $('logDayName').textContent = dn;
+  const d = prog.days[dn];
+  const dateStr = today.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+  let html = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:.66rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:16px">SESSION · ' + dateStr + '</div>';
+  d.exOrder.forEach(en => {
+    const e = d.ex[en];
+    const last = lastSessionFor(en);
+    let lastLine = '';
+    if (last) {
+      const dt = new Date(last.date + 'T00:00:00');
+      const lbl = dt.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }).toUpperCase();
+      lastLine = '<div class="log-last"><b>LAST · ' + lbl + ':</b> ' + esc(last.setList.join('  ·  ')) + '</div>';
+    } else {
+      lastLine = '<div class="log-last"><b>No prior data</b> — set your baseline</div>';
+    }
+    // prefill rows from last session, else target set count
+    const rows = [];
+    const count = last ? last.setList.length : e.sets;
+    for (let i = 0; i < count; i++) {
+      const prev = last ? parseSet(last.setList[i]) : { weight: '', reps: '' };
+      rows.push(setRowHtml(en, i, prev.weight, prev.reps, e.reps));
+    }
+    html += '<div class="log-ex" data-ex="' + esc(en) + '">'
+      + '<div class="log-ex-head"><span class="log-ex-name">' + esc(en) + '</span>'
+      + '<span class="log-ex-target">TARGET ' + e.sets + ' × ' + esc(e.reps) + '</span></div>'
+      + lastLine
+      + '<div class="set-rows">' + rows.join('') + '</div>'
+      + '<button class="add-set" onclick="addSetRow(this)">+ Set</button>'
+      + '</div>';
+  });
+  $('logBody').innerHTML = html;
+  showTab('log');
+}
+
+function setRowHtml(en, i, weight, reps, repsPlaceholder) {
+  return '<div class="set-row">'
+    + '<span class="set-num">SET ' + (i + 1) + '</span>'
+    + '<input class="set-in set-w" type="number" inputmode="decimal" step="0.5" placeholder="kg" value="' + esc(weight) + '">'
+    + '<span class="set-x">×</span>'
+    + '<input class="set-in set-r" type="number" inputmode="numeric" placeholder="' + esc(repsPlaceholder || 'reps') + '" value="' + esc(reps) + '">'
+    + '<button class="set-del" title="Remove set" onclick="delSetRow(this)">×</button>'
+    + '</div>';
+}
+
+function addSetRow(btn) {
+  const exBox = btn.closest('.log-ex');
+  const rows = exBox.querySelector('.set-rows');
+  const n = rows.querySelectorAll('.set-row').length;
+  const div = document.createElement('div');
+  div.innerHTML = setRowHtml('', n, '', '', '');
+  rows.appendChild(div.firstChild);
+  renumberSets(exBox);
+}
+
+function delSetRow(btn) {
+  const exBox = btn.closest('.log-ex');
+  btn.closest('.set-row').remove();
+  renumberSets(exBox);
+}
+
+function renumberSets(exBox) {
+  exBox.querySelectorAll('.set-row .set-num').forEach((el, i) => { el.textContent = 'SET ' + (i + 1); });
+}
+
+async function saveSession() {
+  if (!curLogDay) return;
+  const exData = {};
+  let anySet = false;
+  document.querySelectorAll('#logBody .log-ex').forEach(box => {
+    const en = box.dataset.ex;
+    const setList = [];
+    box.querySelectorAll('.set-row').forEach(row => {
+      const w = row.querySelector('.set-w').value.trim();
+      const r = row.querySelector('.set-r').value.trim();
+      if (w === '' && r === '') return;              // skip empty rows
+      setList.push(w + 'x' + r);                     // "60x10" — Firestore-safe string
+    });
+    if (setList.length) { exData[en] = { setList }; anySet = true; }
+  });
+  if (!anySet) { showToast('Log at least one set, agent'); return; }
+
+  log[isoToday] = { day: curLogDay, ts: Date.now(), ex: exData };
+  await saveLog();
+  const ticked = await tickWorkout(curLogDay);
+  renderHistory();
+  showToast(ticked ? '✓ Session logged · WORKOUT ticked' : '✓ Session logged', true);
+  showTab('history');
+}
+
+// Auto-tick the dashboard WORKOUT objective for today + tag its sub-category.
+async function tickWorkout(dayName) {
+  const habits = Array.isArray(vault.habits) ? vault.habits : [];
+  const r = habits.findIndex(h => /workout/i.test(String(h)));
+  if (r < 0) return false;
+  const k = M + '_' + r + '_' + D;                   // matches dashboard key(m,r,d)
+  try {
+    await ensureDoc();
+    await vaultRef.update(
+      new firebase.firestore.FieldPath('data', k), true,
+      new firebase.firestore.FieldPath('subcatData', k), dayName
+    );
+    if (!vault.data) vault.data = {}; vault.data[k] = true;
+    if (!vault.subcatData) vault.subcatData = {}; vault.subcatData[k] = dayName;
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// ════════ HISTORY VIEW ════════
+function renderHistory() {
+  const c = $('historyBody');
+  if (!c) return;
+  const keys = Object.keys(log).filter(k => log[k] && typeof log[k] === 'object').sort().reverse();
+  if (!keys.length) {
+    c.innerHTML = '<div class="empty">No sessions logged yet.<br>Train a day from the Program tab to start your record.</div>';
+    return;
+  }
+  c.innerHTML = keys.map(k => {
+    const s = log[k];
+    const exNames = (s.ex && typeof s.ex === 'object') ? Object.keys(s.ex) : [];
+    let totalSets = 0;
+    exNames.forEach(en => { if (Array.isArray(s.ex[en].setList)) totalSets += s.ex[en].setList.length; });
+    const dt = new Date(k + 'T00:00:00');
+    const dateLbl = dt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+    const body = exNames.map(en =>
+      '<div class="hist-ex"><div class="hist-ex-name">' + esc(en) + '</div>'
+      + '<div class="hist-sets">' + esc((s.ex[en].setList || []).join('   ·   ')) + '</div></div>'
+    ).join('');
+    return '<div class="hist" onclick="this.classList.toggle(\'open\')">'
+      + '<div class="hist-head"><div><span class="hist-day">' + esc(s.day || 'SESSION') + '</span>'
+      + '<div class="hist-meta">' + exNames.length + ' exercise' + (exNames.length === 1 ? '' : 's') + ' · ' + totalSets + ' sets</div></div>'
+      + '<span class="hist-date">' + dateLbl + '</span></div>'
+      + '<div class="hist-body">' + body + '</div></div>';
+  }).join('');
+}
+
+// ════════ INPUT MODAL ════════
+let imCb = null;
+function askInput(title, sub, initial, cb, opts) {
+  opts = opts || {};
+  imCb = cb;
+  $('imTitle').textContent = title;
+  $('imSub').textContent = sub || '';
+  const f = $('imField');
+  f.value = initial || '';
+  f.inputMode = opts.numeric ? 'numeric' : 'text';
+  f.style.display = opts.confirm ? 'none' : 'block';
+  $('inputModal').style.display = 'flex';
+  if (!opts.confirm) setTimeout(() => { f.focus(); f.select(); }, 60);
+}
+function submitInput() {
+  const v = $('imField').value;
+  $('inputModal').style.display = 'none';
+  if (imCb) { const cb = imCb; imCb = null; cb(v); }
+}
+function cancelInput() {
+  if ($('inputModal').style.display !== 'flex') return;
+  $('inputModal').style.display = 'none';
+  if (imCb) { const cb = imCb; imCb = null; cb(null); }
+}
+$('inputModal').addEventListener('click', e => { if (e.target.id === 'inputModal') cancelInput(); });
+$('imField').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); submitInput(); }
+  if (e.key === 'Escape') { e.preventDefault(); cancelInput(); }
+  e.stopPropagation();
+});
+
+// ════════ SERVICE WORKER ════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

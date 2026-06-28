@@ -171,7 +171,10 @@ h1{font-family:'Cinzel',serif;font-size:2rem;letter-spacing:6px;color:var(--prim
   <div id="programView">
     <div class="bar">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase" id="programSub"></div>
-      <button class="btn solid" onclick="addDay()">+ Add Workout Day</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" onclick="load007()" title="Load the ready-made 007 Protocol">◉ Load 007 Protocol</button>
+        <button class="btn solid" onclick="addDay()">+ Add Workout Day</button>
+      </div>
     </div>
     <div id="daysContainer"><div class="loading">Establishing secure link…</div></div>
   </div>
@@ -265,6 +268,57 @@ let vault = {};                 // full current-year vault doc (for habit auto-t
 let prog = { dayOrder: [], days: {} };   // {dayOrder:[names], days:{name:{exOrder:[],ex:{name:{sets,reps}}}}}
 let log = {};                  // {isoDate:{day,ts,ex:{name:{setList:["60x10",...]}}}}
 let curLogDay = null;          // day name being logged
+
+// ════════ 007 PROTOCOL PRESET ════════
+// Reverse-engineered from the 007 Protocol notepad: one full-body lift run
+// Mon/Wed/Fri (3×8–10), plus the Tue easy / Sat interval runs. Firestore-safe
+// shape — string-keyed maps + string arrays only, no nested arrays.
+const PRESET_007 = {
+  dayOrder: ['007 FULL BODY', '007 RUNS'],
+  days: {
+    '007 FULL BODY': {
+      exOrder: ['LEG PRESS','LEG CURL','CHEST PRESS','LAT PULLDOWN','SHOULDER PRESS','SEATED CABLE ROW','DUMBBELL CURL','TRICEPS PUSHDOWN','ABS CIRCUIT'],
+      ex: {
+        'LEG PRESS':        { sets: 3, reps: '8-10' },
+        'LEG CURL':         { sets: 3, reps: '8-10' },
+        'CHEST PRESS':      { sets: 3, reps: '8-10' },
+        'LAT PULLDOWN':     { sets: 3, reps: '8-10' },
+        'SHOULDER PRESS':   { sets: 3, reps: '8-10' },
+        'SEATED CABLE ROW': { sets: 3, reps: '8-10' },
+        'DUMBBELL CURL':    { sets: 3, reps: '8-10' },
+        'TRICEPS PUSHDOWN': { sets: 3, reps: '8-10' },
+        'ABS CIRCUIT':      { sets: 1, reps: '8 MIN' }
+      }
+    },
+    '007 RUNS': {
+      exOrder: ['EASY RUN', 'INTERVAL RUN'],
+      ex: {
+        'EASY RUN':     { sets: 1, reps: '20-30 MIN' },
+        'INTERVAL RUN': { sets: 1, reps: '6-8x1/2MIN' }
+      }
+    }
+  }
+};
+
+function load007() {
+  const exists = prog.dayOrder.some(d => PRESET_007.dayOrder.includes(d));
+  const apply = () => {
+    PRESET_007.dayOrder.forEach(dn => {
+      if (!prog.days[dn]) prog.dayOrder.push(dn);
+      prog.days[dn] = JSON.parse(JSON.stringify(PRESET_007.days[dn])); // deep clone — never share the constant
+    });
+    saveProgram();
+    renderProgram();
+    showToast('✓ 007 Protocol loaded — train the FULL BODY day Mon/Wed/Fri', true);
+  };
+  if (exists) {
+    askInput('RELOAD 007 PROTOCOL',
+      'This resets the 007 days to the original plan. Any custom days you added are left untouched.',
+      '', v => { if (v !== null) apply(); }, { confirm: true });
+  } else {
+    apply();
+  }
+}
 
 // ════════ AUTH ════════
 function signIn() {
@@ -360,7 +414,9 @@ function renderProgram() {
     : '';
   const c = $('daysContainer');
   if (!prog.dayOrder.length) {
-    c.innerHTML = '<div class="empty">No workout days yet.<br>Add your first split day (e.g. PUSH, PULL, LEGS) to begin.</div>';
+    c.innerHTML = '<div class="empty">No workout days yet.<br><br>'
+      + '<button class="btn solid" onclick="load007()" style="margin:8px auto">◉ Load the 007 Protocol</button><br>'
+      + 'or use <b>+ Add Workout Day</b> to build your own split.</div>';
     return;
   }
   c.innerHTML = '<div class="days">' + prog.dayOrder.map(dn => {

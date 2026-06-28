@@ -95,6 +95,19 @@ h1{font-family:'Cinzel',serif;font-size:2rem;letter-spacing:6px;color:var(--prim
 .log-foot.show{display:block}
 .log-foot-inner{max-width:1000px;margin:0 auto;display:flex;gap:12px;align-items:center}
 .log-foot .btn{flex:1;height:50px}
+/* rest timer */
+.rest-bar{max-width:1000px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.rest-lbl{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-right:2px}
+.rest-time{font-family:'IBM Plex Mono',monospace;font-size:1.35rem;letter-spacing:2px;min-width:118px;text-align:center;
+  background:var(--surface-3);border:1px solid var(--primary);color:var(--primary);padding:8px 16px;border-radius:6px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.rest-time.running{background:var(--primary);color:#0a0a0c;font-weight:600}
+.rest-time.warn{background:transparent;border-color:var(--red);color:var(--red);animation:restPulse .8s ease-in-out infinite}
+.rest-time.done{background:var(--gold);border-color:var(--gold);color:#0a0a0c;animation:restFlash .4s ease 4}
+@keyframes restPulse{50%{opacity:.45}}
+@keyframes restFlash{50%{opacity:.25}}
+.rest-btn{font-family:'IBM Plex Mono',monospace;font-size:.74rem;background:var(--surface-2);border:1px solid var(--border);
+  color:var(--muted);padding:10px 12px;border-radius:5px;cursor:pointer;letter-spacing:1px}
+.rest-btn:hover{border-color:var(--primary);color:var(--primary)}
 
 /* history */
 .hist{background:var(--surface-2);border:1px solid var(--border);border-radius:5px;margin-bottom:10px;overflow:hidden}
@@ -193,6 +206,13 @@ h1{font-family:'Cinzel',serif;font-size:2rem;letter-spacing:6px;color:var(--prim
 </div>
 
 <div class="log-foot" id="logFoot">
+  <div class="rest-bar">
+    <span class="rest-lbl">Rest</span>
+    <button class="rest-btn" onclick="adjustRest(-15)" title="−15 sec">−15</button>
+    <button class="rest-time" id="restTime" onclick="toggleRest()" title="Tap to start / pause">1:30</button>
+    <button class="rest-btn" onclick="adjustRest(15)" title="+15 sec">+15</button>
+    <button class="rest-btn" onclick="resetRest()" title="Reset">↺</button>
+  </div>
   <div class="log-foot-inner">
     <button class="btn ghost" onclick="showTab('program')">Cancel</button>
     <button class="btn solid" onclick="saveSession()">✓ Log Session</button>
@@ -403,7 +423,8 @@ function showTab(which) {
   $('tabProgram').classList.toggle('on', which === 'program');
   $('tabHistory').classList.toggle('on', which === 'history');
   if (which === 'history') renderHistory();
-  if (which !== 'log') curLogDay = null;
+  if (which !== 'log') { curLogDay = null; resetRest(); }
+  else renderRest();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -688,6 +709,97 @@ $('imField').addEventListener('keydown', e => {
   if (e.key === 'Escape') { e.preventDefault(); cancelInput(); }
   e.stopPropagation();
 });
+
+// ════════ REST TIMER ════════
+// Sticky countdown in the session view. Default 1:30 (90s); ±15s adjust,
+// tap to start/pause, alarm (beep + vibrate + flash) at zero. The chosen
+// length is remembered per device via localStorage.
+let restDefault = parseInt(localStorage.getItem('restDefault') || '90', 10) || 90;
+let restRemaining = restDefault;
+let restInt = null, restRunning = false, restAudio = null;
+const clampRest = s => Math.max(15, Math.min(900, s));
+
+function fmtRest(s) { return Math.floor(s / 60) + ':' + pad2(s % 60); }
+
+function renderRest() {
+  const el = $('restTime');
+  if (!el) return;
+  el.textContent = fmtRest(restRemaining);
+  el.classList.toggle('running', restRunning);
+  el.classList.toggle('warn', restRunning && restRemaining <= 10);
+}
+
+function toggleRest() {
+  if (restRunning) { pauseRest(); return; }
+  if (restRemaining <= 0) restRemaining = restDefault;
+  startRest();
+}
+
+function startRest() {
+  restRunning = true;
+  // prime audio on this user gesture so the end-of-rest beep is allowed to play
+  try {
+    restAudio = restAudio || new (window.AudioContext || window.webkitAudioContext)();
+    if (restAudio.state === 'suspended') restAudio.resume();
+  } catch (e) { /* no audio — vibrate/flash still fire */ }
+  $('restTime').classList.remove('done');
+  clearInterval(restInt);
+  restInt = setInterval(() => {
+    restRemaining--;
+    if (restRemaining <= 0) { restRemaining = 0; renderRest(); finishRest(); return; }
+    renderRest();
+  }, 1000);
+  renderRest();
+}
+
+function pauseRest() {
+  restRunning = false;
+  clearInterval(restInt);
+  renderRest();
+}
+
+function resetRest() {
+  restRunning = false;
+  clearInterval(restInt);
+  restRemaining = restDefault;
+  const el = $('restTime');
+  if (el) el.classList.remove('done', 'warn', 'running');
+  renderRest();
+}
+
+function adjustRest(delta) {
+  restDefault = clampRest(restDefault + delta);
+  localStorage.setItem('restDefault', String(restDefault));
+  restRemaining = restRunning ? clampRest(restRemaining + delta) : restDefault;
+  renderRest();
+}
+
+function finishRest() {
+  restRunning = false;
+  clearInterval(restInt);
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+  restBeep();
+  const el = $('restTime');
+  if (el) { el.classList.remove('warn', 'running'); el.classList.add('done'); }
+  showToast('⏱ Rest complete — next set', true);
+  setTimeout(() => { restRemaining = restDefault; if (!restRunning) { const e = $('restTime'); if (e) e.classList.remove('done'); renderRest(); } }, 2200);
+}
+
+function restBeep() {
+  if (!restAudio) return;
+  try {
+    const t0 = restAudio.currentTime;
+    [[880, 0], [1175, 0.28]].forEach(([freq, off]) => {
+      const o = restAudio.createOscillator(), g = restAudio.createGain();
+      o.connect(g); g.connect(restAudio.destination);
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0 + off);
+      g.gain.exponentialRampToValueAtTime(0.35, t0 + off + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + off + 0.26);
+      o.start(t0 + off); o.stop(t0 + off + 0.28);
+    });
+  } catch (e) { /* best-effort */ }
+}
 
 // ════════ SERVICE WORKER ════════
 if ('serviceWorker' in navigator) {

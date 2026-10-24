@@ -902,7 +902,7 @@ th{font-size:.7rem;color:#bcb9ac}
     <div class="reg-ticks" id="regTicks"></div>
     <div class="classified-strip">
       <span class="dot-live"></span>
-      <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span><span id="trainingLink" style="display:none"> · <a href="./workout.html" style="color:var(--primary);text-decoration:none" title="Training program · weights & sets">▦ TRAINING</a></span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span><span id="mConsoleLink" style="display:none"> · <a href="./admin.html" style="color:var(--red);text-decoration:none" title="Station Chief console">M CONSOLE</a></span>
+      <b>CLASSIFIED</b><span class="strip-extra">&nbsp;· FOR YOUR EYES ONLY</span> · MISSION LOG <span id="stripYear"></span> · AGENT <span id="agentName" onclick="setCodename()" title="Click to assign your codename" style="color:var(--primary);cursor:pointer;">UNASSIGNED</span><span id="trainingLink" style="display:none"> · <a href="./workout.html" style="color:var(--primary);text-decoration:none" title="Training program · weights & sets">▦ TRAINING</a></span><span id="garminLink" style="display:none"> · <a href="./garmin.html" style="color:var(--primary);text-decoration:none" title="Garmin report · readiness, sleep, heart rate, training">◉ GARMIN</a></span> · <span id="signOutLink" onclick="signOutAgent()" style="cursor:pointer;display:none;color:var(--muted);">SIGN OUT</span><span id="mConsoleLink" style="display:none"> · <a href="./admin.html" style="color:var(--red);text-decoration:none" title="Station Chief console">M CONSOLE</a></span>
     </div>
     <div class="tabs" id="tabsContainer"></div>
 
@@ -1702,6 +1702,7 @@ if (db && auth) {
       document.getElementById('loadingText').innerText = 'Identity verified · establishing secure link...';
       if (so) { so.style.display = 'inline'; so.title = user.email || ''; }
       const tl = document.getElementById('trainingLink'); if (tl) tl.style.display = 'inline';
+      const gl = document.getElementById('garminLink'); if (gl) gl.style.display = 'inline';
       subscribeToVault();
     } else {
       appState = null;

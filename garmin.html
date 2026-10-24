@@ -879,7 +879,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
 
 // Hosted copy: no data in this file. Sign in, read the private document this account published, then run the dashboard.
@@ -891,15 +890,19 @@ firebase.auth().onAuthStateChanged(async user => {
   if (!user) { gate.hidden = false; gateBtn.hidden = false; gateMsg.textContent = GATE_TEXT; gateQuiet.textContent = ''; return; }
   gateBtn.hidden = true; gateMsg.textContent = 'Loading your data';
   try {
-    const snap = await firebase.firestore().collection('garmin').doc(user.uid).get();
-    if (!snap.exists) {
+    // Plain REST read (one GET with the ID token); the SDK's streaming channel can stall and leave this stuck on "Loading".
+    const token = await user.getIdToken();
+    const res = await fetch(`https://firestore.googleapis.com/v1/projects/habit-tracker-48336/databases/(default)/documents/garmin/${user.uid}`, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+    if (res.status === 404) {
       gateMsg.textContent = 'Nothing published for this account yet. On the PC, open the local dashboard (python serve.py) and press Publish to phone.';
       gateQuiet.innerHTML = '<a href="#" id="gateOut">Sign out</a>';
       document.getElementById('gateOut').onclick = e => { e.preventDefault(); firebase.auth().signOut(); };
       return;
     }
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.status || ('HTTP ' + res.status)); }
+    const doc = await res.json();
     gate.hidden = true;
-    runDashboard(JSON.parse(snap.data().json));
+    runDashboard(JSON.parse(doc.fields.json.stringValue));
   } catch (e) { gateMsg.textContent = 'Could not read your data: ' + (e.code || e.message); gateBtn.hidden = false; }
 });
 
@@ -2467,7 +2470,7 @@ wireFolding();
 const FB_CONFIG = { apiKey: "AIzaSyD6FAL9tEz7Cr7QXif0ERmDDJUTPs8EeZ4", authDomain: "habit-tracker-48336.firebaseapp.com", projectId: "habit-tracker-48336" };
 const loadScript = src => new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
 async function fbReady() {
-  if (!window.firebase) { for (const m of ['app', 'auth', 'firestore']) await loadScript(`https://www.gstatic.com/firebasejs/8.10.1/firebase-${m}.js`); }
+  if (!window.firebase) { for (const m of ['app', 'auth']) await loadScript(`https://www.gstatic.com/firebasejs/8.10.1/firebase-${m}.js`); }
   
   return firebase;
 }
@@ -2475,10 +2478,15 @@ $('#publish').addEventListener('click', async () => {
   const b = $('#publish'), t = b.querySelector('span'); b.disabled = true; t.textContent = 'Signing in';
   try {
     const f = await fbReady();
-    let user = f.auth().currentUser;
+    let user = await new Promise(res => { const off = f.auth().onAuthStateChanged(u => { off(); res(u); }); });  // wait for the restored session before deciding to pop the sign-in
     if (!user) user = (await f.auth().signInWithPopup(new f.auth.GoogleAuthProvider())).user;
     t.textContent = 'Publishing';
-    await f.firestore().collection('garmin').doc(user.uid).set({ json: JSON.stringify(DATA), days: all.length, last: lastDate, updated: f.firestore.FieldValue.serverTimestamp() });
+    // Plain REST write: the SDK's streaming channel can stall for minutes from a local page, a single PATCH cannot.
+    const token = await user.getIdToken();
+    const docUrl = `https://firestore.googleapis.com/v1/projects/${FB_CONFIG.projectId}/databases/(default)/documents/garmin/${user.uid}`;
+    const fields = { json: { stringValue: JSON.stringify(DATA) }, days: { integerValue: String(all.length) }, last: { stringValue: String(lastDate) }, updated: { timestampValue: new Date().toISOString() } };
+    const res = await fetch(docUrl, { method: 'PATCH', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.status || ('HTTP ' + res.status)); }
     t.textContent = 'Published to your phone';
     setTimeout(() => { t.textContent = 'Publish to phone'; b.disabled = false; }, 2500);
   } catch (e) { t.textContent = 'Publish failed: ' + (e.code || e.message || e).toString().slice(0, 40); b.disabled = false; }
